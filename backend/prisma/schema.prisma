@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  state    String
+  votes    Vote[]
+  comments Comment[]
+}
+
+model Bill {
+  id          Int      @id @default(autoincrement())
+  billId      String   @unique
+  title       String
+  summary     String
+  date        DateTime
+  votes       Vote[]
+  comments    Comment[]
+}
+
+model Vote {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  billId   Int
+  voteType String
+
+  user User @relation(fields: [userId], references: [id])
+  bill Bill @relation(fields: [billId], references: [id])
+}
+
+model Comment {
+  id       Int      @id @default(autoincrement())
+  content  String
+  userId   Int
+  billId   Int
+  date     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  bill Bill @relation(fields: [billId], references: [id])
+}
