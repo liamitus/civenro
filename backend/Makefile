@@ -3,9 +3,6 @@
 # Specify the shell to use (optional, defaults to /bin/sh)
 SHELL := /bin/bash
 
-# Phony targets are not actual files
-.PHONY: install dev migrate generate studio seed lint format test help
-
 # Variables
 DB_URL := $(shell grep DATABASE_URL .env | cut -d '=' -f2)
 
@@ -32,42 +29,52 @@ install:
 	@echo "Installing backend dependencies..."
 	npm install
 
+.PHONY: install
+
 # Run the development server
 dev:
 	@echo "Starting the development server..."
 	npm run dev
+.PHONY: dev
 
 # Run Prisma migrations
 migrate:
 	@echo "Running Prisma migrations..."
 	npx prisma migrate dev
+.PHONY: migrate
 
 # Generate Prisma client
 generate:
 	@echo "Generating Prisma client..."
 	npx prisma generate
+.PHONY: generate
 
 # Open Prisma Studio
-sql:
+studio sql:
 	@echo "Opening Prisma Studio..."
 	npx prisma studio
+.PHONY: studio sql
 
 # Seed the database
 seed:
 	@echo "Seeding the database..."
 	npx prisma db seed
+.PHONY: seed
 
 # Lint the codebase
 lint:
 	@echo "Linting the codebase..."
 	npm run lint
+.PHONY: lint
 
 # Format the codebase
 format:
 	@echo "Formatting the codebase..."
 	npm run format
+.PHONY: format
 
 # Run tests
 test:
 	@echo "Running tests..."
 	npm run test
+.PHONY: test
