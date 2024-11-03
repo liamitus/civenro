@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getBills } from '../services/billService';
 import { getVotes, submitVote } from '../services/voteService';
 import { getComments, submitComment } from '../services/commentService';
+import Comment from '../components/Comment';
 import {
   Container,
   Typography,
@@ -104,6 +105,13 @@ const BillDetailPage: React.FC = () => {
     }
   };
 
+  const refreshComments = async () => {
+    if (!bill) return;
+
+    const commentsData = await getComments(bill.id);
+    setComments(commentsData);
+  };
+
   // Aggregate vote counts
   const voteCounts = votes.reduce(
     (acc, vote) => {
@@ -193,24 +201,12 @@ const BillDetailPage: React.FC = () => {
 
         <List>
           {comments.map((comment) => (
-            <React.Fragment key={comment.id}>
-              <ListItem alignItems="flex-start">
-                <ListItemText
-                  primary={
-                    comment.user ? `User ${comment.user.id}` : 'Anonymous'
-                  }
-                  secondary={
-                    <>
-                      <Typography variant="body2" color="textPrimary">
-                        {new Date(comment.date).toLocaleString()}
-                      </Typography>
-                      <Typography variant="body1">{comment.content}</Typography>
-                    </>
-                  }
-                />
-              </ListItem>
-              <Divider component="li" />
-            </React.Fragment>
+            <Comment
+              key={comment.id}
+              comment={comment}
+              billId={bill.id}
+              refreshComments={refreshComments}
+            />
           ))}
         </List>
       </Box>

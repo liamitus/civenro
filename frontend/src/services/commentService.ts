@@ -1,18 +1,21 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5001/api/comments';
+const COMMENT_VOTES_API_URL = 'http://localhost:5001/api/comment-votes';
 
 // Function to submit a comment
 export const submitComment = async (
   billId: number,
   content: string,
-  userId?: number
+  userId?: number,
+  parentCommentId?: number
 ) => {
   try {
     const response = await axios.post(API_URL, {
       billId,
       content,
       userId, // Optional for anonymous comments
+      parentCommentId,
     });
     return response.data;
   } catch (error) {
@@ -28,6 +31,24 @@ export const getComments = async (billId: number) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching comments:', error);
+    throw error;
+  }
+};
+
+export const submitCommentVote = async (
+  commentId: number,
+  voteType: number,
+  userId?: number
+) => {
+  try {
+    const response = await axios.post(COMMENT_VOTES_API_URL, {
+      commentId,
+      voteType,
+      userId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting comment vote:', error);
     throw error;
   }
 };

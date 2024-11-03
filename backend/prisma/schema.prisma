@@ -8,23 +8,23 @@ generator client {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  state    String
-  votes    Vote[]
-  comments Comment[]
+  id          Int           @id @default(autoincrement())
+  state       String
+  votes       Vote[]
+  comments    Comment[]
+  CommentVote CommentVote[]
 }
 
 model Bill {
-  id       Int      @id @default(autoincrement())
-  billId   String   @unique
+  id       Int       @id @default(autoincrement())
+  billId   String    @unique
   title    String
   summary  String
   date     DateTime
-  link     String   // New field for the bill link
+  link     String // New field for the bill link
   votes    Vote[]
   comments Comment[]
 }
-
 
 model Vote {
   id       Int    @id @default(autoincrement())
@@ -33,18 +33,35 @@ model Vote {
   voteType String
 
   user User? @relation(fields: [userId], references: [id])
-  bill Bill @relation(fields: [billId], references: [id])
+  bill Bill  @relation(fields: [billId], references: [id])
 
   @@unique([userId, billId]) // Prevent duplicate votes by the same user
 }
 
 model Comment {
-  id       Int      @id @default(autoincrement())
-  content  String
-  userId   Int?
-  billId   Int
-  date     DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  content         String
+  userId          Int?
+  billId          Int
+  parentCommentId Int? // Added for nested comments
+  date            DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id])
-  bill Bill @relation(fields: [billId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
+  bill          Bill      @relation(fields: [billId], references: [id])
+  parentComment Comment?  @relation("CommentToReplies", fields: [parentCommentId], references: [id])
+  replies       Comment[] @relation("CommentToReplies")
+
+  CommentVote CommentVote[]
+}
+
+model CommentVote {
+  id        Int  @id @default(autoincrement())
+  userId    Int?
+  commentId Int
+  voteType  Int // 1 for upvote, -1 for downvote
+
+  user    User?   @relation(fields: [userId], references: [id])
+  comment Comment @relation(fields: [commentId], references: [id])
+
+  @@unique([userId, commentId])
 }
