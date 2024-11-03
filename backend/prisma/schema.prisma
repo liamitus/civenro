@@ -15,14 +15,16 @@ model User {
 }
 
 model Bill {
-  id          Int      @id @default(autoincrement())
-  billId      String   @unique
-  title       String
-  summary     String
-  date        DateTime
-  votes       Vote[]
-  comments    Comment[]
+  id       Int      @id @default(autoincrement())
+  billId   String   @unique
+  title    String
+  summary  String
+  date     DateTime
+  link     String   // New field for the bill link
+  votes    Vote[]
+  comments Comment[]
 }
+
 
 model Vote {
   id       Int    @id @default(autoincrement())

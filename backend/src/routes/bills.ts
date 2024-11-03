@@ -19,22 +19,20 @@ router.get('/', async (req, res) => {
       // Fetch bills from the GovTrack API
       const response = await axios.get('https://www.govtrack.us/api/v2/bill', {
         params: {
-          congress: '118', // Current Congress session (as of 2023-2024)
-          // chamber: 'senate', // Only Senate bills
+          congress: '118', // Current Congress session
           order_by: '-introduced_date', // Latest bills first
-          limit: 20, // Number of bills to fetch (adjust as needed)
+          limit: 20, // Adjust as needed
         },
       });
 
       // Process and save bills to the database
       const billsData = response.data.objects;
-
-      console.log(billsData);
       const processedBills = billsData.map((bill: any) => ({
-        billId: bill.id.toString(),
-        title: bill.title,
-        summary: bill.summary || 'No summary available.',
+        billId: bill.display_number || bill.number.toString(),
+        title: bill.title_without_number || bill.title || 'No title available.',
+        summary: bill.title_without_number || 'No summary available.',
         date: new Date(bill.introduced_date),
+        link: bill.link,
       }));
 
       // Save the bills to the database using Prisma's createMany
