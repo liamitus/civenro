@@ -1,0 +1,26 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch TypeScript with ts-node",
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register" // Register ts-node
+      ],
+      "args": [
+        "${workspaceFolder}/backend/src/index.ts" // Entry TypeScript file
+      ],
+      "cwd": "${workspaceFolder}/backend",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/backend/src/**/*.ts"], // Source maps location
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/backend/tsconfig.json" // Specify tsconfig path
+      }
+    }
+  ]
+}
