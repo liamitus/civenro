@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/votes';
+const API_URL = 'http://localhost:5001/api/votes';
 
 // Function to submit a vote
 export const submitVote = async (

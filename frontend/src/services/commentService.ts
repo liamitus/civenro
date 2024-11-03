@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/comments';
+const API_URL = 'http://localhost:5001/api/comments';
 
 // Function to submit a comment
 export const submitComment = async (
