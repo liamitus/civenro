@@ -32,10 +32,10 @@ install:
 .PHONY: install
 
 # Run the development server
-dev:
+start dev run:
 	@echo "Starting the development server..."
 	npm run dev
-.PHONY: dev
+.PHONY: start dev run
 
 # Run Prisma migrations
 migrate:
