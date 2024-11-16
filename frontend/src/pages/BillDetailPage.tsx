@@ -11,10 +11,12 @@ import {
   ButtonGroup,
   TextField,
   List,
-  ListItem,
-  ListItemText,
-  Divider,
   Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
 } from '@mui/material';
 
 interface Bill {
@@ -49,6 +51,7 @@ const BillDetailPage: React.FC = () => {
   const [bill, setBill] = useState<Bill | null>(null);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [sortOption, setSortOption] = useState('new');
   const [selectedVote, setSelectedVote] = useState<
     'For' | 'Against' | 'Abstain' | null
   >(null);
@@ -110,6 +113,12 @@ const BillDetailPage: React.FC = () => {
 
     const commentsData = await getComments(bill.id);
     setComments(commentsData);
+  };
+
+  const handleSortChange = (event: SelectChangeEvent<string>) => {
+    setSortOption(event.target.value as string);
+    // Fetch comments again with the new sort option
+    refreshComments();
   };
 
   // Aggregate vote counts
@@ -198,6 +207,18 @@ const BillDetailPage: React.FC = () => {
             Submit Comment
           </Button>
         </form>
+
+        <FormControl>
+          <InputLabel id="sort-label">Sort by</InputLabel>
+          <Select
+            labelId="sort-label"
+            value={sortOption}
+            onChange={handleSortChange}
+          >
+            <MenuItem value="new">Newest</MenuItem>
+            <MenuItem value="best">Best</MenuItem>
+          </Select>
+        </FormControl>
 
         <List>
           {comments.map((comment) => (

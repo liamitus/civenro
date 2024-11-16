@@ -58,9 +58,15 @@ router.post('/', async (req: Request, res: Response) => {
 // Retrieve comments for a specific bill
 router.get('/:billId', async (req: Request, res: Response) => {
   const { billId } = req.params;
+  const sortOption =
+    req.query.sort === 'best' ? { voteCount: 'desc' } : { date: 'desc' };
 
   try {
-    const comments = await getCommentsWithVotes(null, parseInt(billId));
+    const comments = await getCommentsWithVotes(
+      null,
+      parseInt(billId),
+      sortOption
+    );
 
     res.status(200).json(comments);
   } catch (error) {
@@ -72,7 +78,8 @@ router.get('/:billId', async (req: Request, res: Response) => {
 // Recursive function to fetch comments with vote counts and replies
 async function getCommentsWithVotes(
   parentCommentId: number | null,
-  billId: number
+  billId: number,
+  sortOption?: any
 ): Promise<any[]> {
   const comments = await prisma.comment.findMany({
     where: {
@@ -82,7 +89,7 @@ async function getCommentsWithVotes(
     include: {
       user: true,
     },
-    orderBy: { date: 'asc' }, // Oldest first for threaded conversations
+    orderBy: sortOption || { date: 'desc' },
   });
 
   // Fetch vote counts and replies for each comment
