@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Box, Typography, Button, TextField, IconButton } from '@mui/material';
 import { ThumbUp, ThumbDown } from '@mui/icons-material';
 import { submitComment, submitCommentVote } from '../services/commentService';
+import { AuthContext } from '../context/AuthContext';
+import { ModalContext } from '../context/ModalContext';
 
 interface CommentProps {
   comment: any;
@@ -14,6 +16,8 @@ const Comment: React.FC<CommentProps> = ({
   billId,
   refreshComments,
 }) => {
+  const { user } = useContext(AuthContext);
+  const { showModal } = useContext(ModalContext);
   const [replyContent, setReplyContent] = useState('');
   const [showReplyField, setShowReplyField] = useState(false);
 
@@ -30,9 +34,12 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleVote = async (voteType: number) => {
-    const userId = 1; // Replace with actual user ID if authentication is implemented
+    if (!user) {
+      showModal('auth', () => handleVote(voteType));
+      return;
+    }
     try {
-      await submitCommentVote(comment.id, voteType, userId || undefined);
+      await submitCommentVote(comment.id, voteType, user.userId || undefined);
       refreshComments();
     } catch (error) {
       console.error('Error submitting vote:', error);

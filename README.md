@@ -14,7 +14,7 @@ VoxPup is a community-driven platform designed to enhance transparency and civic
 
 ## **Features**
 
-- **Senate Bills Feed:** Browse a continuously updated feed of current Senate bills with summaries and statuses.
+- **Government Bills Feed:** Browse a continuously updated feed of current bills with summaries and statuses.
 - **User Voting:** Cast your vote on each bill—For, Against, or Abstain—and see aggregate user opinions.
 - **Discussion Forums:** Engage in conversations with other users through threaded comments and discussions.
 - **Senator Vote Tracking:** View detailed voting records of your senators on each bill, promoting accountability.
@@ -78,10 +78,10 @@ npm run dev
 
 ## **Usage**
 
-1. **Explore Bills:** Visit the home feed to see the latest Senate bills.
+1. **Explore Bills:** Visit the home feed to see the latest Government bills.
 2. **Vote:** Cast your vote on any bill and see how others have voted.
 3. **Discuss:** Join conversations by commenting on bills.
-4. **Track Senators:** Input your state to view how your senators have voted on each bill.
+4. **Track Senators:** Input your state to view how your elected officials have voted on each bill.
 
 ## **Contributing**
 

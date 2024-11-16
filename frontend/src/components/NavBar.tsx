@@ -1,10 +1,15 @@
 // frontend/src/components/NavBar.tsx
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import { ModalContext } from '../context/ModalContext';
 
 const NavBar: React.FC = () => {
+  const { user, logout } = useContext(AuthContext);
+  const { showModal } = useContext(ModalContext);
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -17,6 +22,20 @@ const NavBar: React.FC = () => {
           Bills
         </Button>
         {/* Add more navigation links as needed */}
+        {user ? (
+          <Button color="inherit" onClick={logout}>
+            Logout
+          </Button>
+        ) : (
+          <>
+            <Button color="inherit" onClick={() => showModal('auth')}>
+              Login
+            </Button>
+            <Button color="inherit" component={Link} to="/register">
+              Register
+            </Button>
+          </>
+        )}
       </Toolbar>
     </AppBar>
   );

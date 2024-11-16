@@ -2,13 +2,14 @@
 
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // POST /api/votes
 // Submit a vote on a bill
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authenticateToken, async (req: Request, res: Response) => {
   const { userId, billId, voteType } = req.body;
 
   // Basic validation

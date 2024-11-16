@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBills } from '../services/billService';
 import { getVotes, submitVote } from '../services/voteService';
@@ -18,6 +18,8 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material';
+import { AuthContext } from '../context/AuthContext';
+import { ModalContext } from '../context/ModalContext';
 
 interface Bill {
   id: number;
@@ -57,6 +59,8 @@ const BillDetailPage: React.FC = () => {
   >(null);
   const [commentContent, setCommentContent] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useContext(AuthContext);
+  const { showModal } = useContext(ModalContext);
 
   // Replace with actual user ID if authentication is implemented
   const userId: number | null = null; // null represents anonymous user
@@ -80,6 +84,10 @@ const BillDetailPage: React.FC = () => {
   }, [id]);
 
   const handleVote = async (voteType: 'For' | 'Against' | 'Abstain') => {
+    if (!user) {
+      showModal('auth', () => handleVote(voteType)); // Retry the action after login
+      return;
+    }
     if (!bill) return;
 
     try {
@@ -95,6 +103,10 @@ const BillDetailPage: React.FC = () => {
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      showModal('auth', () => handleCommentSubmit(e));
+      return;
+    }
     if (!bill || !commentContent.trim()) return;
 
     try {

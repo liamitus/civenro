@@ -38,7 +38,7 @@ export const getComments = async (billId: number) => {
 export const submitCommentVote = async (
   commentId: number,
   voteType: number,
-  userId?: number
+  userId: number
 ) => {
   try {
     const response = await axios.post(COMMENT_VOTES_API_URL, {

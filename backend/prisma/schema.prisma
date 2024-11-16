@@ -8,10 +8,12 @@ generator client {
 }
 
 model User {
-  id          Int           @id @default(autoincrement())
-  state       String
-  votes       Vote[]
-  comments    Comment[]
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  votes     Vote[]
+  comments  Comment[]
   CommentVote CommentVote[]
 }
 
