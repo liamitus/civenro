@@ -22,6 +22,8 @@ import {
 } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
+import { UserContext } from '../context/UserContext';
+import { getRepresentativesByAddress } from '../services/representativeService';
 
 interface Bill {
   id: number;
@@ -63,6 +65,8 @@ const BillDetailPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const { user } = useContext(AuthContext);
   const { showModal } = useContext(ModalContext);
+  const { address } = useContext(UserContext);
+  const [representatives, setRepresentatives] = useState([]);
 
   // Replace with actual user ID if authentication is implemented
   const userId: number | null = null; // null represents anonymous user
@@ -84,6 +88,16 @@ const BillDetailPage: React.FC = () => {
     };
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    const fetchRepresentatives = async () => {
+      if (address && bill && bill.id) {
+        const data = await getRepresentativesByAddress(address, bill.id);
+        setRepresentatives(data);
+      }
+    };
+    fetchRepresentatives();
+  }, [address, bill?.id]);
 
   const handleVote = async (voteType: 'For' | 'Against' | 'Abstain') => {
     if (!user) {
@@ -173,6 +187,23 @@ const BillDetailPage: React.FC = () => {
       <Typography variant="body2" color="textSecondary" gutterBottom>
         Date Introduced: {new Date(bill.date).toLocaleDateString()}
       </Typography>
+
+      <Box mt={4}>
+        <Typography variant="h6">Your Representatives' Votes</Typography>
+        {representatives.length === 0 ? (
+          <Typography variant="body1">No voting records available.</Typography>
+        ) : (
+          representatives.map((rep: any) => (
+            <Box key={rep.name} mt={2}>
+              <Typography variant="body1">
+                {rep.name} ({rep.party})
+              </Typography>
+              <Typography variant="body2">Office: {rep.office}</Typography>
+              <Typography variant="body2">Voted: {rep.vote}</Typography>
+            </Box>
+          ))
+        )}
+      </Box>
 
       <Box mt={4}>
         <Typography variant="h6">Vote on this Bill</Typography>

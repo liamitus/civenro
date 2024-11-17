@@ -1,8 +1,7 @@
 // frontend/src/services/voteService.ts
 
 import axios from 'axios';
-
-const API_URL = 'http://localhost:5001/api/votes';
+import { API_URL } from './API_URL';
 
 // Function to submit a vote
 export const submitVote = async (

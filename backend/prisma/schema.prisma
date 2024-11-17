@@ -8,24 +8,25 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  votes     Vote[]
-  comments  Comment[]
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String
+  createdAt   DateTime      @default(now())
+  votes       Vote[]
+  comments    Comment[]
   CommentVote CommentVote[]
 }
 
 model Bill {
-  id       Int       @id @default(autoincrement())
-  billId   String    @unique
-  title    String
-  summary  String
-  date     DateTime
-  link     String // New field for the bill link
-  votes    Vote[]
-  comments Comment[]
+  id      Int                  @id @default(autoincrement())
+  billId  String               @unique
+  title   String
+  summary String
+  date    DateTime
+  link    String
+  votes   RepresentativeVote[]
+  Vote    Vote[]
+  Comment Comment[]
 }
 
 model Vote {
@@ -35,7 +36,7 @@ model Vote {
   voteType String
 
   user User @relation(fields: [userId], references: [id])
-  bill Bill  @relation(fields: [billId], references: [id])
+  bill Bill @relation(fields: [billId], references: [id])
 
   @@unique([userId, billId]) // Prevent duplicate votes by the same user
 }
@@ -48,7 +49,7 @@ model Comment {
   parentCommentId Int? // Added for nested comments
   date            DateTime @default(now())
 
-  user          User     @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
   bill          Bill      @relation(fields: [billId], references: [id])
   parentComment Comment?  @relation("CommentToReplies", fields: [parentCommentId], references: [id])
   replies       Comment[] @relation("CommentToReplies")
@@ -57,13 +58,36 @@ model Comment {
 }
 
 model CommentVote {
-  id        Int  @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   userId    Int
   commentId Int
   voteType  Int // 1 for upvote, -1 for downvote
 
-  user    User   @relation(fields: [userId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
   comment Comment @relation(fields: [commentId], references: [id])
 
   @@unique([userId, commentId])
+}
+
+model Representative {
+  id                  Int                  @id @default(autoincrement())
+  firstName           String
+  lastName            String
+  state               String
+  district            String? // For House representatives
+  party               String
+  chamber             String // 'house' or 'senate'
+  RepresentativeVotes RepresentativeVote[]
+}
+
+model RepresentativeVote {
+  id               Int    @id @default(autoincrement())
+  representativeId Int
+  billId           Int
+  vote             String // 'Yea', 'Nay', 'Present', 'Not Voting', etc.
+
+  representative Representative @relation(fields: [representativeId], references: [id])
+  bill           Bill           @relation(fields: [billId], references: [id])
+
+  @@unique([representativeId, billId])
 }
