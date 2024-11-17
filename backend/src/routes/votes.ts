@@ -10,7 +10,13 @@ const prisma = new PrismaClient();
 // POST /api/votes
 // Submit a vote on a bill
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
-  const { userId, billId, voteType } = req.body;
+  // Access req.user, making sure to handle the possibility that it might be undefined
+  if (!req.user || !req.user.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { billId, voteType } = req.body;
+  const userId = req.user.userId;
 
   // Basic validation
   if (!billId || !voteType) {
@@ -31,40 +37,18 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Bill not found' });
     }
 
-    // If userId is provided, check if the user exists
-    if (userId) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-      });
+    // Upsert vote for authenticated user
+    const vote = await prisma.vote.upsert({
+      where: { userId_billId: { userId, billId } },
+      update: { voteType },
+      create: {
+        userId,
+        billId,
+        voteType,
+      },
+    });
 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      // Upsert vote for authenticated user
-      const vote = await prisma.vote.upsert({
-        where: { userId_billId: { userId, billId } },
-        update: { voteType },
-        create: {
-          userId,
-          billId,
-          voteType,
-        },
-      });
-
-      return res.status(200).json(vote);
-    } else {
-      // Create a new vote for anonymous user
-      const vote = await prisma.vote.create({
-        data: {
-          userId: null,
-          billId,
-          voteType,
-        },
-      });
-
-      return res.status(201).json(vote);
-    }
+    return res.status(200).json(vote);
   } catch (error) {
     console.error('Error submitting vote:', error);
     res.status(500).json({ error: 'Internal server error' });

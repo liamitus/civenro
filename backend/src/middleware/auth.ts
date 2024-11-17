@@ -1,14 +1,12 @@
+// backend/src/middleware/auth.ts
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
-interface AuthenticatedRequest extends Request {
-  user?: any;
-}
-
 export const authenticateToken = (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -20,7 +18,10 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+      email: string;
+    };
     req.user = decoded;
     next();
   } catch (error) {

@@ -1,3 +1,5 @@
+// frontend/src/services/voteService.ts
+
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5001/api/votes';
@@ -5,14 +7,12 @@ const API_URL = 'http://localhost:5001/api/votes';
 // Function to submit a vote
 export const submitVote = async (
   billId: number,
-  voteType: 'For' | 'Against' | 'Abstain',
-  userId?: number
+  voteType: 'For' | 'Against' | 'Abstain'
 ) => {
   try {
     const response = await axios.post(API_URL, {
       billId,
       voteType,
-      userId, // Optional for anonymous votes
     });
     return response.data;
   } catch (error) {

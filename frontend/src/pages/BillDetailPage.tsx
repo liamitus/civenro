@@ -1,3 +1,5 @@
+// frontend/src/pages/BillDetailPage.tsx
+
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBills } from '../services/billService';
@@ -91,7 +93,7 @@ const BillDetailPage: React.FC = () => {
     if (!bill) return;
 
     try {
-      await submitVote(bill.id, voteType, userId || undefined);
+      await submitVote(bill.id, voteType);
       // Refresh votes
       const updatedVotes = await getVotes(bill.id);
       setVotes(updatedVotes);
