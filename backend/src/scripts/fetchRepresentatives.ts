@@ -1,3 +1,5 @@
+// backend/src/scripts/fetchRepresentatives.ts
+
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
 
@@ -16,8 +18,15 @@ async function fetchRepresentatives() {
 
     for (const role of roles) {
       const person = role.person;
+      const bioguideId = person.bioguideid;
+
+      if (!bioguideId) {
+        console.warn(`No bioguideId for person: ${person.name}`);
+        continue;
+      }
+
       await prisma.representative.upsert({
-        where: { govtrackId: person.id },
+        where: { bioguideId },
         update: {
           firstName: person.firstname,
           lastName: person.lastname,
@@ -27,7 +36,7 @@ async function fetchRepresentatives() {
           chamber: role.role_type_label.toLowerCase(), // 'representative' or 'senator'
         },
         create: {
-          govtrackId: person.id,
+          bioguideId,
           firstName: person.firstname,
           lastName: person.lastname,
           state: role.state,

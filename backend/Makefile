@@ -70,7 +70,7 @@ lint:
 # Format the codebase
 format:
 	@echo "Formatting the codebase..."
-	npm run format
+	npx prisma format
 .PHONY: format
 
 # Run tests

@@ -12,9 +12,10 @@
         "-r",
         "ts-node/register" // Register ts-node
       ],
-      "args": [
-        "${workspaceFolder}/backend/src/index.ts" // Entry TypeScript file
-      ],
+      "program": "${file}",
+      // "args": [
+      //   "${workspaceFolder}/backend/src/index.ts" // Entry TypeScript file
+      // ],
       "cwd": "${workspaceFolder}/backend",
       "sourceMaps": true,
       "outFiles": ["${workspaceFolder}/backend/src/**/*.ts"], // Source maps location

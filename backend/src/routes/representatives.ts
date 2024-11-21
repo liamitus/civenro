@@ -7,6 +7,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 type Representative = {
+  bioguideId: string;
   name: any;
   party: any;
   office: any;
@@ -59,15 +60,27 @@ router.post(
       // For each representative, fetch their vote on the bill
       const repsWithVotes = await Promise.all(
         reps.map(async (rep) => {
-          // Match representative in your database
-          const dbRep = await prisma.representative.findFirst({
-            where: {
-              OR: [
-                { firstName: { contains: rep.name.split(' ')[0] } },
-                { lastName: { contains: rep.name.split(' ').slice(-1)[0] } },
-              ],
-            },
-          });
+          // If the Civic API provides bioguideId, use it
+          const bioguideId = rep.bioguideId;
+
+          let dbRep;
+
+          if (bioguideId) {
+            dbRep = await prisma.representative.findUnique({
+              where: { bioguideId },
+            });
+          } else {
+            // Fallback to name matching if bioguideId is not available
+            const [firstName, ...lastNames] = rep.name.split(' ');
+            const lastName = lastNames.join(' ');
+
+            dbRep = await prisma.representative.findFirst({
+              where: {
+                firstName: { contains: firstName, mode: 'insensitive' },
+                lastName: { contains: lastName, mode: 'insensitive' },
+              },
+            });
+          }
 
           if (dbRep) {
             // Get their vote on the bill

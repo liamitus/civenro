@@ -71,6 +71,7 @@ model CommentVote {
 
 model Representative {
   id                  Int                  @id @default(autoincrement())
+  bioguideId          String               @unique
   firstName           String
   lastName            String
   state               String
