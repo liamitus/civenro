@@ -1,44 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Autocomplete } from '@react-google-maps/api';
-import { TextField } from '@mui/material';
+// frontend/src/components/AddressAutocomplete.tsx
 
-interface AddressAutocompleteProps {
-  onSelectAddress: (address: string) => void;
-}
+import { Box, Button, TextField } from '@mui/material';
+import { useContext, useState } from 'react';
+import { UserContext } from '../context/UserContext';
 
-const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
-  onSelectAddress,
-}) => {
+const AddressInput: React.FC = () => {
+  const { setUserAddress } = useContext(UserContext);
   const [address, setAddress] = useState('');
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleLoad = (autocomplete: google.maps.places.Autocomplete) => {
-    autocompleteRef.current = autocomplete;
-  };
-
-  const handlePlaceChanged = () => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      if (place.formatted_address) {
-        setAddress(place.formatted_address);
-        onSelectAddress(place.formatted_address);
-      }
+  const handleSubmit = () => {
+    if (address.trim()) {
+      setUserAddress(address.trim());
     }
   };
 
   return (
-    <Autocomplete onLoad={handleLoad} onPlaceChanged={handlePlaceChanged}>
+    <Box mt={2}>
       <TextField
-        inputRef={inputRef}
         label="Enter your address"
         variant="outlined"
         fullWidth
         value={address}
         onChange={(e) => setAddress(e.target.value)}
       />
-    </Autocomplete>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSubmit}
+        sx={{ mt: 2 }}
+      >
+        Submit Address
+      </Button>
+    </Box>
   );
 };
 
-export default AddressAutocomplete;
+export default AddressInput;

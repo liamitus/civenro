@@ -1,3 +1,5 @@
+// backend/src/routes/representatives.ts
+
 import { Router, Request, Response } from 'express';
 import { authenticateToken } from '../middleware/auth';
 import { getRepresentativesByAddress } from '../utils/civicApi';
@@ -52,6 +54,7 @@ router.post(
               name: official.name,
               party: official.party,
               office: office.name,
+              bioguideId: official.bioguideId || '',
             });
           });
         }
@@ -70,14 +73,18 @@ router.post(
               where: { bioguideId },
             });
           } else {
-            // Fallback to name matching if bioguideId is not available
-            const [firstName, ...lastNames] = rep.name.split(' ');
-            const lastName = lastNames.join(' ');
+            // Normalize names
+            const normalizeName = (name: string) =>
+              name.toLowerCase().replace(/[^a-z]/g, '');
+            const officialFirstName = normalizeName(rep.name.split(' ')[0]);
+            const officialLastName = normalizeName(
+              rep.name.split(' ').slice(1).join(' ')
+            );
 
             dbRep = await prisma.representative.findFirst({
               where: {
-                firstName: { contains: firstName, mode: 'insensitive' },
-                lastName: { contains: lastName, mode: 'insensitive' },
+                firstName: { contains: officialFirstName, mode: 'insensitive' },
+                lastName: { contains: officialLastName, mode: 'insensitive' },
               },
             });
           }

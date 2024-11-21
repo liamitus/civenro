@@ -24,6 +24,7 @@ import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 import { UserContext } from '../context/UserContext';
 import { getRepresentativesByAddress } from '../services/representativeService';
+import AddressInput from '../components/AddressInput';
 
 interface Bill {
   id: number;
@@ -190,7 +191,14 @@ const BillDetailPage: React.FC = () => {
 
       <Box mt={4}>
         <Typography variant="h6">Your Representatives' Votes</Typography>
-        {representatives.length === 0 ? (
+        {!address ? (
+          <Box mt={2}>
+            <Typography variant="body1">
+              Enter your address to see how your representatives voted:
+            </Typography>
+            <AddressInput />
+          </Box>
+        ) : representatives.length === 0 ? (
           <Typography variant="body1">No voting records available.</Typography>
         ) : (
           representatives.map((rep: any) => (

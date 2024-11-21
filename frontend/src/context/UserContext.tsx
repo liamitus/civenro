@@ -1,4 +1,6 @@
-import React, { createContext, useState } from 'react';
+// frontend/src/context/UserContext.tsx
+
+import React, { createContext, useState, useEffect } from 'react';
 
 interface UserContextProps {
   address: string;
@@ -13,11 +15,14 @@ export const UserContext = createContext<UserContextProps>({
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState(() => {
+    return localStorage.getItem('userAddress') || '';
+  });
 
   const setUserAddress = (newAddress: string) => {
     setAddress(newAddress);
-    // Optionally, persist the address or send it to the backend
+    localStorage.setItem('userAddress', newAddress);
+    // Optionally, send it to the backend if needed
   };
 
   return (

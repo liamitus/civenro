@@ -11,6 +11,7 @@ import billsRouter from './routes/bills';
 import votesRouter from './routes/votes';
 import commentsRouter from './routes/comments';
 import commentVotesRouter from './routes/commentVotes';
+import representativesRouter from './routes/representatives';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -33,6 +34,7 @@ app.use('/api/bills', billsRouter);
 app.use('/api/votes', votesRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/comment-votes', commentVotesRouter);
+app.use('/api/representatives', representativesRouter);
 
 // Health Check Route
 app.get('/', (req, res) => {
