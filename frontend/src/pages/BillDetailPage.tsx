@@ -164,6 +164,22 @@ const BillDetailPage: React.FC = () => {
     { for: 0, against: 0, abstain: 0 }
   );
 
+  // Add a function to map votes to colors
+  const getVoteBorderColor = (vote: string) => {
+    switch (vote) {
+      case 'Yea':
+        return 'green';
+      case 'Nay':
+        return 'red';
+      case 'Present':
+        return 'yellow';
+      case 'Not Voting':
+        return 'grey';
+      default:
+        return 'grey';
+    }
+  };
+
   if (loading) {
     return (
       <Container>
@@ -224,15 +240,17 @@ const BillDetailPage: React.FC = () => {
                 <Tooltip title={rep.name}>
                   <a href={rep.link} target="_blank" rel="noopener noreferrer">
                     <Avatar
-                      alt={rep.name}
+                      alt={`${rep.name} - Voted ${rep.vote}`}
                       src={rep.imageUrl}
-                      sx={{ width: 100, height: 100, margin: 'auto' }}
+                      sx={{
+                        width: 100,
+                        height: 100,
+                        margin: 'auto',
+                        border: `4px solid ${getVoteBorderColor(rep.vote)}`,
+                      }}
                     />
                   </a>
                 </Tooltip>
-                <Typography variant="body1" align="center">
-                  {rep.vote}
-                </Typography>
               </Grid>
             ))}
           </Grid>
