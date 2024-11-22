@@ -24,6 +24,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   IconButton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AuthContext } from '../context/AuthContext';
@@ -31,6 +33,11 @@ import { ModalContext } from '../context/ModalContext';
 import { UserContext } from '../context/UserContext';
 import { getRepresentativesByAddress } from '../services/representativeService';
 import AddressInput from '../components/AddressInput';
+import BillSummary from '../components/BillSummary';
+import AIChatboxPlaceholder from '../components/AIChatboxPlaceholder';
+import RepresentativesVotes from '../components/RepresentativesVotes';
+import VoteOnBill from '../components/VoteOnBill';
+import CommentsSection from '../components/CommentsSection';
 
 interface Bill {
   id: number;
@@ -77,6 +84,39 @@ const BillDetailPage: React.FC = () => {
 
   // Replace with actual user ID if authentication is implemented
   const userId: number | null = null; // null represents anonymous user
+
+  // Theme and media query for responsive avatar sizes
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // State for accordion expanded/collapsed status
+  const [accordionState, setAccordionState] = useState<{
+    aiChatbox: boolean;
+    representativesVotes: boolean;
+    voteOnThisBill: boolean;
+    comments: boolean;
+  }>({
+    aiChatbox: JSON.parse(
+      localStorage.getItem('accordion_aiChatbox') || 'false'
+    ),
+    representativesVotes: JSON.parse(
+      localStorage.getItem('accordion_representativesVotes') || 'false'
+    ),
+    voteOnThisBill: JSON.parse(
+      localStorage.getItem('accordion_voteOnThisBill') || 'false'
+    ),
+    comments: JSON.parse(localStorage.getItem('accordion_comments') || 'true'),
+  });
+
+  // Handle accordion state changes and persist to localStorage
+  const handleAccordionChange =
+    (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
+      setAccordionState((prevState) => {
+        const newState = { ...prevState, [panel]: isExpanded };
+        localStorage.setItem(`accordion_${panel}`, JSON.stringify(isExpanded));
+        return newState;
+      });
+    };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -183,6 +223,19 @@ const BillDetailPage: React.FC = () => {
     }
   };
 
+  // Adjust avatar styles for responsive size and gap
+  const getAvatarStyles = (vote: string) => {
+    const borderColor = getVoteBorderColor(vote);
+    return {
+      width: isSmallScreen ? 60 : 80,
+      height: isSmallScreen ? 60 : 80,
+      margin: 'auto',
+      padding: '2px', // Add padding for gap
+      border: `2px solid ${borderColor}`,
+      boxSizing: 'content-box' as const,
+    };
+  };
+
   if (loading) {
     return (
       <Container>
@@ -201,180 +254,45 @@ const BillDetailPage: React.FC = () => {
 
   return (
     <Container>
-      {/* Title */}
-      <Typography variant="h5" gutterBottom>
-        {bill.title}
-      </Typography>
+      {/* Bill Summary */}
+      {bill && <BillSummary bill={bill} />}
 
-      {/* Summary */}
-      <Typography variant="body2" gutterBottom>
-        {bill.summary}
-      </Typography>
-
-      {/* Condensed Sections using Accordions */}
       {/* AI Chatbox Placeholder */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle1">
-            Learn More About This Bill
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {/* Future AI chat functionality will be implemented here */}
-          <Typography variant="body2" color="textSecondary">
-            AI Chatbox placeholder – Coming soon!
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
+      <AIChatboxPlaceholder
+        expanded={accordionState.aiChatbox}
+        onChange={handleAccordionChange('aiChatbox')}
+      />
 
       {/* Representatives' Votes */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle1">
-            Your Representatives' Votes
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {!address ? (
-            <Box mt={2}>
-              <Typography variant="body1">
-                Enter your address to see how your representatives voted:
-              </Typography>
-              <AddressInput />
-            </Box>
-          ) : representatives.length === 0 ? (
-            <Typography variant="body1" mt={2}>
-              No voting records available.
-            </Typography>
-          ) : (
-            <Grid container spacing={1} mt={1}>
-              {representatives.map((rep: any) => (
-                <Grid item xs={4} key={rep.name}>
-                  <Tooltip title={`${rep.name} - Voted ${rep.vote}`}>
-                    {rep.link ? (
-                      <a
-                        href={rep.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Avatar
-                          alt={`${rep.name} - Voted ${rep.vote}`}
-                          src={rep.imageUrl || undefined}
-                          sx={{
-                            width: 60,
-                            height: 60,
-                            margin: 'auto',
-                            border: `2px solid ${getVoteBorderColor(rep.vote)}`,
-                          }}
-                        />
-                      </a>
-                    ) : (
-                      <Avatar
-                        alt={`${rep.name} - Voted ${rep.vote}`}
-                        src={rep.imageUrl || undefined}
-                        sx={{
-                          width: 60,
-                          height: 60,
-                          margin: 'auto',
-                          border: `2px solid ${getVoteBorderColor(rep.vote)}`,
-                        }}
-                      />
-                    )}
-                  </Tooltip>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </AccordionDetails>
-      </Accordion>
+      <RepresentativesVotes
+        expanded={accordionState.representativesVotes}
+        onChange={handleAccordionChange('representativesVotes')}
+        address={address}
+        representatives={representatives}
+        getVoteBorderColor={getVoteBorderColor}
+      />
 
       {/* Voting Section */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle1">Vote on this Bill</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {/* Voting Buttons */}
-          <ButtonGroup variant="contained" color="primary" fullWidth>
-            <Button
-              onClick={() => handleVote('For')}
-              variant={selectedVote === 'For' ? 'contained' : 'outlined'}
-            >
-              For
-            </Button>
-            <Button
-              onClick={() => handleVote('Against')}
-              variant={selectedVote === 'Against' ? 'contained' : 'outlined'}
-            >
-              Against
-            </Button>
-            <Button
-              onClick={() => handleVote('Abstain')}
-              variant={selectedVote === 'Abstain' ? 'contained' : 'outlined'}
-            >
-              Abstain
-            </Button>
-          </ButtonGroup>
-
-          {/* Condensed Vote Representation */}
-          <Box mt={2}>
-            {/* Replace vote counts with a compact chart */}
-            <Typography variant="body2" align="center">
-              Public Votes
-            </Typography>
-            {/* Placeholder for a compact chart or progress bar */}
-            <Box mt={1}>
-              {/* Implement a simple progress bar or chart here */}
-              <Typography variant="body2" color="textSecondary">
-                Vote visualization placeholder
-              </Typography>
-            </Box>
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+      <VoteOnBill
+        expanded={accordionState.voteOnThisBill}
+        onChange={handleAccordionChange('voteOnThisBill')}
+        handleVote={handleVote}
+        selectedVote={selectedVote}
+      />
 
       {/* Comments Section */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle1">Comments</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {/* Comment Form */}
-          <form onSubmit={handleCommentSubmit}>
-            <TextField
-              label="Add a comment"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={3}
-              value={commentContent}
-              onChange={(e) => setCommentContent(e.target.value)}
-              sx={{ mt: 1 }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ mt: 1 }}
-            >
-              Submit Comment
-            </Button>
-          </form>
-
-          {/* Comment List */}
-          <List sx={{ mt: 2 }}>
-            {comments.map((comment) => (
-              <Comment
-                key={comment.id}
-                comment={comment}
-                billId={bill.id}
-                refreshComments={refreshComments}
-              />
-            ))}
-          </List>
-        </AccordionDetails>
-      </Accordion>
+      {bill && (
+        <CommentsSection
+          expanded={accordionState.comments}
+          onChange={handleAccordionChange('comments')}
+          comments={comments}
+          commentContent={commentContent}
+          setCommentContent={setCommentContent}
+          handleCommentSubmit={handleCommentSubmit}
+          refreshComments={refreshComments}
+          billId={bill.id}
+        />
+      )}
     </Container>
   );
 };
