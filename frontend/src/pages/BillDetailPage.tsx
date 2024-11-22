@@ -19,6 +19,9 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Avatar,
+  Grid,
+  Tooltip,
 } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
@@ -179,16 +182,28 @@ const BillDetailPage: React.FC = () => {
 
   return (
     <Container>
+      {/* Title */}
       <Typography variant="h4" gutterBottom>
         {bill.title}
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
+
+      {/* Summary */}
+      <Typography variant="body1" gutterBottom>
         {bill.summary}
       </Typography>
-      <Typography variant="body2" color="textSecondary" gutterBottom>
-        Date Introduced: {new Date(bill.date).toLocaleDateString()}
-      </Typography>
 
+      {/* Placeholder for AI Chatbox */}
+      <Box mt={4}>
+        <Typography variant="h6">Learn More About This Bill</Typography>
+        <Box mt={2} p={2} border={1} borderColor="grey.300" borderRadius={4}>
+          {/* Future AI chat functionality will be implemented here */}
+          <Typography variant="body2" color="textSecondary">
+            AI Chatbox placeholder – Coming soon!
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Representatives Section */}
       <Box mt={4}>
         <Typography variant="h6">Your Representatives' Votes</Typography>
         {!address ? (
@@ -199,20 +214,32 @@ const BillDetailPage: React.FC = () => {
             <AddressInput />
           </Box>
         ) : representatives.length === 0 ? (
-          <Typography variant="body1">No voting records available.</Typography>
+          <Typography variant="body1" mt={2}>
+            No voting records available.
+          </Typography>
         ) : (
-          representatives.map((rep: any) => (
-            <Box key={rep.name} mt={2}>
-              <Typography variant="body1">
-                {rep.name} ({rep.party})
-              </Typography>
-              <Typography variant="body2">Office: {rep.office}</Typography>
-              <Typography variant="body2">Voted: {rep.vote}</Typography>
-            </Box>
-          ))
+          <Grid container spacing={2} mt={2}>
+            {representatives.map((rep: any) => (
+              <Grid item xs={6} sm={4} md={3} key={rep.name}>
+                <Tooltip title={rep.name}>
+                  <a href={rep.link} target="_blank" rel="noopener noreferrer">
+                    <Avatar
+                      alt={rep.name}
+                      src={rep.imageUrl}
+                      sx={{ width: 100, height: 100, margin: 'auto' }}
+                    />
+                  </a>
+                </Tooltip>
+                <Typography variant="body1" align="center">
+                  {rep.vote}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
         )}
       </Box>
 
+      {/* Voting Section */}
       <Box mt={4}>
         <Typography variant="h6">Vote on this Bill</Typography>
         <ButtonGroup variant="contained" color="primary" sx={{ mt: 2 }}>
@@ -241,8 +268,45 @@ const BillDetailPage: React.FC = () => {
           <Typography variant="body1">Against: {voteCounts.against}</Typography>
           <Typography variant="body1">Abstain: {voteCounts.abstain}</Typography>
         </Box>
+
+        {/* Visual Representation of Votes */}
+        <Box mt={4}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1">Public Votes</Typography>
+              {/* Placeholder for public vote visualization */}
+              <Box
+                mt={2}
+                p={2}
+                border={1}
+                borderColor="grey.300"
+                borderRadius={4}
+              >
+                <Typography variant="body2" color="textSecondary">
+                  Public vote visualization placeholder
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1">Congressional Votes</Typography>
+              {/* Placeholder for congressional vote visualization */}
+              <Box
+                mt={2}
+                p={2}
+                border={1}
+                borderColor="grey.300"
+                borderRadius={4}
+              >
+                <Typography variant="body2" color="textSecondary">
+                  Congressional vote visualization placeholder
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
 
+      {/* Comments Section */}
       <Box mt={6}>
         <Typography variant="h6">Comments</Typography>
         <form onSubmit={handleCommentSubmit}>
