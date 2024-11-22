@@ -40,14 +40,18 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const getAvatarStyles = (vote: string) => {
-    const borderColor = getVoteBorderColor(vote);
+    const hasVote =
+      vote !== 'No vote recorded' &&
+      vote !== 'Representative not found in database';
+    const borderColor = hasVote ? getVoteBorderColor(vote) : 'transparent';
     return {
-      width: isSmallScreen ? 60 : 80,
-      height: isSmallScreen ? 60 : 80,
+      width: isSmallScreen ? 60 : 100,
+      height: isSmallScreen ? 60 : 100,
       margin: 'auto',
-      padding: '2px',
-      border: `2px solid ${borderColor}`,
+      border: `4px solid ${borderColor}`,
       boxSizing: 'content-box' as const,
+      borderRadius: '50%',
+      objectFit: 'cover', // Ensure the image covers the avatar
     };
   };
 
