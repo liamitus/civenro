@@ -78,3 +78,16 @@ test:
 	@echo "Running tests..."
 	npm run test
 .PHONY: test
+
+# Fetch data
+fetch-data fetch:
+	@echo "Fetching data..."
+	npx ts-node src/scripts/fetchRepresentatives.ts
+	npx ts-node src/scripts/fetchBills.ts
+	npx ts-node src/scripts/fetchVotes.ts
+.PHONY: fetchd-ata fetch
+
+fetch-representatives:
+	@echo "Fetching representatives data..."
+	npx ts-node src/scripts/fetchRepresentatives.ts
+.PHONY: fetch-representatives
