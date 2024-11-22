@@ -22,11 +22,12 @@ export const submitVote = async (
   }
 };
 
-// Function to get votes for a bill
+// Function to get aggregated votes for a bill
 export const getVotes = async (billId: number) => {
   try {
     const response = await axios.get(`${BASE_URL}/${billId}`);
-    return response.data;
+
+    return response.data; // { publicVotes: [{ voteType: string, count: number }], congressionalVotes: [{ vote: string, count: number }] }
   } catch (error) {
     console.error('Error fetching votes:', error);
     throw error;

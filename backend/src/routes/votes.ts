@@ -56,17 +56,33 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // GET /api/votes/:billId
-// Retrieve votes for a specific bill
+// Retrieve aggregated votes for a specific bill
 router.get('/:billId', async (req: Request, res: Response) => {
   const { billId } = req.params;
 
   try {
-    const votes = await prisma.vote.findMany({
+    const publicVotes = await prisma.vote.groupBy({
+      by: ['voteType'],
       where: { billId: parseInt(billId) },
-      include: { user: true },
+      _count: { voteType: true },
     });
 
-    res.status(200).json(votes);
+    const congressionalVotes = await prisma.representativeVote.groupBy({
+      by: ['vote'],
+      where: { billId: parseInt(billId) },
+      _count: { vote: true },
+    });
+
+    res.status(200).json({
+      publicVotes: publicVotes.map((v) => ({
+        voteType: v.voteType,
+        count: v._count.voteType,
+      })),
+      congressionalVotes: congressionalVotes.map((v) => ({
+        vote: v.vote,
+        count: v._count.vote,
+      })),
+    });
   } catch (error) {
     console.error('Error fetching votes:', error);
     res.status(500).json({ error: 'Internal server error' });

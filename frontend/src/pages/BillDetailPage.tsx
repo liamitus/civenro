@@ -1,3 +1,5 @@
+// frontend/src/pages/BillDetailPage.tsx
+
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBills } from '../services/billService';
@@ -7,32 +9,14 @@ import Comment from '../components/Comment';
 import {
   Container,
   Typography,
-  Button,
-  ButtonGroup,
-  TextField,
-  List,
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   SelectChangeEvent,
-  Avatar,
-  Grid,
-  Tooltip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  IconButton,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 import { UserContext } from '../context/UserContext';
 import { getRepresentativesByAddress } from '../services/representativeService';
-import AddressInput from '../components/AddressInput';
 import BillSummary from '../components/BillSummary';
 import AIChatboxPlaceholder from '../components/AIChatboxPlaceholder';
 import RepresentativesVotes from '../components/RepresentativesVotes';
@@ -47,11 +31,14 @@ interface Bill {
   date: string;
 }
 
-interface Vote {
-  id: number;
-  userId: number | null;
-  billId: number;
+interface PublicVote {
   voteType: string;
+  count: number;
+}
+
+interface CongressionalVote {
+  vote: string;
+  count: number;
 }
 
 interface Comment {
@@ -69,7 +56,13 @@ interface Comment {
 const BillDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [bill, setBill] = useState<Bill | null>(null);
-  const [votes, setVotes] = useState<Vote[]>([]);
+  const [votes, setVotes] = useState<{
+    publicVotes: PublicVote[];
+    congressionalVotes: CongressionalVote[];
+  }>({
+    publicVotes: [],
+    congressionalVotes: [],
+  });
   const [comments, setComments] = useState<Comment[]>([]);
   const [sortOption, setSortOption] = useState('new');
   const [selectedVote, setSelectedVote] = useState<
@@ -126,7 +119,10 @@ const BillDetailPage: React.FC = () => {
         setBill(currentBill || null);
 
         const votesData = await getVotes(parseInt(id));
-        setVotes(votesData);
+        setVotes({
+          publicVotes: votesData.publicVotes || [],
+          congressionalVotes: votesData.congressionalVotes || [],
+        });
 
         const commentsData = await getComments(parseInt(id));
         setComments(commentsData);
@@ -196,17 +192,6 @@ const BillDetailPage: React.FC = () => {
     refreshComments();
   };
 
-  // Aggregate vote counts
-  const voteCounts = votes.reduce(
-    (acc, vote) => {
-      if (vote.voteType === 'For') acc.for += 1;
-      if (vote.voteType === 'Against') acc.against += 1;
-      if (vote.voteType === 'Abstain') acc.abstain += 1;
-      return acc;
-    },
-    { for: 0, against: 0, abstain: 0 }
-  );
-
   // Add a function to map votes to colors
   const getVoteBorderColor = (vote: string) => {
     switch (vote) {
@@ -223,18 +208,8 @@ const BillDetailPage: React.FC = () => {
     }
   };
 
-  // Adjust avatar styles for responsive size and gap
-  const getAvatarStyles = (vote: string) => {
-    const borderColor = getVoteBorderColor(vote);
-    return {
-      width: isSmallScreen ? 60 : 80,
-      height: isSmallScreen ? 60 : 80,
-      margin: 'auto',
-      padding: '2px', // Add padding for gap
-      border: `2px solid ${borderColor}`,
-      boxSizing: 'content-box' as const,
-    };
-  };
+  const publicVotes = votes.publicVotes;
+  const congressionalVotes = votes.congressionalVotes;
 
   if (loading) {
     return (
@@ -278,6 +253,8 @@ const BillDetailPage: React.FC = () => {
         onChange={handleAccordionChange('voteOnThisBill')}
         handleVote={handleVote}
         selectedVote={selectedVote}
+        publicVotes={publicVotes}
+        congressionalVotes={congressionalVotes}
       />
 
       {/* Comments Section */}
