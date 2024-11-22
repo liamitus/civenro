@@ -78,6 +78,8 @@ model Representative {
   district            String? // For House representatives
   party               String
   chamber             String // 'house' or 'senate'
+  imageUrl            String?
+  link                String?
   RepresentativeVotes RepresentativeVote[]
 }
 

@@ -25,6 +25,10 @@ async function fetchRepresentatives() {
         continue;
       }
 
+      // Construct the image URL using the bioguideId
+      const imageUrl = `https://theunitedstates.io/images/congress/225x275/${bioguideId}.jpg`;
+      const link = person.link; // Get the link from the person object
+
       await prisma.representative.upsert({
         where: { bioguideId },
         update: {
@@ -34,6 +38,8 @@ async function fetchRepresentatives() {
           district: role.district ? role.district.toString() : null,
           party: role.party,
           chamber: role.role_type_label.toLowerCase(), // 'representative' or 'senator'
+          imageUrl,
+          link,
         },
         create: {
           bioguideId,
@@ -43,6 +49,8 @@ async function fetchRepresentatives() {
           district: role.district ? role.district.toString() : null,
           party: role.party,
           chamber: role.role_type_label.toLowerCase(),
+          imageUrl,
+          link,
         },
       });
     }

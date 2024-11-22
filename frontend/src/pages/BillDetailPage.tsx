@@ -1,5 +1,3 @@
-// frontend/src/pages/BillDetailPage.tsx
-
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBills } from '../services/billService';
@@ -22,7 +20,12 @@ import {
   Avatar,
   Grid,
   Tooltip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 import { UserContext } from '../context/UserContext';
@@ -199,173 +202,179 @@ const BillDetailPage: React.FC = () => {
   return (
     <Container>
       {/* Title */}
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         {bill.title}
       </Typography>
 
       {/* Summary */}
-      <Typography variant="body1" gutterBottom>
+      <Typography variant="body2" gutterBottom>
         {bill.summary}
       </Typography>
 
-      {/* Placeholder for AI Chatbox */}
-      <Box mt={4}>
-        <Typography variant="h6">Learn More About This Bill</Typography>
-        <Box mt={2} p={2} border={1} borderColor="grey.300" borderRadius={4}>
+      {/* Condensed Sections using Accordions */}
+      {/* AI Chatbox Placeholder */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1">
+            Learn More About This Bill
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
           {/* Future AI chat functionality will be implemented here */}
           <Typography variant="body2" color="textSecondary">
             AI Chatbox placeholder – Coming soon!
           </Typography>
-        </Box>
-      </Box>
+        </AccordionDetails>
+      </Accordion>
 
-      {/* Representatives Section */}
-      <Box mt={4}>
-        <Typography variant="h6">Your Representatives' Votes</Typography>
-        {!address ? (
-          <Box mt={2}>
-            <Typography variant="body1">
-              Enter your address to see how your representatives voted:
-            </Typography>
-            <AddressInput />
-          </Box>
-        ) : representatives.length === 0 ? (
-          <Typography variant="body1" mt={2}>
-            No voting records available.
+      {/* Representatives' Votes */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1">
+            Your Representatives' Votes
           </Typography>
-        ) : (
-          <Grid container spacing={2} mt={2}>
-            {representatives.map((rep: any) => (
-              <Grid item xs={6} sm={4} md={3} key={rep.name}>
-                <Tooltip title={rep.name}>
-                  <a href={rep.link} target="_blank" rel="noopener noreferrer">
-                    <Avatar
-                      alt={`${rep.name} - Voted ${rep.vote}`}
-                      src={rep.imageUrl}
-                      sx={{
-                        width: 100,
-                        height: 100,
-                        margin: 'auto',
-                        border: `4px solid ${getVoteBorderColor(rep.vote)}`,
-                      }}
-                    />
-                  </a>
-                </Tooltip>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          {!address ? (
+            <Box mt={2}>
+              <Typography variant="body1">
+                Enter your address to see how your representatives voted:
+              </Typography>
+              <AddressInput />
+            </Box>
+          ) : representatives.length === 0 ? (
+            <Typography variant="body1" mt={2}>
+              No voting records available.
+            </Typography>
+          ) : (
+            <Grid container spacing={1} mt={1}>
+              {representatives.map((rep: any) => (
+                <Grid item xs={4} key={rep.name}>
+                  <Tooltip title={`${rep.name} - Voted ${rep.vote}`}>
+                    {rep.link ? (
+                      <a
+                        href={rep.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Avatar
+                          alt={`${rep.name} - Voted ${rep.vote}`}
+                          src={rep.imageUrl || undefined}
+                          sx={{
+                            width: 60,
+                            height: 60,
+                            margin: 'auto',
+                            border: `2px solid ${getVoteBorderColor(rep.vote)}`,
+                          }}
+                        />
+                      </a>
+                    ) : (
+                      <Avatar
+                        alt={`${rep.name} - Voted ${rep.vote}`}
+                        src={rep.imageUrl || undefined}
+                        sx={{
+                          width: 60,
+                          height: 60,
+                          margin: 'auto',
+                          border: `2px solid ${getVoteBorderColor(rep.vote)}`,
+                        }}
+                      />
+                    )}
+                  </Tooltip>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
       {/* Voting Section */}
-      <Box mt={4}>
-        <Typography variant="h6">Vote on this Bill</Typography>
-        <ButtonGroup variant="contained" color="primary" sx={{ mt: 2 }}>
-          <Button
-            onClick={() => handleVote('For')}
-            variant={selectedVote === 'For' ? 'contained' : 'outlined'}
-          >
-            For
-          </Button>
-          <Button
-            onClick={() => handleVote('Against')}
-            variant={selectedVote === 'Against' ? 'contained' : 'outlined'}
-          >
-            Against
-          </Button>
-          <Button
-            onClick={() => handleVote('Abstain')}
-            variant={selectedVote === 'Abstain' ? 'contained' : 'outlined'}
-          >
-            Abstain
-          </Button>
-        </ButtonGroup>
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1">Vote on this Bill</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {/* Voting Buttons */}
+          <ButtonGroup variant="contained" color="primary" fullWidth>
+            <Button
+              onClick={() => handleVote('For')}
+              variant={selectedVote === 'For' ? 'contained' : 'outlined'}
+            >
+              For
+            </Button>
+            <Button
+              onClick={() => handleVote('Against')}
+              variant={selectedVote === 'Against' ? 'contained' : 'outlined'}
+            >
+              Against
+            </Button>
+            <Button
+              onClick={() => handleVote('Abstain')}
+              variant={selectedVote === 'Abstain' ? 'contained' : 'outlined'}
+            >
+              Abstain
+            </Button>
+          </ButtonGroup>
 
-        <Box mt={2}>
-          <Typography variant="body1">For: {voteCounts.for}</Typography>
-          <Typography variant="body1">Against: {voteCounts.against}</Typography>
-          <Typography variant="body1">Abstain: {voteCounts.abstain}</Typography>
-        </Box>
-
-        {/* Visual Representation of Votes */}
-        <Box mt={4}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1">Public Votes</Typography>
-              {/* Placeholder for public vote visualization */}
-              <Box
-                mt={2}
-                p={2}
-                border={1}
-                borderColor="grey.300"
-                borderRadius={4}
-              >
-                <Typography variant="body2" color="textSecondary">
-                  Public vote visualization placeholder
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1">Congressional Votes</Typography>
-              {/* Placeholder for congressional vote visualization */}
-              <Box
-                mt={2}
-                p={2}
-                border={1}
-                borderColor="grey.300"
-                borderRadius={4}
-              >
-                <Typography variant="body2" color="textSecondary">
-                  Congressional vote visualization placeholder
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-      </Box>
+          {/* Condensed Vote Representation */}
+          <Box mt={2}>
+            {/* Replace vote counts with a compact chart */}
+            <Typography variant="body2" align="center">
+              Public Votes
+            </Typography>
+            {/* Placeholder for a compact chart or progress bar */}
+            <Box mt={1}>
+              {/* Implement a simple progress bar or chart here */}
+              <Typography variant="body2" color="textSecondary">
+                Vote visualization placeholder
+              </Typography>
+            </Box>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
 
       {/* Comments Section */}
-      <Box mt={6}>
-        <Typography variant="h6">Comments</Typography>
-        <form onSubmit={handleCommentSubmit}>
-          <TextField
-            label="Add a comment"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
-            value={commentContent}
-            onChange={(e) => setCommentContent(e.target.value)}
-            sx={{ mt: 2, mb: 2 }}
-          />
-          <Button type="submit" variant="contained" color="primary">
-            Submit Comment
-          </Button>
-        </form>
-
-        <FormControl>
-          <InputLabel id="sort-label">Sort by</InputLabel>
-          <Select
-            labelId="sort-label"
-            value={sortOption}
-            onChange={handleSortChange}
-          >
-            <MenuItem value="new">Newest</MenuItem>
-            <MenuItem value="best">Best</MenuItem>
-          </Select>
-        </FormControl>
-
-        <List>
-          {comments.map((comment) => (
-            <Comment
-              key={comment.id}
-              comment={comment}
-              billId={bill.id}
-              refreshComments={refreshComments}
+      <Accordion defaultExpanded>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1">Comments</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {/* Comment Form */}
+          <form onSubmit={handleCommentSubmit}>
+            <TextField
+              label="Add a comment"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={3}
+              value={commentContent}
+              onChange={(e) => setCommentContent(e.target.value)}
+              sx={{ mt: 1 }}
             />
-          ))}
-        </List>
-      </Box>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ mt: 1 }}
+            >
+              Submit Comment
+            </Button>
+          </form>
+
+          {/* Comment List */}
+          <List sx={{ mt: 2 }}>
+            {comments.map((comment) => (
+              <Comment
+                key={comment.id}
+                comment={comment}
+                billId={bill.id}
+                refreshComments={refreshComments}
+              />
+            ))}
+          </List>
+        </AccordionDetails>
+      </Accordion>
     </Container>
   );
 };

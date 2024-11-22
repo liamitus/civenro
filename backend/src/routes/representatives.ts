@@ -100,9 +100,19 @@ router.post(
               },
             });
 
-            return { ...rep, vote: repVote?.vote || 'No vote recorded' };
+            return {
+              ...rep,
+              vote: repVote?.vote || 'No vote recorded',
+              imageUrl: dbRep.imageUrl,
+              link: dbRep.link,
+            };
           } else {
-            return { ...rep, vote: 'Representative not found in database' };
+            return {
+              ...rep,
+              vote: 'Representative not found in database',
+              imageUrl: null, // Or provide a default image URL
+              link: null, // Or provide a default link
+            };
           }
         })
       );

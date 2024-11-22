@@ -19,5 +19,12 @@ export const getRepresentativesByAddress = async (
       },
     }
   );
-  return response.data.representatives;
+  const representatives = response.data.representatives;
+  return representatives.map((rep: any) => ({
+    name: rep.name,
+    vote: rep.vote,
+    imageUrl: rep.imageUrl ?? null, // Set to null if undefined
+    link: rep.link ?? null, // Set to null if undefined
+    ...rep,
+  }));
 };
