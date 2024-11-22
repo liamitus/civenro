@@ -22,7 +22,7 @@ const AIChatboxPlaceholder: React.FC<AIChatboxProps> = ({
     </AccordionSummary>
     <AccordionDetails>
       <Typography variant="body2" color="textSecondary">
-        AI Chatbox placeholder – Coming soon!
+        AI Chat – Coming soon!
       </Typography>
     </AccordionDetails>
   </Accordion>
