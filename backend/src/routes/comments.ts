@@ -1,4 +1,4 @@
-// backend/src/routes/votes.ts
+// backend/src/routes/comments.ts
 
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -10,7 +10,13 @@ const prisma = new PrismaClient();
 // POST /api/comments
 // Submit a comment on a bill
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
-  const { userId, billId, content, parentCommentId } = req.body;
+  // Access req.user, making sure to handle the possibility that it might be undefined
+  if (!req.user || !req.user.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { billId, content, parentCommentId } = req.body;
+  const userId = req.user.userId;
 
   // Basic validation
   if (!billId || !content) {
@@ -41,7 +47,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     // Create the comment
     const comment = await prisma.comment.create({
       data: {
-        userId: userId || null,
+        userId: userId,
         billId,
         content,
         parentCommentId: parentCommentId || null,
