@@ -1,3 +1,5 @@
+// frontend/src/components/RepresentativesVotes.tsx
+
 import React from 'react';
 import {
   Accordion,
