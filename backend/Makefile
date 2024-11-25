@@ -91,3 +91,13 @@ fetch-representatives:
 	@echo "Fetching representatives data..."
 	npx ts-node src/scripts/fetchRepresentatives.ts
 .PHONY: fetch-representatives
+
+fetch-bills:
+	@echo "Fetching bills data..."
+	npx ts-node src/scripts/fetchBills.ts
+.PHONY: fetch-bills
+
+fetch-votes:
+	@echo "Fetching votes data..."
+	npx ts-node src/scripts/fetchVotes.ts
+.PHONY: fetch-votes

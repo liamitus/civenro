@@ -21,6 +21,7 @@ interface Representative {
   vote: string;
   imageUrl: string | null;
   link: string | null;
+  chamber: string; // 'Senate' or 'House'
 }
 
 interface RepresentativesVotesProps {
@@ -29,6 +30,7 @@ interface RepresentativesVotesProps {
   address: string | null;
   representatives: Representative[];
   getVoteBorderColor: (vote: string) => string;
+  billChambers: string[];
 }
 
 const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
@@ -37,6 +39,7 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
   address,
   representatives,
   getVoteBorderColor,
+  billChambers,
 }) => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -110,6 +113,25 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
               );
             })}
           </Grid>
+        )}
+        {/* Display User's Address */}
+        {address && (
+          <Box mt={2} textAlign="center">
+            <Typography variant="body2" color="textSecondary">
+              Address: {address}{' '}
+              <Typography
+                variant="body2"
+                component="span"
+                color="primary"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  // Implement address re-entry logic
+                }}
+              >
+                (Change)
+              </Typography>
+            </Typography>
+          </Box>
         )}
       </AccordionDetails>
     </Accordion>

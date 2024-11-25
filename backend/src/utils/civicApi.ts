@@ -24,8 +24,25 @@ export const getRepresentativesByAddress = async (address: string) => {
     const data = response.data;
 
     // Attach bioguideId if available
-    if (data.officials) {
-      data.officials.forEach((official: any) => {
+    if (data.officials && data.offices) {
+      // Create a mapping of official index to chamber
+      const indexToChamber: { [key: number]: string } = {};
+
+      // Map offices to officials and assign chamber based on office name
+      data.offices.forEach((office: any) => {
+        const isSenator = office.name.includes('Senator');
+        const isRepresentative = office.name.includes('Representative');
+
+        office.officialIndices.forEach((index: number) => {
+          if (isSenator) {
+            indexToChamber[index] = 'senator';
+          } else if (isRepresentative) {
+            indexToChamber[index] = 'representative';
+          }
+        });
+      });
+
+      data.officials.forEach((official: any, index: number) => {
         let bioguideId = '';
         if (
           official.photoUrl &&
@@ -36,6 +53,9 @@ export const getRepresentativesByAddress = async (address: string) => {
           bioguideId = fileName.split('.')[0]; // Remove '.jpg' extension
         }
         official.bioguideId = bioguideId;
+
+        // Assign chamber from the mapping
+        official.chamber = indexToChamber[index] || '';
       });
     }
 

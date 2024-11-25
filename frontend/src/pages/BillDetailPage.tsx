@@ -29,6 +29,8 @@ interface Bill {
   title: string;
   summary: string;
   date: string;
+  billType: string; // e.g., 'hr' for House bills, 's' for Senate bills
+  currentChamber: string; // e.g., 'House', 'Senate', 'Both'
 }
 
 interface PublicVote {
@@ -74,6 +76,7 @@ const BillDetailPage: React.FC = () => {
   const { showModal } = useContext(ModalContext);
   const { address } = useContext(UserContext);
   const [representatives, setRepresentatives] = useState([]);
+  const [billChambers, setBillChambers] = useState<string[]>([]);
 
   // Replace with actual user ID if authentication is implemented
   const userId: number | null = null; // null represents anonymous user
@@ -141,6 +144,24 @@ const BillDetailPage: React.FC = () => {
     };
     fetchRepresentatives();
   }, [address, bill?.id]);
+
+  useEffect(() => {
+    if (bill) {
+      // Determine the chambers
+      const chambers: string[] = [];
+      if (bill.billType.startsWith('hr') || bill.billType.startsWith('hres')) {
+        chambers.push('House');
+      }
+      if (bill.billType.startsWith('s') || bill.billType.startsWith('sres')) {
+        chambers.push('Senate');
+      }
+      // If bill has passed both chambers, include both
+      if (bill.currentChamber === 'Both') {
+        chambers.push('House', 'Senate');
+      }
+      setBillChambers(Array.from(new Set(chambers)));
+    }
+  }, [bill]);
 
   const handleVote = async (voteType: 'For' | 'Against' | 'Abstain') => {
     if (!user) {
@@ -245,6 +266,7 @@ const BillDetailPage: React.FC = () => {
         address={address}
         representatives={representatives}
         getVoteBorderColor={getVoteBorderColor}
+        billChambers={billChambers}
       />
 
       {/* Voting Section */}
