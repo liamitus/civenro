@@ -46,7 +46,13 @@ const HomePage = () => {
   const fetchBills = async () => {
     try {
       const data = await getBills(filters);
-      setBills((prevBills) => [...prevBills, ...data.bills]);
+      setBills((prevBills) => {
+        const allBills = [...prevBills, ...data.bills];
+        const uniqueBills = Array.from(
+          new Map(allBills.map((bill) => [bill.id, bill])).values()
+        );
+        return uniqueBills;
+      });
       setTotalBills(data.total);
       setHasMore(bills.length + data.bills.length < data.total);
       setPage((prevPage) => prevPage + 1);

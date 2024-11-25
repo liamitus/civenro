@@ -18,9 +18,9 @@ const NavBar: React.FC = () => {
             🇺🇸 VoxPup
           </Link>
         </Typography>
-        <Button color="inherit" component={Link} to="/bills">
+        {/* <Button color="inherit" component={Link} to="/">
           Bills
-        </Button>
+        </Button> */}
         {/* Add more navigation links as needed */}
         {user ? (
           <Button color="inherit" onClick={logout}>
