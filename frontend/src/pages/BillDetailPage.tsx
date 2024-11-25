@@ -2,10 +2,9 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getBills } from '../services/billService';
+import { getBillById } from '../services/billService';
 import { getVotes, submitVote } from '../services/voteService';
 import { getComments, submitComment } from '../services/commentService';
-import Comment from '../components/Comment';
 import {
   Container,
   Typography,
@@ -29,8 +28,12 @@ interface Bill {
   title: string;
   summary: string;
   date: string;
-  billType: string; // e.g., 'hr' for House bills, 's' for Senate bills
-  currentChamber: string; // e.g., 'House', 'Senate', 'Both'
+  billType: string;
+  currentChamber: string;
+  currentStatus: string;
+  currentStatusDate: string;
+  introducedDate: string;
+  link: string;
 }
 
 interface PublicVote {
@@ -78,9 +81,6 @@ const BillDetailPage: React.FC = () => {
   const [representatives, setRepresentatives] = useState([]);
   const [billChambers, setBillChambers] = useState<string[]>([]);
 
-  // Replace with actual user ID if authentication is implemented
-  const userId: number | null = null; // null represents anonymous user
-
   // Theme and media query for responsive avatar sizes
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -117,18 +117,22 @@ const BillDetailPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
-        const billData = await getBills();
-        const currentBill = billData.find((b: Bill) => b.id === parseInt(id));
-        setBill(currentBill || null);
+        try {
+          const billData = await getBillById(parseInt(id));
+          setBill(billData || null);
 
-        const votesData = await getVotes(parseInt(id));
-        setVotes({
-          publicVotes: votesData.publicVotes || [],
-          congressionalVotes: votesData.congressionalVotes || [],
-        });
+          const votesData = await getVotes(parseInt(id));
+          setVotes({
+            publicVotes: votesData.publicVotes || [],
+            congressionalVotes: votesData.congressionalVotes || [],
+          });
 
-        const commentsData = await getComments(parseInt(id));
-        setComments(commentsData);
+          const commentsData = await getComments(parseInt(id));
+          setComments(commentsData);
+        } catch (error) {
+          console.error('Error fetching bill details:', error);
+          setBill(null);
+        }
       }
       setLoading(false);
     };
@@ -137,26 +141,29 @@ const BillDetailPage: React.FC = () => {
 
   useEffect(() => {
     const fetchRepresentatives = async () => {
-      if (address && bill && bill.id) {
-        const data = await getRepresentativesByAddress(address, bill.id);
-        setRepresentatives(data);
+      if (user && address && bill && bill.id) {
+        try {
+          const data = await getRepresentativesByAddress(address, bill.id);
+          setRepresentatives(data);
+        } catch (error) {
+          console.error('Error fetching representatives:', error);
+        }
       }
     };
     fetchRepresentatives();
-  }, [address, bill?.id]);
+  }, [user, address, bill?.id]);
 
   useEffect(() => {
     if (bill) {
-      // Determine the chambers
       const chambers: string[] = [];
-      if (bill.billType.startsWith('hr') || bill.billType.startsWith('hres')) {
+      const billTypeLower = bill.billType.toLowerCase();
+      if (billTypeLower.startsWith('hr') || billTypeLower.startsWith('hres')) {
         chambers.push('House');
       }
-      if (bill.billType.startsWith('s') || bill.billType.startsWith('sres')) {
+      if (billTypeLower.startsWith('s') || billTypeLower.startsWith('sres')) {
         chambers.push('Senate');
       }
-      // If bill has passed both chambers, include both
-      if (bill.currentChamber === 'Both') {
+      if (bill.currentChamber.toLowerCase() === 'both') {
         chambers.push('House', 'Senate');
       }
       setBillChambers(Array.from(new Set(chambers)));
@@ -165,14 +172,13 @@ const BillDetailPage: React.FC = () => {
 
   const handleVote = async (voteType: 'For' | 'Against' | 'Abstain') => {
     if (!user) {
-      showModal('auth', () => handleVote(voteType)); // Retry the action after login
+      showModal('auth', () => handleVote(voteType));
       return;
     }
     if (!bill) return;
 
     try {
       await submitVote(bill.id, voteType);
-      // Refresh votes
       const updatedVotes = await getVotes(bill.id);
       setVotes(updatedVotes);
       setSelectedVote(voteType);
@@ -190,8 +196,7 @@ const BillDetailPage: React.FC = () => {
     if (!bill || !commentContent.trim()) return;
 
     try {
-      await submitComment(bill.id, commentContent, userId || undefined);
-      // Refresh comments
+      await submitComment(bill.id, commentContent, user.id);
       const updatedComments = await getComments(bill.id);
       setComments(updatedComments);
       setCommentContent('');
@@ -202,18 +207,15 @@ const BillDetailPage: React.FC = () => {
 
   const refreshComments = async () => {
     if (!bill) return;
-
     const commentsData = await getComments(bill.id);
     setComments(commentsData);
   };
 
   const handleSortChange = (event: SelectChangeEvent<string>) => {
     setSortOption(event.target.value as string);
-    // Fetch comments again with the new sort option
     refreshComments();
   };
 
-  // Add a function to map votes to colors
   const getVoteBorderColor = (vote: string) => {
     switch (vote) {
       case 'Yea':
@@ -243,7 +245,9 @@ const BillDetailPage: React.FC = () => {
   if (!bill) {
     return (
       <Container>
-        <Typography variant="h5">Bill not found.</Typography>
+        <Typography variant="h5">
+          Bill not found or an error occurred.
+        </Typography>
       </Container>
     );
   }
