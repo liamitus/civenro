@@ -66,9 +66,8 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/comments/:billId
-// Retrieve comments for a specific bill
-router.get('/:billId', async (req: Request, res: Response) => {
+// GET /api/comments/bill/:billId
+router.get('/bill/:billId', async (req: Request, res: Response) => {
   const { billId } = req.params;
   const sortOption =
     req.query.sort === 'best' ? { voteCount: 'desc' } : { date: 'desc' };

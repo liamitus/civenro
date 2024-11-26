@@ -30,7 +30,7 @@ export const submitComment = async (
 // Function to get comments for a bill
 export const getComments = async (billId: number) => {
   try {
-    const response = await axios.get(`${API_URL}/${billId}`);
+    const response = await axios.get(`${API_URL}/bill/${billId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching comments:', error);
