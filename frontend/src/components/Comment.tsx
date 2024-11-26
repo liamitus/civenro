@@ -120,7 +120,7 @@ const Comment: React.FC<CommentProps> = ({
               {isCollapsed ? <ExpandMore /> : <ExpandLess />}
             </IconButton>
             <Typography variant="subtitle2" color="textSecondary">
-              {comment.username || 'Anonymous'}
+              {comment.username}
             </Typography>
             <Typography
               variant="subtitle2"

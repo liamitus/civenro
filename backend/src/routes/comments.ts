@@ -23,6 +23,11 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'billId and content are required' });
   }
 
+  // Validation for comment length (e.g., max 10,000 characters)
+  if (content.length > 10000) {
+    return res.status(400).json({ error: 'Comment is too long.' });
+  }
+
   try {
     // Check if the bill exists
     const bill = await prisma.bill.findUnique({
@@ -106,6 +111,7 @@ async function getCommentsWithVotes(
       const replies = await getCommentsWithVotes(comment.id, billId);
       return {
         ...comment,
+        username: comment.user.username || 'Anonymous',
         voteCount,
         replies,
       };

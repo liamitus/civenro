@@ -18,8 +18,11 @@ export const submitComment = async (
       parentCommentId,
     });
     return response.data;
-  } catch (error) {
-    console.error('Error submitting comment:', error);
+  } catch (error: any) {
+    if (error.response && error.response.data.error) {
+      // Forward the error message
+      throw new Error(error.response.data.error);
+    }
     throw error;
   }
 };

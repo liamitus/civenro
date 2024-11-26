@@ -44,13 +44,22 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   refreshComments,
   billId,
 }) => {
+  const handleCommentSubmitWithValidation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (commentContent.length > 10000) {
+      // Handle error (e.g., show a message to the user)
+      return;
+    }
+    handleCommentSubmit(e);
+  };
+
   return (
     <Accordion expanded={expanded} onChange={onChange}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography variant="subtitle1">Comments</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <form onSubmit={handleCommentSubmit}>
+        <form onSubmit={handleCommentSubmitWithValidation}>
           <TextField
             label="Add a comment"
             value={commentContent}
@@ -58,6 +67,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             fullWidth
             multiline
             rows={4}
+            inputProps={{ maxLength: 10000 }}
           />
           <Button
             type="submit"
