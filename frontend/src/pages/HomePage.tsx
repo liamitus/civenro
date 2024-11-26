@@ -132,7 +132,7 @@ const HomePage = () => {
         </FormControl>
 
         {/* Status Filter */}
-        <FormControl variant="outlined">
+        <FormControl variant="outlined" sx={{ minWidth: 123 }}>
           <InputLabel>Status</InputLabel>
           <Select
             value={filters.status}
