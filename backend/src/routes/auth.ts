@@ -11,10 +11,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 // Register a new user
 router.post('/register', async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { username, email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
   }
 
   try {
@@ -27,12 +31,21 @@ router.post('/register', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUsername) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the user
     const user = await prisma.user.create({
       data: {
+        username,
         email,
         password: hashedPassword,
       },

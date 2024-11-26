@@ -16,13 +16,11 @@ interface CommentType {
   id: number;
   content: string;
   userId: number | null;
-  billId: number;
+  username: string;
   date: string;
-  user?: {
-    id: number;
-    state?: string;
-  };
-  replies?: CommentType[];
+  voteCount: number;
+  parentCommentId?: number;
+  replies?: any;
 }
 
 interface CommentsSectionProps {
@@ -46,8 +44,6 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   refreshComments,
   billId,
 }) => {
-  // ...existing code...
-
   return (
     <Accordion expanded={expanded} onChange={onChange}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>

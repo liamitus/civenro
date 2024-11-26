@@ -7,7 +7,11 @@ interface AuthContextProps {
   user: any;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
   logout: () => void;
 }
 
@@ -52,8 +56,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string
+  ) => {
     await axios.post(`${API_URL}/auth/register`, {
+      username,
       email,
       password,
     });

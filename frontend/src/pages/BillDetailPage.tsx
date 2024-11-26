@@ -50,12 +50,11 @@ interface Comment {
   id: number;
   content: string;
   userId: number | null;
-  billId: number;
+  username: string;
   date: string;
-  user?: {
-    id: number;
-    state?: string;
-  };
+  voteCount: number;
+  parentCommentId?: number;
+  replies?: any;
 }
 
 const BillDetailPage: React.FC = () => {

@@ -27,6 +27,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [activeTab, setActiveTab] = useState(0); // 0 for Login, 1 for Register
 
   // Shared states
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -64,7 +65,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(email, password);
+      await register(username, email, password);
       if (onAuthSuccess) {
         onAuthSuccess();
       }
@@ -94,6 +95,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
         </Tabs>
         {activeTab === 0 && (
           <Box component="form" onSubmit={handleLoginSubmit} sx={{ mt: 2 }}>
+            <TextField
+              label="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 1 }}
+            />
             <TextField
               label="Email"
               value={email}
