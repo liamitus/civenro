@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography } from '@mui/material';
+import { Typography, Link } from '@mui/material';
 
 interface Bill {
   id: number;
@@ -7,6 +7,7 @@ interface Bill {
   title: string;
   summary: string;
   date: string;
+  link: string;
 }
 
 interface BillSummaryProps {
@@ -16,9 +17,17 @@ interface BillSummaryProps {
 const BillSummary: React.FC<BillSummaryProps> = ({ bill }) => {
   return (
     <>
-      <Typography variant="h5" gutterBottom>
-        {bill.title}
-      </Typography>
+      <Link
+        href={bill.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        underline="none"
+        color="inherit"
+      >
+        <Typography variant="h5" gutterBottom>
+          {bill.title}
+        </Typography>
+      </Link>
       <Typography variant="body2" gutterBottom>
         {bill.summary}
       </Typography>
