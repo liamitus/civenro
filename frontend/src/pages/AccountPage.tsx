@@ -221,7 +221,8 @@ const AccountPage: React.FC = () => {
                       key={comment.id}
                       comment={comment}
                       billId={comment.billId}
-                      refreshComments={refreshComments} // Use the actual refreshComments function
+                      refreshComments={refreshComments}
+                      origin="account" // Passed origin prop
                     />
                   ))}
                 </InfiniteScroll>

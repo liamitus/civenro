@@ -39,12 +39,14 @@ interface CommentProps {
   };
   billId: number;
   refreshComments: () => void;
+  origin?: 'bill' | 'account'; // Added origin prop
 }
 
 const Comment: React.FC<CommentProps> = ({
   comment,
   billId,
   refreshComments,
+  origin = 'bill', // Default origin
 }) => {
   const { user } = useContext(AuthContext);
   const { showModal } = useContext(ModalContext);
@@ -101,7 +103,6 @@ const Comment: React.FC<CommentProps> = ({
             <Box display="flex" alignItems="center">
               <Typography variant="subtitle2" color="textSecondary">
                 <Link to={`/user/${comment.userId}`}>{comment.username}</Link>
-                &nbsp;
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 {dayjs(comment.date).fromNow()}
@@ -131,12 +132,26 @@ const Comment: React.FC<CommentProps> = ({
                   <IconButton onClick={() => handleVote(-1)}>
                     <ThumbDown fontSize="small" />
                   </IconButton>
-                  <Button
-                    size="small"
-                    onClick={() => setShowReplyField(!showReplyField)}
-                  >
-                    Reply
-                  </Button>
+                  {/* Conditionally render Reply button */}
+                  {origin === 'bill' && (
+                    <Button
+                      size="small"
+                      onClick={() => setShowReplyField(!showReplyField)}
+                    >
+                      Reply
+                    </Button>
+                  )}
+                  {/* Conditionally render link back to bill */}
+                  {origin === 'account' && (
+                    <Button
+                      size="small"
+                      component={Link}
+                      to={`/bill/${billId}`}
+                      sx={{ ml: 1 }}
+                    >
+                      View Bill
+                    </Button>
+                  )}
                 </Box>
                 {showReplyField && (
                   <Box mt={0.5}>

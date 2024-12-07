@@ -21,7 +21,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/user/:userId" element={<AccountPage />} />
-              <Route path="/bills/:id" element={<BillDetailPage />} />
+              <Route path="/bill/:id" element={<BillDetailPage />} />
             </Routes>
           </Router>
           {/* </GoogleMapsLoader> */}
