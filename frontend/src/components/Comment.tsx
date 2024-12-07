@@ -39,7 +39,7 @@ interface CommentProps {
   };
   billId: number;
   refreshComments: () => void;
-  origin?: 'bill' | 'account'; // Added origin prop
+  origin?: 'bill' | 'account'; // Existing origin prop
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -101,12 +101,28 @@ const Comment: React.FC<CommentProps> = ({
           </Box>
           <Box flex="1" ml={1}>
             <Box display="flex" alignItems="center">
-              <Typography variant="subtitle2" color="textSecondary">
-                <Link to={`/user/${comment.userId}`}>{comment.username}</Link>
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {dayjs(comment.date).fromNow()}
-              </Typography>
+              {/* Conditionally render username and add space */}
+              {origin === 'bill' && (
+                <>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    <Link to={`/user/${comment.userId}`}>
+                      {comment.username}
+                    </Link>
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ ml: 1 }} // Adds space between username and date
+                  >
+                    {dayjs(comment.date).fromNow()}
+                  </Typography>
+                </>
+              )}
+              {origin === 'account' && (
+                <Typography variant="body2" color="textSecondary">
+                  {dayjs(comment.date).fromNow()}
+                </Typography>
+              )}
             </Box>
 
             {!isCollapsed && (
