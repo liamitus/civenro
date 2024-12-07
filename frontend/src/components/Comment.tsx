@@ -10,14 +10,15 @@ import {
 import {
   ExpandLess,
   ExpandMore,
-  AddCircleOutline,
-  RemoveCircleOutline,
+  ThumbDown,
+  ThumbUp,
 } from '@mui/icons-material';
 import { submitComment, submitCommentVote } from '../services/commentService';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { Link } from 'react-router-dom';
 
 dayjs.extend(relativeTime);
 
@@ -84,53 +85,18 @@ const Comment: React.FC<CommentProps> = ({
   return (
     <Box ml={comment.parentCommentId ? 2 : 0} mt={1}>
       <Box display="flex" alignItems="flex-start">
-        {/* Vote Bar */}
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          mr={1}
-          mt={0.5}
-        >
-          <IconButton
-            onClick={() => handleVote(1)}
-            size="small"
-            aria-label="Upvote"
-            color={upvoteColor}
-          >
-            <AddCircleOutline fontSize="inherit" />
-          </IconButton>
-          <IconButton
-            onClick={() => handleVote(-1)}
-            size="small"
-            aria-label="Downvote"
-            color={downvoteColor}
-          >
-            <RemoveCircleOutline fontSize="inherit" />
+        <Box>
+          <IconButton onClick={() => setIsCollapsed(!isCollapsed)} size="small">
+            {isCollapsed ? <ExpandMore /> : <ExpandLess />}
           </IconButton>
         </Box>
-
-        {/* Comment Content */}
-        <Box flex="1">
+        <Box flex="1" ml={1}>
           <Box display="flex" alignItems="center">
-            <IconButton
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              size="small"
-            >
-              {isCollapsed ? <ExpandMore /> : <ExpandLess />}
-            </IconButton>
             <Typography variant="subtitle2" color="textSecondary">
-              {comment.username}
-            </Typography>
-            <Typography
-              variant="subtitle2"
-              color="textSecondary"
-              sx={{ mx: 1 }}
-            >
-              {comment.voteCount}
+              <Link to={`/user/${comment.userId}`}>{comment.username}</Link>
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              • {dayjs(comment.date).fromNow()}
+              &nbsp;{dayjs(comment.date).fromNow()}
             </Typography>
           </Box>
 
@@ -140,6 +106,13 @@ const Comment: React.FC<CommentProps> = ({
                 {comment.content}
               </Typography>
               <Box display="flex" alignItems="center" sx={{ mt: 0.5 }}>
+                <IconButton onClick={() => handleVote(1)}>
+                  <ThumbUp fontSize="small" />
+                </IconButton>
+                <Typography variant="body2">{comment.voteCount}</Typography>
+                <IconButton onClick={() => handleVote(-1)}>
+                  <ThumbDown fontSize="small" />
+                </IconButton>
                 <Button
                   size="small"
                   onClick={() => setShowReplyField(!showReplyField)}
