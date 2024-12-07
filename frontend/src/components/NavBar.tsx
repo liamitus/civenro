@@ -23,11 +23,7 @@ const NavBar: React.FC = () => {
           </Link>
         </Typography>
         {user ? (
-          <Button
-            color="inherit"
-            component={Link}
-            to={`/account/${user.userId}`}
-          >
+          <Button color="inherit" component={Link} to={`/user/${user.userId}`}>
             My Account
           </Button>
         ) : null}

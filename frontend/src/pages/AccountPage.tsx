@@ -162,7 +162,7 @@ const AccountPage: React.FC = () => {
     <Container>
       {userProfile ? (
         <>
-          <Typography variant="h4">{userProfile.username}'s Account</Typography>
+          <Typography variant="h4">{userProfile.username}</Typography>
           <Typography variant="body2" color="textSecondary">
             Joined on {new Date(userProfile.createdAt).toLocaleDateString()}
           </Typography>
