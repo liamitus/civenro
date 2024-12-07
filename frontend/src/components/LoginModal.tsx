@@ -60,9 +60,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
         onAuthSuccess();
       }
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      setErrorMessage('Invalid email or password.');
+      if (error.response && error.response.data && error.response.data.error) {
+        setErrorMessage(error.response.data.error);
+      } else {
+        setErrorMessage('Invalid email or password.');
+      }
     }
   };
 
@@ -74,9 +78,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
         onAuthSuccess();
       }
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      setErrorMessage('Registration failed. Please try again.');
+      if (error.response && error.response.data && error.response.data.error) {
+        setErrorMessage(error.response.data.error);
+      } else {
+        setErrorMessage('Registration failed. Please try again.');
+      }
     }
   };
 
