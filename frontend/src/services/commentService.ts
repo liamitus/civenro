@@ -59,9 +59,7 @@ export const submitCommentVote = async (
 
 export const getUserComments = async (userId: number) => {
   try {
-    const response = await axiosInstance.get(
-      `${API_URL}/comments/user/${userId}`
-    );
+    const response = await axiosInstance.get(`${API_URL}/user/${userId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching user comments:', error);
