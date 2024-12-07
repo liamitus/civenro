@@ -51,6 +51,8 @@ const Comment: React.FC<CommentProps> = ({
   const [showReplyField, setShowReplyField] = useState(false);
   const isHidden = comment.voteCount <= VOTE_THRESHOLD;
   const [isCollapsed, setIsCollapsed] = useState(isHidden);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const MAX_LENGTH = 300;
 
   const theme = useTheme();
 
@@ -78,6 +80,10 @@ const Comment: React.FC<CommentProps> = ({
     }
   };
 
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   // Determine button colors based on userVote
   const upvoteColor = comment.userVote === 1 ? 'primary' : 'default';
   const downvoteColor = comment.userVote === -1 ? 'primary' : 'default';
@@ -102,9 +108,19 @@ const Comment: React.FC<CommentProps> = ({
 
           {!isCollapsed && (
             <>
-              <Typography variant="body1" sx={{ mt: 0.5 }}>
-                {comment.content}
+              <Typography
+                variant="body1"
+                sx={{ mt: 0.5, whiteSpace: 'pre-line' }}
+              >
+                {isExpanded || comment.content.length <= MAX_LENGTH
+                  ? comment.content
+                  : `${comment.content.substring(0, MAX_LENGTH)}...`}
               </Typography>
+              {comment.content.length > MAX_LENGTH && (
+                <Button size="small" onClick={toggleExpand}>
+                  {isExpanded ? 'Show Less' : 'Read More'}
+                </Button>
+              )}
               <Box display="flex" alignItems="center" sx={{ mt: 0.5 }}>
                 <IconButton onClick={() => handleVote(1)}>
                   <ThumbUp fontSize="small" />
