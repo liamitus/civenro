@@ -6,8 +6,7 @@ import {
   Typography,
   TextField,
   Button,
-  Select,
-  MenuItem,
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Comment from './Comment';
@@ -80,24 +79,18 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             Submit
           </Button>
         </form>
-        <Select
-          value="new"
-          onChange={() => {
-            /* handle sort */
-          }}
-          sx={{ mt: 2, mb: 2 }}
-        >
-          <MenuItem value="new">Newest</MenuItem>
-          <MenuItem value="old">Oldest</MenuItem>
-        </Select>
-        {comments.map((comment) => (
-          <Comment
-            key={comment.id}
-            comment={comment}
-            billId={billId}
-            refreshComments={refreshComments}
-          />
-        ))}
+        <Box sx={{ mt: 4 }}>
+          {' '}
+          {/* Added Box with top margin */}
+          {comments.map((comment) => (
+            <Comment
+              key={comment.id}
+              comment={comment}
+              billId={billId}
+              refreshComments={refreshComments}
+            />
+          ))}
+        </Box>
         {children} {/* Add this line to render nested components */}
       </AccordionDetails>
     </Accordion>
