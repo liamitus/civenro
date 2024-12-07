@@ -1,6 +1,6 @@
-# 🇺🇸 VoxPup
+# 🇺🇸 Civenro
 
-VoxPup is a community-driven platform designed to enhance transparency and civic engagement in the legislative process. Modeled after Reddit, VoxPup allows users to browse government bills, vote on them, and participate in discussions, all while providing insights into how their elected representatives have voted.
+Civenro is a community-driven platform designed to enhance transparency and civic engagement in the legislative process. Modeled after Reddit, Civenro allows users to browse government bills, vote on them, and participate in discussions, all while providing insights into how their elected representatives have voted.
 
 ## **Table of Contents**
 
@@ -54,8 +54,8 @@ VoxPup is a community-driven platform designed to enhance transparency and civic
 ### **Clone the Repository**
 
 ```bash
-git clone https://github.com/yourusername/voxpup.git
-cd voxpup
+git clone https://github.com/yourusername/civenro.git
+cd civenro
 ```
 
 ### **Front-End Setup**

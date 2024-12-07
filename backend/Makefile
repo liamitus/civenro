@@ -1,4 +1,4 @@
-# Makefile for VoxPup Backend
+# Makefile for Civenro Backend
 
 # Specify the shell to use (optional, defaults to /bin/sh)
 SHELL := /bin/bash
@@ -8,7 +8,7 @@ DB_URL := $(shell grep DATABASE_URL .env | cut -d '=' -f2)
 
 # Display help
 help:
-	@echo "VoxPup Backend Makefile"
+	@echo "Civenro Backend Makefile"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""
