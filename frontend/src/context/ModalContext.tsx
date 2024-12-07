@@ -6,7 +6,7 @@ import LoginModal from '../components/LoginModal';
 type ModalType = 'auth' | 'anotherModalType';
 
 interface ModalContextProps {
-  showModal: (modalType: ModalType, onSuccess?: () => void) => void;
+  showModal: (modalType: ModalType, options?: any) => void;
   hideModal: () => void;
 }
 
@@ -21,6 +21,7 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
   const [modalState, setModalState] = useState<{
     type: ModalType;
     open: boolean;
+    options?: any;
   }>({
     type: 'auth',
     open: false,
@@ -29,11 +30,8 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
     () => {}
   );
 
-  const showModal = (type: ModalType, onSuccess?: () => void) => {
-    setModalState({ type, open: true });
-    if (onSuccess) {
-      setOnSuccessCallback(() => onSuccess);
-    }
+  const showModal = (type: ModalType, options?: any) => {
+    setModalState({ type, open: true, options });
   };
 
   const hideModal = () => {
@@ -54,6 +52,7 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
             }
             hideModal();
           }}
+          initialTab={modalState.options?.initialTab}
         />
       )}
       {/* Render other modals based on modalState.type */}

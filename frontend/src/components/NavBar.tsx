@@ -44,7 +44,10 @@ const NavBar: React.FC = () => {
             <Button color="inherit" onClick={() => showModal('auth')}>
               Login
             </Button>
-            <Button color="inherit" component={Link} to="/register">
+            <Button
+              color="inherit"
+              onClick={() => showModal('auth', { initialTab: 1 })}
+            >
               Register
             </Button>
           </>

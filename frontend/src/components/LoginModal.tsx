@@ -16,15 +16,17 @@ interface LoginModalProps {
   open: boolean;
   onClose: () => void;
   onAuthSuccess?: () => void;
+  initialTab?: number;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({
   open,
   onClose,
   onAuthSuccess,
+  initialTab = 0,
 }) => {
   const { login, register } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState(0); // 0 for Login, 1 for Register
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Shared states
   const [username, setUsername] = useState('');
@@ -34,14 +36,16 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setActiveTab(initialTab); // Reset activeTab when modal opens
+    } else {
       // Reset form fields when the modal is closed
       setEmail('');
       setPassword('');
-      setActiveTab(0); // Optionally reset to the Login tab
+      setUsername('');
       setErrorMessage('');
     }
-  }, [open]);
+  }, [open, initialTab]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
