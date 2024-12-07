@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 
 const API_URL = 'http://localhost:5001/api/comments';
 const COMMENT_VOTES_API_URL = 'http://localhost:5001/api/comment-votes';
@@ -52,6 +53,18 @@ export const submitCommentVote = async (
     return response.data;
   } catch (error) {
     console.error('Error submitting comment vote:', error);
+    throw error;
+  }
+};
+
+export const getUserComments = async (userId: number) => {
+  try {
+    const response = await axiosInstance.get(
+      `${API_URL}/comments/user/${userId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user comments:', error);
     throw error;
   }
 };
