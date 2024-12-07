@@ -20,6 +20,7 @@ import {
   TextField,
 } from '@mui/material';
 import Comment from '../components/Comment';
+import axios, { AxiosError } from 'axios';
 
 interface UserProfile {
   id: number;
@@ -40,6 +41,14 @@ const AccountPage: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [settingsMessage, setSettingsMessage] = useState('');
+  const [settingsMessageType, setSettingsMessageType] = useState<
+    'success' | 'error' | ''
+  >('');
+
+  // Add separate error states for each field
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,13 +83,26 @@ const AccountPage: React.FC = () => {
     try {
       const data = await updateUsername(username);
       setSettingsMessage('Username updated successfully');
+      setSettingsMessageType('success');
+      setUsernameError('');
       // Update auth context user data if necessary
       if (user) {
         user.username = data.user.username;
       }
     } catch (error) {
       console.error('Error updating username:', error);
-      setSettingsMessage('Failed to update username');
+      let errorMessage = 'Failed to update username';
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.data &&
+        (error.response.data as any).error
+      ) {
+        errorMessage = (error.response.data as any).error;
+      }
+      setSettingsMessage(errorMessage);
+      setSettingsMessageType('error');
+      setUsernameError(errorMessage);
     }
   };
 
@@ -88,12 +110,25 @@ const AccountPage: React.FC = () => {
     try {
       const data = await updateEmail(email);
       setSettingsMessage('Email updated successfully');
+      setSettingsMessageType('success');
+      setEmailError('');
       if (user) {
         user.email = data.user.email;
       }
     } catch (error) {
       console.error('Error updating email:', error);
-      setSettingsMessage('Failed to update email');
+      let errorMessage = 'Failed to update email';
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.data &&
+        (error.response.data as any).error
+      ) {
+        errorMessage = (error.response.data as any).error;
+      }
+      setSettingsMessage(errorMessage);
+      setSettingsMessageType('error');
+      setEmailError(errorMessage);
     }
   };
 
@@ -101,12 +136,25 @@ const AccountPage: React.FC = () => {
     try {
       await updatePassword(currentPassword, newPassword);
       setSettingsMessage('Password updated successfully');
+      setSettingsMessageType('success');
+      setPasswordError('');
       // Clear password fields
       setCurrentPassword('');
       setNewPassword('');
     } catch (error) {
       console.error('Error updating password:', error);
-      setSettingsMessage('Failed to update password');
+      let errorMessage = 'Failed to update password';
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.data &&
+        (error.response.data as any).error
+      ) {
+        errorMessage = (error.response.data as any).error;
+      }
+      setSettingsMessage(errorMessage);
+      setSettingsMessageType('error');
+      setPasswordError(errorMessage);
     }
   };
 
@@ -151,10 +199,11 @@ const AccountPage: React.FC = () => {
               <Box mt={2}>
                 <Typography variant="subtitle1">Update Username</Typography>
                 <TextField
-                  label="New Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   fullWidth
+                  error={!!usernameError}
+                  helperText={usernameError}
                 />
                 <Button
                   variant="contained"
@@ -173,6 +222,8 @@ const AccountPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   fullWidth
+                  error={!!emailError}
+                  helperText={emailError}
                 />
                 <Button
                   variant="contained"
@@ -192,6 +243,8 @@ const AccountPage: React.FC = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   fullWidth
+                  error={!!passwordError}
+                  helperText={passwordError}
                 />
                 <TextField
                   label="New Password"
@@ -200,6 +253,8 @@ const AccountPage: React.FC = () => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   fullWidth
                   sx={{ mt: 1 }}
+                  error={!!passwordError}
+                  helperText={passwordError}
                 />
                 <Button
                   variant="contained"
@@ -209,12 +264,6 @@ const AccountPage: React.FC = () => {
                   Update Password
                 </Button>
               </Box>
-
-              {settingsMessage && (
-                <Typography variant="body2" color="success.main" sx={{ mt: 2 }}>
-                  {settingsMessage}
-                </Typography>
-              )}
             </Box>
           )}
         </>
