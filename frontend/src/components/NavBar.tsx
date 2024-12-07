@@ -7,8 +7,12 @@ import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 
 const NavBar: React.FC = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, loading } = useContext(AuthContext);
   const { showModal } = useContext(ModalContext);
+
+  if (loading) {
+    return null; // or a loading indicator
+  }
 
   return (
     <AppBar position="static">
@@ -18,6 +22,15 @@ const NavBar: React.FC = () => {
             🇺🇸 VoxPup
           </Link>
         </Typography>
+        {user ? (
+          <Button
+            color="inherit"
+            component={Link}
+            to={`/account/${user.userId}`}
+          >
+            My Account
+          </Button>
+        ) : null}
         {/* <Button color="inherit" component={Link} to="/">
           Bills
         </Button> */}

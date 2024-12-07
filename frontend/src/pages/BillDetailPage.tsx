@@ -59,6 +59,7 @@ interface Comment {
 
 const BillDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user, loading: authLoading } = useContext(AuthContext);
   const [bill, setBill] = useState<Bill | null>(null);
   const [votes, setVotes] = useState<{
     publicVotes: PublicVote[];
@@ -74,7 +75,6 @@ const BillDetailPage: React.FC = () => {
   >(null);
   const [commentContent, setCommentContent] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
-  const { user } = useContext(AuthContext);
   const { showModal } = useContext(ModalContext);
   const { address } = useContext(UserContext);
   const [representatives, setRepresentatives] = useState([]);
@@ -114,6 +114,7 @@ const BillDetailPage: React.FC = () => {
     };
 
   useEffect(() => {
+    if (authLoading) return; // Wait until auth data is loaded
     const fetchData = async () => {
       if (id) {
         try {
@@ -136,7 +137,7 @@ const BillDetailPage: React.FC = () => {
       setLoading(false);
     };
     fetchData();
-  }, [id]);
+  }, [id, authLoading]);
 
   useEffect(() => {
     const fetchRepresentatives = async () => {

@@ -86,6 +86,52 @@ router.get('/bill/:billId', async (req: Request, res: Response) => {
   }
 });
 
+// Fetch comments by a user
+router.get('/user/:userId', async (req, res) => {
+  const userId = parseInt(req.params.userId);
+
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { userId },
+      include: {
+        bill: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        CommentVote: true,
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
+
+    // Calculate vote counts
+    const commentsWithVoteCounts = comments.map((comment) => {
+      const voteCount = comment.CommentVote.reduce(
+        (sum, vote) => sum + vote.voteType,
+        0
+      );
+      return {
+        ...comment,
+        voteCount,
+      };
+    });
+
+    res.json(commentsWithVoteCounts);
+  } catch (error) {
+    console.error('Error fetching user comments:', error);
+    res.status(500).json({ error: 'Failed to fetch user comments' });
+  }
+});
+
 // Recursive function to fetch comments with vote counts and replies
 async function getCommentsWithVotes(
   parentCommentId: number | null,

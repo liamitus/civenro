@@ -6,6 +6,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 interface AuthContextProps {
   user: any;
   token: string | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (
     username: string,
@@ -22,6 +23,7 @@ interface AuthProviderProps {
 export const AuthContext = createContext<AuthContextProps>({
   user: null,
   token: null,
+  loading: true,
   login: async () => {},
   register: async () => {},
   logout: () => {},
@@ -30,15 +32,22 @@ export const AuthContext = createContext<AuthContextProps>({
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-    }
+    const fetchAuthData = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        axios.defaults.headers.common[
+          'Authorization'
+        ] = `Bearer ${storedToken}`;
+      }
+      setLoading(false);
+    };
+    fetchAuthData();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -49,8 +58,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { token } = response.data;
     setToken(token);
     localStorage.setItem('token', token);
-    // Decode token to get user info (optional)
     const user = JSON.parse(atob(token.split('.')[1]));
+    user.id = user.userId;
     setUser(user);
     localStorage.setItem('user', JSON.stringify(user));
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -66,7 +75,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       email,
       password,
     });
-    // Optionally log the user in after registration
     await login(email, password);
   };
 
@@ -79,7 +87,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -96,14 +96,6 @@ const LoginModal: React.FC<LoginModalProps> = ({
         {activeTab === 0 && (
           <Box component="form" onSubmit={handleLoginSubmit} sx={{ mt: 2 }}>
             <TextField
-              label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              fullWidth
-              required
-              sx={{ mt: 1 }}
-            />
-            <TextField
               label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -138,6 +130,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
         )}
         {activeTab === 1 && (
           <Box component="form" onSubmit={handleRegisterSubmit} sx={{ mt: 2 }}>
+            <TextField
+              label="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 1 }}
+            />
             <TextField
               label="Email"
               value={email}

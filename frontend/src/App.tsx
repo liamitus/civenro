@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ModalProvider } from './context/ModalContext';
 import { UserProvider } from './context/UserContext';
 import { LoadScript } from '@react-google-maps/api';
+import AccountPage from './pages/AccountPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <NavBar />
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/account/:userId" element={<AccountPage />} />
               <Route path="/bills/:id" element={<BillDetailPage />} />
             </Routes>
           </Router>
