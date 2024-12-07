@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Accordion,
   AccordionSummary,
@@ -31,7 +31,7 @@ interface CommentsSectionProps {
   handleCommentSubmit: (e: React.FormEvent) => void;
   refreshComments: () => void;
   billId: number;
-  children?: React.ReactNode; // Add this line
+  children?: React.ReactNode;
 }
 
 const CommentsSection: React.FC<CommentsSectionProps> = ({
@@ -43,8 +43,27 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   handleCommentSubmit,
   refreshComments,
   billId,
-  children, // Add this line
+  children,
 }) => {
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const content = e.target.value;
+    setCommentContent(content);
+    const length = content.length;
+    if (length > 10000) {
+      setErrorMessage(
+        `Comment is ${length - 10000} characters over the limit.`
+      );
+    } else if (length > 9000) {
+      setErrorMessage(
+        `Approaching the limit: ${10000 - length} characters left.`
+      );
+    } else {
+      setErrorMessage('');
+    }
+  };
+
   const handleCommentSubmitWithValidation = (e: React.FormEvent) => {
     e.preventDefault();
     if (commentContent.length > 10000) {
@@ -64,12 +83,16 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
           <TextField
             label="Add a comment"
             value={commentContent}
-            onChange={(e) => setCommentContent(e.target.value)}
+            onChange={handleCommentChange} // Updated handler
             fullWidth
             multiline
             rows={4}
-            inputProps={{ maxLength: 10000 }}
           />
+          {errorMessage && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {errorMessage}
+            </Typography>
+          )}
           <Button
             type="submit"
             variant="contained"
