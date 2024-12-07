@@ -32,6 +32,7 @@ interface CommentsSectionProps {
   handleCommentSubmit: (e: React.FormEvent) => void;
   refreshComments: () => void;
   billId: number;
+  children?: React.ReactNode; // Add this line
 }
 
 const CommentsSection: React.FC<CommentsSectionProps> = ({
@@ -43,6 +44,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   handleCommentSubmit,
   refreshComments,
   billId,
+  children, // Add this line
 }) => {
   const handleCommentSubmitWithValidation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +98,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             refreshComments={refreshComments}
           />
         ))}
+        {children} {/* Add this line to render nested components */}
       </AccordionDetails>
     </Accordion>
   );

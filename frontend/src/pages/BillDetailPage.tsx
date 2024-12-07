@@ -21,6 +21,8 @@ import AIChatboxPlaceholder from '../components/AIChatboxPlaceholder';
 import RepresentativesVotes from '../components/RepresentativesVotes';
 import VoteOnBill from '../components/VoteOnBill';
 import CommentsSection from '../components/CommentsSection';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import Comment from '../components/Comment';
 
 interface Bill {
   id: number;
@@ -69,6 +71,9 @@ const BillDetailPage: React.FC = () => {
     congressionalVotes: [],
   });
   const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [commentsHasMore, setCommentsHasMore] = useState(true);
+  const COMMENTS_LIMIT = 20;
   const [sortOption, setSortOption] = useState('new');
   const [selectedVote, setSelectedVote] = useState<
     'For' | 'Against' | 'Abstain' | null
@@ -128,7 +133,7 @@ const BillDetailPage: React.FC = () => {
           });
 
           const commentsData = await getComments(parseInt(id));
-          setComments(commentsData);
+          setComments(commentsData.comments);
         } catch (error) {
           console.error('Error fetching bill details:', error);
           setBill(null);
@@ -231,6 +236,32 @@ const BillDetailPage: React.FC = () => {
     }
   };
 
+  const fetchComments = async () => {
+    if (!bill) return;
+    try {
+      const data = await getComments(
+        bill.id,
+        commentsPage,
+        COMMENTS_LIMIT,
+        'best'
+      );
+      setComments((prevComments) => [...prevComments, ...data.comments]);
+      setCommentsHasMore(comments.length + data.comments.length < data.total);
+      setCommentsPage(commentsPage + 1);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Reset comments when bill changes
+    setComments([]);
+    setCommentsPage(1);
+    setCommentsHasMore(true);
+    fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bill]);
+
   const publicVotes = votes.publicVotes;
   const congressionalVotes = votes.congressionalVotes;
 
@@ -294,7 +325,24 @@ const BillDetailPage: React.FC = () => {
           handleCommentSubmit={handleCommentSubmit}
           refreshComments={refreshComments}
           billId={bill.id}
-        />
+        >
+          <InfiniteScroll
+            dataLength={comments.length}
+            next={fetchComments}
+            hasMore={commentsHasMore}
+            loader={<h4>Loading more comments...</h4>}
+            endMessage={<p>No more comments to display.</p>}
+          >
+            {comments.map((comment) => (
+              <Comment
+                key={comment.id}
+                comment={comment}
+                billId={bill.id}
+                refreshComments={refreshComments}
+              />
+            ))}
+          </InfiniteScroll>
+        </CommentsSection>
       )}
     </Container>
   );

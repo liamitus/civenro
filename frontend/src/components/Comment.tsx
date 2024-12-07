@@ -6,6 +6,7 @@ import {
   TextField,
   IconButton,
   useTheme,
+  Paper,
 } from '@mui/material';
 import {
   ExpandLess,
@@ -84,97 +85,104 @@ const Comment: React.FC<CommentProps> = ({
     setIsExpanded(!isExpanded);
   };
 
-  // Determine button colors based on userVote
-  const upvoteColor = comment.userVote === 1 ? 'primary' : 'default';
-  const downvoteColor = comment.userVote === -1 ? 'primary' : 'default';
-
   return (
-    <Box ml={comment.parentCommentId ? 2 : 0} mt={1}>
-      <Box display="flex" alignItems="flex-start">
-        <Box>
-          <IconButton onClick={() => setIsCollapsed(!isCollapsed)} size="small">
-            {isCollapsed ? <ExpandMore /> : <ExpandLess />}
-          </IconButton>
-        </Box>
-        <Box flex="1" ml={1}>
-          <Box display="flex" alignItems="center">
-            <Typography variant="subtitle2" color="textSecondary">
-              <Link to={`/user/${comment.userId}`}>{comment.username}</Link>
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              &nbsp;{dayjs(comment.date).fromNow()}
-            </Typography>
+    <Paper variant="outlined" sx={{ padding: 2, marginBottom: 2 }}>
+      <Box ml={comment.parentCommentId ? 2 : 0} mt={1}>
+        <Box display="flex" alignItems="flex-start">
+          <Box>
+            <IconButton
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              size="small"
+            >
+              {isCollapsed ? <ExpandMore /> : <ExpandLess />}
+            </IconButton>
           </Box>
-
-          {!isCollapsed && (
-            <>
-              <Typography
-                variant="body1"
-                sx={{ mt: 0.5, whiteSpace: 'pre-line' }}
-              >
-                {isExpanded || comment.content.length <= MAX_LENGTH
-                  ? comment.content
-                  : `${comment.content.substring(0, MAX_LENGTH)}...`}
+          <Box flex="1" ml={1}>
+            <Box display="flex" alignItems="center">
+              <Typography variant="subtitle2" color="textSecondary">
+                <Link to={`/user/${comment.userId}`}>{comment.username}</Link>
+                &nbsp;
               </Typography>
-              {comment.content.length > MAX_LENGTH && (
-                <Button size="small" onClick={toggleExpand}>
-                  {isExpanded ? 'Show Less' : 'Read More'}
-                </Button>
-              )}
-              <Box display="flex" alignItems="center" sx={{ mt: 0.5 }}>
-                <IconButton onClick={() => handleVote(1)}>
-                  <ThumbUp fontSize="small" />
-                </IconButton>
-                <Typography variant="body2">{comment.voteCount}</Typography>
-                <IconButton onClick={() => handleVote(-1)}>
-                  <ThumbDown fontSize="small" />
-                </IconButton>
-                <Button
-                  size="small"
-                  onClick={() => setShowReplyField(!showReplyField)}
+              <Typography variant="body2" color="textSecondary">
+                {dayjs(comment.date).fromNow()}
+              </Typography>
+            </Box>
+
+            {!isCollapsed && (
+              <>
+                <Typography
+                  variant="body1"
+                  sx={{ mt: 0.5, whiteSpace: 'pre-line' }}
                 >
-                  Reply
-                </Button>
-              </Box>
-              {showReplyField && (
-                <Box mt={0.5}>
-                  <TextField
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    fullWidth
-                    multiline
-                    rows={2}
-                  />
+                  {isExpanded || comment.content.length <= MAX_LENGTH
+                    ? comment.content
+                    : `${comment.content.substring(0, MAX_LENGTH)}...`}
+                </Typography>
+                {comment.content.length > MAX_LENGTH && (
+                  <Button size="small" onClick={toggleExpand}>
+                    {isExpanded ? 'Show Less' : 'Read More'}
+                  </Button>
+                )}
+                <Box display="flex" alignItems="center" sx={{ mt: 0.5 }}>
+                  <IconButton onClick={() => handleVote(1)}>
+                    <ThumbUp fontSize="small" />
+                  </IconButton>
+                  <Typography variant="body2">{comment.voteCount}</Typography>
+                  <IconButton onClick={() => handleVote(-1)}>
+                    <ThumbDown fontSize="small" />
+                  </IconButton>
                   <Button
-                    onClick={handleReplySubmit}
-                    variant="contained"
                     size="small"
-                    sx={{ mt: 0.5 }}
+                    onClick={() => setShowReplyField(!showReplyField)}
                   >
-                    Submit
+                    Reply
                   </Button>
                 </Box>
-              )}
-              {/* Render Replies */}
-              {comment.replies &&
-                comment.replies.map((reply: any) => (
-                  <Comment
-                    key={reply.id}
-                    comment={reply}
-                    billId={billId}
-                    refreshComments={refreshComments}
-                  />
-                ))}
-            </>
-          )}
-          {isCollapsed && isHidden && (
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-              Comment hidden due to low score.
-            </Typography>
-          )}
+                {showReplyField && (
+                  <Box mt={0.5}>
+                    <TextField
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      fullWidth
+                      multiline
+                      rows={2}
+                    />
+                    <Button
+                      onClick={handleReplySubmit}
+                      variant="contained"
+                      size="small"
+                      sx={{ mt: 0.5 }}
+                    >
+                      Submit
+                    </Button>
+                  </Box>
+                )}
+                {/* Render Replies */}
+                {Array.isArray(comment.replies) &&
+                  comment.replies.length > 0 &&
+                  comment.replies.map((reply: any) => (
+                    <Comment
+                      key={reply.id}
+                      comment={reply}
+                      billId={billId}
+                      refreshComments={refreshComments}
+                    />
+                  ))}
+              </>
+            )}
+            {isCollapsed && isHidden && (
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mt: 0.5 }}
+              >
+                Comment hidden due to low score.
+              </Typography>
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </Paper>
   );
 };
 

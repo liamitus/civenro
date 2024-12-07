@@ -66,31 +66,51 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/comments/bill/:billId
+// Modify GET /api/comments/bill/:billId to support pagination
 router.get('/bill/:billId', async (req: Request, res: Response) => {
-  const { billId } = req.params;
-  const sortOption =
-    req.query.sort === 'best' ? { voteCount: 'desc' } : { date: 'desc' };
+  const billId = parseInt(req.params.billId);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+  const sortOption = req.query.sort === 'best' ? 'best' : 'new';
 
   try {
-    const comments = await getCommentsWithVotes(
+    const total = await prisma.comment.count({
+      where: { billId, parentCommentId: null },
+    });
+
+    let comments = await getCommentsWithVotes(
       null,
-      parseInt(billId),
-      sortOption
+      billId,
+      sortOption,
+      skip,
+      limit
     );
 
-    res.status(200).json(comments);
+    // Sort comments manually if sortOption is 'best'
+    if (sortOption === 'best') {
+      comments.sort((a, b) => b.voteCount - a.voteCount);
+    }
+
+    res.status(200).json({ comments, total });
   } catch (error) {
     console.error('Error fetching comments:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Fetch comments by a user
-router.get('/user/:userId', async (req, res) => {
+// Modify GET /api/comments/user/:userId to support pagination
+router.get('/user/:userId', async (req: Request, res: Response) => {
   const userId = parseInt(req.params.userId);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
 
   try {
+    const total = await prisma.comment.count({
+      where: { userId },
+    });
+
     const comments = await prisma.comment.findMany({
       where: { userId },
       include: {
@@ -111,6 +131,8 @@ router.get('/user/:userId', async (req, res) => {
       orderBy: {
         date: 'desc',
       },
+      skip,
+      take: limit,
     });
 
     // Calculate vote counts
@@ -125,18 +147,20 @@ router.get('/user/:userId', async (req, res) => {
       };
     });
 
-    res.json(commentsWithVoteCounts);
+    res.json({ comments: commentsWithVoteCounts, total });
   } catch (error) {
     console.error('Error fetching user comments:', error);
     res.status(500).json({ error: 'Failed to fetch user comments' });
   }
 });
 
-// Recursive function to fetch comments with vote counts and replies
+// Update the getCommentsWithVotes function to accept sortOption and fetch replies correctly
 async function getCommentsWithVotes(
   parentCommentId: number | null,
   billId: number,
-  sortOption?: any
+  sortOption: string,
+  skip: number,
+  take: number
 ): Promise<any[]> {
   const comments = await prisma.comment.findMany({
     where: {
@@ -146,14 +170,24 @@ async function getCommentsWithVotes(
     include: {
       user: true,
     },
-    orderBy: sortOption || { date: 'desc' },
+    orderBy: {
+      date: 'desc',
+    },
+    skip,
+    take,
   });
 
   // Fetch vote counts and replies for each comment
   const commentsWithVotes = await Promise.all(
     comments.map(async (comment: any) => {
       const voteCount = await getVoteCount(comment.id);
-      const replies = await getCommentsWithVotes(comment.id, billId);
+      const replies = await getCommentsWithVotes(
+        comment.id,
+        billId,
+        sortOption,
+        0,
+        10 // Changed from 0 to 10 to fetch up to 10 replies
+      );
       return {
         ...comment,
         username: comment.user.username || 'Anonymous',

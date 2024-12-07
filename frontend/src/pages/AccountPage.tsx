@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import Comment from '../components/Comment';
 import axios, { AxiosError } from 'axios';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 interface UserProfile {
   id: number;
@@ -32,7 +33,10 @@ const AccountPage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useContext(AuthContext);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState<any>([]);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [commentsHasMore, setCommentsHasMore] = useState(true);
+  const COMMENTS_LIMIT = 20;
   const [activeTab, setActiveTab] = useState(0); // 0 for Comments, 1 for Settings
 
   // Settings form state
@@ -57,8 +61,15 @@ const AccountPage: React.FC = () => {
           const profile = await getUserProfile(parseInt(userId));
           setUserProfile(profile);
 
-          const userComments = await getUserComments(parseInt(userId));
-          setComments(userComments);
+          const data = await getUserComments(
+            parseInt(userId),
+            commentsPage,
+            COMMENTS_LIMIT
+          );
+          setComments(data.comments);
+          setCommentsHasMore(
+            comments.length + data.comments.length < data.total
+          );
 
           // If viewing own profile, set settings form fields
           if (user && user.id === parseInt(userId)) {
@@ -71,7 +82,24 @@ const AccountPage: React.FC = () => {
       }
     };
     fetchData();
-  }, [userId, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const fetchMoreComments = async () => {
+    if (!userId) return;
+    try {
+      const data = await getUserComments(
+        parseInt(userId),
+        commentsPage,
+        COMMENTS_LIMIT
+      );
+      setComments((prevComments: any) => [...prevComments, ...data.comments]);
+      setCommentsHasMore(comments.length + data.comments.length < data.total);
+      setCommentsPage(commentsPage + 1);
+    } catch (error) {
+      console.error('Error fetching more comments:', error);
+    }
+  };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -158,6 +186,10 @@ const AccountPage: React.FC = () => {
     }
   };
 
+  const refreshComments = () => {
+    // Implement the refreshComments function
+  };
+
   return (
     <Container>
       {userProfile ? (
@@ -177,14 +209,22 @@ const AccountPage: React.FC = () => {
           {activeTab === 0 && (
             <Box mt={2}>
               {comments.length > 0 ? (
-                comments.map((comment: any) => (
-                  <Comment
-                    key={comment.id}
-                    comment={comment}
-                    billId={comment.billId}
-                    refreshComments={() => {}}
-                  />
-                ))
+                <InfiniteScroll
+                  dataLength={comments.length}
+                  next={fetchMoreComments}
+                  hasMore={commentsHasMore}
+                  loader={<h4>Loading more comments...</h4>}
+                  endMessage={<p>No more comments to display.</p>}
+                >
+                  {comments.map((comment: any) => (
+                    <Comment
+                      key={comment.id}
+                      comment={comment}
+                      billId={comment.billId}
+                      refreshComments={refreshComments} // Use the actual refreshComments function
+                    />
+                  ))}
+                </InfiniteScroll>
               ) : (
                 <Typography>No comments to display.</Typography>
               )}

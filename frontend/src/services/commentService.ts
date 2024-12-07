@@ -29,9 +29,16 @@ export const submitComment = async (
 };
 
 // Function to get comments for a bill
-export const getComments = async (billId: number) => {
+export const getComments = async (
+  billId: number,
+  page: number = 1,
+  limit: number = 20,
+  sort: string = 'new'
+) => {
   try {
-    const response = await axios.get(`${API_URL}/bill/${billId}`);
+    const response = await axiosInstance.get(`/comments/bill/${billId}`, {
+      params: { page, limit, sort },
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching comments:', error);
@@ -57,9 +64,15 @@ export const submitCommentVote = async (
   }
 };
 
-export const getUserComments = async (userId: number) => {
+export const getUserComments = async (
+  userId: number,
+  page: number = 1,
+  limit: number = 20
+) => {
   try {
-    const response = await axiosInstance.get(`${API_URL}/user/${userId}`);
+    const response = await axiosInstance.get(`/comments/user/${userId}`, {
+      params: { page, limit },
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching user comments:', error);
