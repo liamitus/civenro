@@ -1,8 +1,8 @@
-# 🇺🇸 Civenro
+# 🇺🇸 Civenro (Frontend)
 
-Civenro is a community-driven platform designed to enhance transparency and civic engagement in the legislative process. Modeled after Reddit, Civenro allows users to browse government bills, vote on them, and participate in discussions, all while providing insights into how their elected representatives have voted.
+**Civenro** is a community-driven platform that enhances transparency and civic engagement in the legislative process. This repository now contains only the **frontend** code, providing the user interface and client-side logic. The backend code and data fetching logic have been moved to a separate repository, ensuring clear separation of concerns and easier independent development.
 
-## **Table of Contents**
+## Table of Contents
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
@@ -10,82 +10,71 @@ Civenro is a community-driven platform designed to enhance transparency and civi
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
 
-## **Features**
+## Features
 
-- **Government Bills Feed:** Browse a continuously updated feed of current bills with summaries and statuses.
-- **User Voting:** Cast your vote on each bill—For, Against, or Abstain—and see aggregate user opinions.
-- **Discussion Forums:** Engage in conversations with other users through threaded comments and discussions.
-- **Senator Vote Tracking:** View detailed voting records of your senators on each bill, promoting accountability.
+- **Government Bills Feed:** Explore a continuously updated feed of current bills with summaries and statuses.
+- **User Voting:** Cast votes (For, Against, or Abstain) on each bill and see aggregate public opinion.
+- **Comment Discussions:** Engage in threaded comment discussions to deliberate on legislation.
+- **Representative Votes:** See how senators voted on each bill to foster accountability.
 - **Personalized Experience:** Input your state to highlight relevant senators and bills affecting your region.
 
-## **Tech Stack**
+## Tech Stack
 
-### **Front-End**
+### Frontend
 
-- **React.js** with **TypeScript**: For building a dynamic and type-safe user interface.
-- **Material-UI (MUI)**: Utilized for pre-built, responsive UI components.
-- **React Router**: Manages client-side routing and navigation.
-- **Axios**: Handles HTTP requests to the back-end API.
+- **React.js** with **TypeScript**
+- **Material-UI (MUI)** for responsive UI components
+- **React Router** for client-side routing
+- **Axios** for API requests to the backend
 
-### **Back-End**
+**Note:** The backend services and database are now in [civenro-backend](https://github.com/liamitus/civenro-backend) repository. Please refer to that repository for backend-specific details.
 
-- **Node.js** with **Express.js** and **TypeScript**: Serves as the foundation for the server-side application.
-- **Prisma ORM**: Simplifies database interactions with a type-safe ORM.
-- **PostgreSQL**: Robust relational database for storing user data, bills, votes, and comments.
-- **GovTrack.us API**: Integrates official government data for bills and voting records.
+### Deployment
 
-### **Deployment**
+- **Frontend:** Deployed on Vercel for rapid iteration and continuous deployment.
+- **Backend:** For backend deployment details, see the [civenro-backend](https://github.com/liamitus/civenro-backend) repository.
 
-- **Front-End:** Deployed on **Vercel** for seamless integration and continuous deployment.
-- **Back-End:** Hosted on **Heroku**, providing easy scalability and management.
-- **Database:** **Heroku Postgres** for reliable and scalable database hosting.
+## Installation
 
-## **Installation**
-
-### **Prerequisites**
+### Prerequisites
 
 - **Node.js** and **npm** installed
 - **Git** installed
-- **PostgreSQL** database setup
-- **GitHub** account for version control
 
-### **Clone the Repository**
+### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/civenro.git
+git clone https://github.com/liamitus/civenro.git
 cd civenro
 ```
 
-### **Front-End Setup**
+### Install Dependencies
 
 ```bash
-cd frontend
 npm install
-npm start
 ```
 
-### **Back-End Setup**
+## Usage
 
-```bash
-cd backend
-npm install
-# Set up environment variables in a .env file
-npx prisma migrate dev --name init
-npm run dev
-```
+1. Run the Development Server:
 
-## **Usage**
+   ```bash
+   npm start
+   ```
 
-1. **Explore Bills:** Visit the home feed to see the latest Government bills.
-2. **Vote:** Cast your vote on any bill and see how others have voted.
-3. **Discuss:** Join conversations by commenting on bills.
-4. **Track Senators:** Input your state to view how your elected officials have voted on each bill.
+   The app will be available at http://localhost:3000.
 
-## **Contributing**
+2. Connect to the Backend:
 
-We welcome contributions from the community! To get started:
+   - Ensure the backend is running separately. Refer to [civenro-backend](https://github.com/liamitus/civenro-backend) for instructions.
+   - Update environment variables or .env files as needed to point the frontend to the backend API URL.
+
+Follow the [civenro-backend README](https://github.com/liamitus/civenro-backend)
+
+## Contributing
+
+We welcome community contributions! To get started:
 
 1. **Fork the Repository**
 2. **Create a Feature Branch**
@@ -110,6 +99,6 @@ git push origin feature/YourFeature
 
 Please ensure your code adheres to the project's coding standards and includes relevant tests.
 
-## **License**
+## License
 
 This project is licensed under the [MIT License](LICENSE).
