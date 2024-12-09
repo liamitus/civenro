@@ -57,15 +57,15 @@ npm install
 
 ## Usage
 
-1. Run the Development Server:
+1. **Run the Development Server:**
 
    ```bash
    npm start
    ```
 
-   The app will be available at http://localhost:3000.
+   The app will be available at **http://localhost:3000**.
 
-2. Connect to the Backend:
+2. **Connect to the Backend:**
 
    - Ensure the backend is running separately. Refer to [civenro-backend](https://github.com/liamitus/civenro-backend) for instructions.
    - Update environment variables or .env files as needed to point the frontend to the backend API URL.
