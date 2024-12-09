@@ -1,4 +1,4 @@
-// frontend/src/pages/BillDetailPage.tsx
+// src/pages/BillDetailPage.tsx
 
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';

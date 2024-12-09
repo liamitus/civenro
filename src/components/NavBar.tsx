@@ -1,4 +1,4 @@
-// frontend/src/components/NavBar.tsx
+// src/components/NavBar.tsx
 
 import React, { useContext } from 'react';
 import { AppBar, Toolbar, Typography, Button } from '@mui/material';

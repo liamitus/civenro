@@ -1,4 +1,4 @@
-// frontend/src/components/AddressInput.tsx
+// src/components/AddressInput.tsx
 
 import React from 'react';
 import { Box } from '@mui/material';

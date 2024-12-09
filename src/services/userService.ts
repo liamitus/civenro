@@ -1,4 +1,4 @@
-// frontend/src/services/userService.ts
+// src/services/userService.ts
 
 import axiosInstance from '../api/axiosInstance';
 

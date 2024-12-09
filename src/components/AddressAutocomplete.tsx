@@ -1,4 +1,4 @@
-// frontend/src/components/AddressAutocomplete.tsx
+// src/components/AddressAutocomplete.tsx
 
 import { Box, Button, TextField } from '@mui/material';
 import { useContext, useState } from 'react';

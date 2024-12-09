@@ -1,4 +1,4 @@
-// frontend/src/components/LoginModal.tsx
+// src/components/LoginModal.tsx
 
 import React, { useState, useContext, useEffect } from 'react';
 import {

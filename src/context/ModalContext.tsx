@@ -1,4 +1,4 @@
-// frontend/src/context/ModalContext.tsx
+// src/context/ModalContext.tsx
 
 import { ReactNode, createContext, useState } from 'react';
 import LoginModal from '../components/LoginModal';

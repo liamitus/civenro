@@ -1,4 +1,4 @@
-// frontend/src/services/voteService.ts
+// src/services/voteService.ts
 
 import axios from 'axios';
 import { API_URL } from './API_URL';

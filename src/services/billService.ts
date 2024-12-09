@@ -1,4 +1,4 @@
-// frontend/src/services/billService.ts
+// src/services/billService.ts
 
 import axiosInstance from '../api/axiosInstance';
 

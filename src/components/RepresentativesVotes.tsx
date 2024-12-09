@@ -1,4 +1,4 @@
-// frontend/src/components/RepresentativesVotes.tsx
+// src/components/RepresentativesVotes.tsx
 
 import React, { useState } from 'react';
 import {

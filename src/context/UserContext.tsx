@@ -1,4 +1,4 @@
-// frontend/src/context/UserContext.tsx
+// src/context/UserContext.tsx
 
 import React, { createContext, useState, useEffect } from 'react';
 
