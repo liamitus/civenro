@@ -1,6 +1,6 @@
 // frontend/src/components/RepresentativesVotes.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Accordion,
   AccordionSummary,
@@ -31,6 +31,7 @@ interface RepresentativesVotesProps {
   representatives: Representative[];
   getVoteBorderColor: (vote: string) => string;
   billChambers: string[];
+  onAddressChange: (address: string) => void;
 }
 
 const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
@@ -40,9 +41,11 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
   representatives,
   getVoteBorderColor,
   billChambers,
+  onAddressChange,
 }) => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isAddressInputVisible, setIsAddressInputVisible] = useState(false);
 
   const getAvatarStyles = (vote: string) => {
     const hasVote =
@@ -71,7 +74,7 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
             <Typography variant="body1">
               Enter your address to see how your representatives voted:
             </Typography>
-            <AddressInput />
+            <AddressInput onAddressSubmit={onAddressChange} />
           </Box>
         ) : representatives.length === 0 ? (
           <Typography variant="body1" mt={2}>
@@ -124,13 +127,19 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
                 component="span"
                 color="primary"
                 style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  // Implement address re-entry logic
-                }}
+                onClick={() => setIsAddressInputVisible(true)}
               >
                 (Change)
               </Typography>
             </Typography>
+            {isAddressInputVisible && (
+              <AddressInput
+                onAddressSubmit={(newAddress: string) => {
+                  onAddressChange(newAddress);
+                  setIsAddressInputVisible(false);
+                }}
+              />
+            )}
           </Box>
         )}
       </AccordionDetails>

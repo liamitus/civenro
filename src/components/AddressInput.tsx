@@ -1,16 +1,21 @@
 // frontend/src/components/AddressInput.tsx
 
-import React, { useContext } from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
 import AddressAutocomplete from './AddressAutocomplete';
-import { UserContext } from '../context/UserContext';
 
-const AddressInput: React.FC = () => {
-  const { setUserAddress } = useContext(UserContext);
+interface AddressInputProps {
+  onAddressSubmit: (address: string) => void;
+}
 
+const AddressInput: React.FC<AddressInputProps> = ({ onAddressSubmit }) => {
   return (
     <Box mt={2}>
-      <AddressAutocomplete />
+      <AddressAutocomplete
+        onAddressSelect={(selectedAddress: string) => {
+          onAddressSubmit(selectedAddress);
+        }}
+      />
     </Box>
   );
 };

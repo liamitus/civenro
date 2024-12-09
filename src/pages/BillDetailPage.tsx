@@ -81,7 +81,7 @@ const BillDetailPage: React.FC = () => {
   const [commentContent, setCommentContent] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
   const { showModal } = useContext(ModalContext);
-  const { address } = useContext(UserContext);
+  const { address, setUserAddress } = useContext(UserContext);
   const [representatives, setRepresentatives] = useState([]);
   const [billChambers, setBillChambers] = useState<string[]>([]);
 
@@ -133,7 +133,7 @@ const BillDetailPage: React.FC = () => {
           });
 
           const commentsData = await getComments(parseInt(id));
-          setComments(commentsData.comments);
+          setComments(commentsData.comments || []);
         } catch (error) {
           console.error('Error fetching bill details:', error);
           setBill(null);
@@ -144,18 +144,19 @@ const BillDetailPage: React.FC = () => {
     fetchData();
   }, [id, authLoading]);
 
-  useEffect(() => {
-    const fetchRepresentatives = async () => {
-      if (user && address && bill && bill.id) {
-        try {
-          const data = await getRepresentativesByAddress(address, bill.id);
-          setRepresentatives(data);
-        } catch (error) {
-          console.error('Error fetching representatives:', error);
-        }
+  const fetchRepresentatives = async (currentAddress: string) => {
+    if (user && currentAddress && bill && bill.id) {
+      try {
+        const data = await getRepresentativesByAddress(currentAddress, bill.id);
+        setRepresentatives(data);
+      } catch (error) {
+        console.error('Error fetching representatives:', error);
       }
-    };
-    fetchRepresentatives();
+    }
+  };
+
+  useEffect(() => {
+    fetchRepresentatives(address);
   }, [user, address, bill?.id]);
 
   useEffect(() => {
@@ -245,8 +246,14 @@ const BillDetailPage: React.FC = () => {
         COMMENTS_LIMIT,
         'best'
       );
-      setComments((prevComments) => [...prevComments, ...data.comments]);
-      setCommentsHasMore(comments.length + data.comments.length < data.total);
+      setComments((prevComments) => [
+        ...prevComments,
+        ...(data.comments || []),
+      ]);
+      setCommentsHasMore(
+        comments.length + (data.comments ? data.comments.length : 0) <
+          data.total
+      );
       setCommentsPage(commentsPage + 1);
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -264,6 +271,10 @@ const BillDetailPage: React.FC = () => {
 
   const publicVotes = votes.publicVotes;
   const congressionalVotes = votes.congressionalVotes;
+
+  const onAddressChange = (newAddress: string) => {
+    fetchRepresentatives(newAddress);
+  };
 
   if (loading) {
     return (
@@ -302,6 +313,7 @@ const BillDetailPage: React.FC = () => {
         representatives={representatives}
         getVoteBorderColor={getVoteBorderColor}
         billChambers={billChambers}
+        onAddressChange={onAddressChange}
       />
 
       {/* Voting Section */}
@@ -331,7 +343,13 @@ const BillDetailPage: React.FC = () => {
             next={fetchComments}
             hasMore={commentsHasMore}
             loader={<h4>Loading more comments...</h4>}
-            endMessage={<p>No more comments to display.</p>}
+            endMessage={
+              comments.length === 0 ? (
+                <p>Be the first to comment!</p>
+              ) : (
+                <p>No more comments to display.</p>
+              )
+            }
           >
             {comments.map((comment) => (
               <Comment

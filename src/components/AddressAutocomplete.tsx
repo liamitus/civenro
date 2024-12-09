@@ -4,13 +4,20 @@ import { Box, Button, TextField } from '@mui/material';
 import { useContext, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 
-const AddressInput: React.FC = () => {
+interface AddressAutocompleteProps {
+  onAddressSelect: (address: string) => void;
+}
+
+const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
+  onAddressSelect,
+}) => {
   const { setUserAddress } = useContext(UserContext);
   const [address, setAddress] = useState('');
 
-  const handleSubmit = () => {
+  const handleAddressSelect = (address: string) => {
     if (address.trim()) {
       setUserAddress(address.trim());
+      onAddressSelect(address.trim());
     }
   };
 
@@ -26,7 +33,7 @@ const AddressInput: React.FC = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={handleSubmit}
+        onClick={() => handleAddressSelect(address)}
         sx={{ mt: 2 }}
       >
         Submit Address
@@ -35,4 +42,4 @@ const AddressInput: React.FC = () => {
   );
 };
 
-export default AddressInput;
+export default AddressAutocomplete;
