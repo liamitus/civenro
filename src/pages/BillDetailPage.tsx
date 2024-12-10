@@ -237,19 +237,16 @@ const BillDetailPage: React.FC = () => {
         COMMENTS_LIMIT,
         'best'
       );
-      setComments((prevComments) => [
-        ...prevComments,
-        ...(data.comments || []),
-      ]);
-      setCommentsHasMore(
-        comments.length + (data.comments ? data.comments.length : 0) <
-          data.total
-      );
-      setCommentsPage(commentsPage + 1);
+      setComments((prevComments) => {
+        const allComments = [...prevComments, ...(data.comments || [])];
+        setCommentsHasMore(allComments.length < data.total);
+        return allComments;
+      });
+      setCommentsPage((prevPage) => prevPage + 1);
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
-  }, [bill, commentsPage, COMMENTS_LIMIT, comments.length]);
+  }, [bill, COMMENTS_LIMIT]);
 
   useEffect(() => {
     // Reset comments when bill changes
