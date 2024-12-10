@@ -114,7 +114,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             />
           ))}
         </Box>
-        {children} {/* Add this line to render nested components */}
+        {children}
       </AccordionDetails>
     </Accordion>
   );

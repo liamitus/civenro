@@ -1,4 +1,3 @@
-import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
 import { API_URL } from './API_URL';
 
@@ -13,7 +12,7 @@ export const submitComment = async (
   parentCommentId?: number
 ) => {
   try {
-    const response = await axios.post(COMMENTS_API_URL, {
+    const response = await axiosInstance.post(COMMENTS_API_URL, {
       billId,
       content,
       userId, // Optional for anonymous comments
@@ -53,7 +52,7 @@ export const submitCommentVote = async (
   userId: number
 ) => {
   try {
-    const response = await axios.post(COMMENT_VOTES_API_URL, {
+    const response = await axiosInstance.post(COMMENT_VOTES_API_URL, {
       commentId,
       voteType,
       userId,

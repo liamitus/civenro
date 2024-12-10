@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { getBillById } from '../services/billService';
 import { getVotes, submitVote } from '../services/voteService';
 import { getComments, submitComment } from '../services/commentService';
-import { Container, Typography } from '@mui/material';
+import { Container, Typography, Snackbar } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 import { UserContext } from '../context/UserContext';
@@ -77,6 +77,7 @@ const BillDetailPage: React.FC = () => {
   const { address } = useContext(UserContext);
   const [representatives, setRepresentatives] = useState([]);
   const [billChambers, setBillChambers] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // State for accordion expanded/collapsed status
   const [accordionState, setAccordionState] = useState<{
@@ -185,7 +186,7 @@ const BillDetailPage: React.FC = () => {
       setVotes(updatedVotes);
       setSelectedVote(voteType);
     } catch (error) {
-      alert('Failed to submit vote. Please try again.');
+      setErrorMessage('Failed to submit vote. Please try again.');
     }
   };
 
@@ -228,32 +229,33 @@ const BillDetailPage: React.FC = () => {
     }
   };
 
-  const fetchComments = useCallback(async () => {
-    if (!bill) return;
-    try {
-      const data = await getComments(
-        bill.id,
-        commentsPage,
-        COMMENTS_LIMIT,
-        'best'
-      );
-      setComments((prevComments) => {
-        const allComments = [...prevComments, ...(data.comments || [])];
-        setCommentsHasMore(allComments.length < data.total);
-        return allComments;
-      });
-      setCommentsPage((prevPage) => prevPage + 1);
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
-  }, [bill, COMMENTS_LIMIT]);
+  const fetchComments = useCallback(
+    async (page: number) => {
+      if (!bill) return;
+      try {
+        const data = await getComments(bill.id, page, COMMENTS_LIMIT, 'best');
+        setComments((prevComments) => {
+          const allComments = [...prevComments, ...(data.comments || [])];
+          setCommentsHasMore(allComments.length < data.total);
+          return allComments;
+        });
+        setCommentsPage((prevPage) => prevPage + 1);
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      }
+    },
+    [bill, COMMENTS_LIMIT]
+  );
 
+  // Adjust the useEffect to reset comments and fetch the first page
   useEffect(() => {
     // Reset comments when bill changes
     setComments([]);
     setCommentsPage(1);
     setCommentsHasMore(true);
-    fetchComments();
+    if (bill) {
+      fetchComments(1); // Fetch the first page
+    }
   }, [bill, fetchComments]);
 
   const publicVotes = votes.publicVotes;
@@ -327,7 +329,7 @@ const BillDetailPage: React.FC = () => {
         >
           <InfiniteScroll
             dataLength={comments.length}
-            next={fetchComments}
+            next={() => fetchComments(commentsPage)} // Pass the current page
             hasMore={commentsHasMore}
             loader={<h4>Loading more comments...</h4>}
             endMessage={
@@ -348,6 +350,14 @@ const BillDetailPage: React.FC = () => {
             ))}
           </InfiniteScroll>
         </CommentsSection>
+      )}
+      {errorMessage && (
+        <Snackbar
+          open={true}
+          autoHideDuration={6000}
+          onClose={() => setErrorMessage(null)}
+          message={errorMessage}
+        />
       )}
     </Container>
   );

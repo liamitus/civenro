@@ -5,7 +5,6 @@ import {
   Button,
   TextField,
   IconButton,
-  useTheme,
   Paper,
 } from '@mui/material';
 import {
@@ -56,8 +55,6 @@ const Comment: React.FC<CommentProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(isHidden);
   const [isExpanded, setIsExpanded] = useState(false);
   const MAX_LENGTH = 300;
-
-  const theme = useTheme();
 
   const handleReplySubmit = async () => {
     if (!replyContent.trim()) return;
