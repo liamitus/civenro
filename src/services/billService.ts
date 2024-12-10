@@ -1,8 +1,7 @@
 // src/services/billService.ts
 
 import axiosInstance from '../api/axiosInstance';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+import { API_URL } from './API_URL';
 
 export interface GetBillsParams {
   page?: number;
