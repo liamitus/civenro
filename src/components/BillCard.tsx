@@ -110,10 +110,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
 
           {/* Bill Title */}
           <Box ml={2} flexGrow={1}>
-            <Link
-              to={`/bill/${bill.id}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
+            <Link to={`/bill/${bill.id}`}>
               <Typography variant="h6">
                 {getBillTypeLabel()} {bill.billId.split('-')[1]}: {bill.title}
               </Typography>
