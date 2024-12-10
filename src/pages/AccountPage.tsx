@@ -20,7 +20,7 @@ import {
   TextField,
 } from '@mui/material';
 import Comment from '../components/Comment';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 interface UserProfile {
@@ -235,6 +235,16 @@ const AccountPage: React.FC = () => {
           {activeTab === 1 && user && user.id === parseInt(userId || '') && (
             <Box mt={2}>
               <Typography variant="h6">Edit Settings</Typography>
+
+              {settingsMessage && (
+                <Typography
+                  color={
+                    settingsMessageType === 'success' ? 'primary' : 'error'
+                  }
+                >
+                  {settingsMessage}
+                </Typography>
+              )}
 
               {/* Update Username */}
               <Box mt={2}>

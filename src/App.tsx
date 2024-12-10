@@ -4,11 +4,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import BillDetailPage from './pages/BillDetailPage';
 import NavBar from './components/NavBar';
-import GoogleMapsLoader from './components/GoogleMapsLoader';
 import { AuthProvider } from './context/AuthContext';
 import { ModalProvider } from './context/ModalContext';
 import { UserProvider } from './context/UserContext';
-import { LoadScript } from '@react-google-maps/api';
 import AccountPage from './pages/AccountPage';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
@@ -41,8 +39,6 @@ function App() {
       <AuthProvider>
         <UserProvider>
           <ModalProvider>
-            {/* <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY"> */}
-            {/* <GoogleMapsLoader> */}
             <Router>
               <NavBar />
               <div style={{ marginBottom: '20px' }} />
@@ -52,8 +48,6 @@ function App() {
                 <Route path="/bill/:id" element={<BillDetailPage />} />
               </Routes>
             </Router>
-            {/* </GoogleMapsLoader> */}
-            {/* </LoadScript> */}
           </ModalProvider>
         </UserProvider>
       </AuthProvider>

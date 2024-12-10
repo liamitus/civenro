@@ -1,17 +1,11 @@
 // src/pages/BillDetailPage.tsx
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBillById } from '../services/billService';
 import { getVotes, submitVote } from '../services/voteService';
 import { getComments, submitComment } from '../services/commentService';
-import {
-  Container,
-  Typography,
-  SelectChangeEvent,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
+import { Container, Typography } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 import { ModalContext } from '../context/ModalContext';
 import { UserContext } from '../context/UserContext';
@@ -48,7 +42,7 @@ interface CongressionalVote {
   count: number;
 }
 
-interface Comment {
+interface CommentData {
   id: number;
   content: string;
   userId: number | null;
@@ -70,24 +64,19 @@ const BillDetailPage: React.FC = () => {
     publicVotes: [],
     congressionalVotes: [],
   });
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentData[]>([]);
   const [commentsPage, setCommentsPage] = useState(1);
   const [commentsHasMore, setCommentsHasMore] = useState(true);
   const COMMENTS_LIMIT = 20;
-  const [sortOption, setSortOption] = useState('new');
   const [selectedVote, setSelectedVote] = useState<
     'For' | 'Against' | 'Abstain' | null
   >(null);
   const [commentContent, setCommentContent] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
   const { showModal } = useContext(ModalContext);
-  const { address, setUserAddress } = useContext(UserContext);
+  const { address } = useContext(UserContext);
   const [representatives, setRepresentatives] = useState([]);
   const [billChambers, setBillChambers] = useState<string[]>([]);
-
-  // Theme and media query for responsive avatar sizes
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   // State for accordion expanded/collapsed status
   const [accordionState, setAccordionState] = useState<{
@@ -144,20 +133,27 @@ const BillDetailPage: React.FC = () => {
     fetchData();
   }, [id, authLoading]);
 
-  const fetchRepresentatives = async (currentAddress: string) => {
-    if (user && currentAddress && bill && bill.id) {
-      try {
-        const data = await getRepresentativesByAddress(currentAddress, bill.id);
-        setRepresentatives(data);
-      } catch (error) {
-        console.error('Error fetching representatives:', error);
+  // Wrap fetchRepresentatives in useCallback
+  const fetchRepresentatives = useCallback(
+    async (currentAddress: string) => {
+      if (user && currentAddress && bill && bill.id) {
+        try {
+          const data = await getRepresentativesByAddress(
+            currentAddress,
+            bill.id
+          );
+          setRepresentatives(data);
+        } catch (error) {
+          console.error('Error fetching representatives:', error);
+        }
       }
-    }
-  };
+    },
+    [user, bill]
+  );
 
   useEffect(() => {
     fetchRepresentatives(address);
-  }, [user, address, bill?.id]);
+  }, [user, address, bill?.id, fetchRepresentatives]);
 
   useEffect(() => {
     if (bill) {
@@ -217,11 +213,6 @@ const BillDetailPage: React.FC = () => {
     setComments(commentsData);
   };
 
-  const handleSortChange = (event: SelectChangeEvent<string>) => {
-    setSortOption(event.target.value as string);
-    refreshComments();
-  };
-
   const getVoteBorderColor = (vote: string) => {
     switch (vote) {
       case 'Yea':
@@ -237,7 +228,7 @@ const BillDetailPage: React.FC = () => {
     }
   };
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     if (!bill) return;
     try {
       const data = await getComments(
@@ -258,7 +249,7 @@ const BillDetailPage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
-  };
+  }, [bill, commentsPage, COMMENTS_LIMIT, comments.length]);
 
   useEffect(() => {
     // Reset comments when bill changes
@@ -266,8 +257,7 @@ const BillDetailPage: React.FC = () => {
     setCommentsPage(1);
     setCommentsHasMore(true);
     fetchComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bill]);
+  }, [bill, fetchComments]);
 
   const publicVotes = votes.publicVotes;
   const congressionalVotes = votes.congressionalVotes;

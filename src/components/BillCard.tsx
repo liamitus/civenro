@@ -5,7 +5,6 @@ import {
   Typography,
   Box,
   Chip,
-  IconButton,
   Tooltip,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
