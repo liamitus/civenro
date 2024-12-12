@@ -126,7 +126,8 @@ const BillDetailPage: React.FC = () => {
           setComments(commentsData.comments || []);
         } catch (error) {
           console.error('Error fetching bill details:', error);
-          setBill(null);
+          setErrorMessage('Failed to fetch bill details.');
+          setLoading(false);
         }
       }
       setLoading(false);
@@ -137,7 +138,7 @@ const BillDetailPage: React.FC = () => {
   // Wrap fetchRepresentatives in useCallback
   const fetchRepresentatives = useCallback(
     async (currentAddress: string) => {
-      if (user && currentAddress && bill && bill.id) {
+      if (currentAddress && bill && bill.id) {
         try {
           const data = await getRepresentativesByAddress(
             currentAddress,
@@ -146,15 +147,16 @@ const BillDetailPage: React.FC = () => {
           setRepresentatives(data);
         } catch (error) {
           console.error('Error fetching representatives:', error);
+          setErrorMessage('Failed to fetch representatives.');
         }
       }
     },
-    [user, bill]
+    [bill]
   );
 
   useEffect(() => {
     fetchRepresentatives(address);
-  }, [user, address, bill?.id, fetchRepresentatives]);
+  }, [address, bill?.id, fetchRepresentatives]);
 
   useEffect(() => {
     if (bill) {
@@ -204,7 +206,7 @@ const BillDetailPage: React.FC = () => {
       setComments(updatedComments);
       setCommentContent('');
     } catch (error) {
-      alert('Failed to submit comment. Please try again.');
+      setErrorMessage('Failed to submit comment. Please try again.');
     }
   };
 
@@ -242,6 +244,7 @@ const BillDetailPage: React.FC = () => {
         setCommentsPage((prevPage) => prevPage + 1);
       } catch (error) {
         console.error('Error fetching comments:', error);
+        setErrorMessage('Failed to fetch comments.');
       }
     },
     [bill, COMMENTS_LIMIT]

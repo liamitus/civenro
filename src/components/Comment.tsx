@@ -6,6 +6,7 @@ import {
   TextField,
   IconButton,
   Paper,
+  Snackbar,
 } from '@mui/material';
 import {
   ExpandLess,
@@ -54,15 +55,21 @@ const Comment: React.FC<CommentProps> = ({
   const isHidden = comment.voteCount <= VOTE_THRESHOLD;
   const [isCollapsed, setIsCollapsed] = useState(isHidden);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const MAX_LENGTH = 300;
 
   const handleReplySubmit = async () => {
     if (!replyContent.trim()) return;
 
-    await submitComment(billId, replyContent, user.userId, comment.id);
-    setReplyContent('');
-    setShowReplyField(false);
-    refreshComments();
+    try {
+      await submitComment(billId, replyContent, user.userId, comment.id);
+      setReplyContent('');
+      setShowReplyField(false);
+      refreshComments();
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      setErrorMessage('Failed to submit reply. Please try again.');
+    }
   };
 
   const handleVote = async (voteType: number) => {
@@ -77,6 +84,7 @@ const Comment: React.FC<CommentProps> = ({
       refreshComments();
     } catch (error) {
       console.error('Error submitting vote:', error);
+      setErrorMessage('Failed to submit vote. Please try again.');
     }
   };
 
@@ -210,6 +218,14 @@ const Comment: React.FC<CommentProps> = ({
           </Box>
         </Box>
       </Box>
+      {errorMessage && (
+        <Snackbar
+          open={true}
+          autoHideDuration={6000}
+          onClose={() => setErrorMessage(null)}
+          message={errorMessage}
+        />
+      )}
     </Paper>
   );
 };
