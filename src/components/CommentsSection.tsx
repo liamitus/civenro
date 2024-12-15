@@ -1,3 +1,5 @@
+// src/components/CommentsSection.tsx
+
 import React, { useState } from 'react';
 import {
   Accordion,

@@ -37,6 +37,11 @@
       "react-app/jest"
     ]
   },
+  "jest": {
+    "moduleNameMapper": {
+      "^axios$": "axios/dist/node/axios.cjs"
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -50,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/react-router-dom": "^5.3.3"
   }
 }
