@@ -11,7 +11,8 @@ import { Link } from 'react-router-dom';
 import HouseIcon from '@mui/icons-material/House';
 import GavelIcon from '@mui/icons-material/Gavel';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'; // Add this import
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import dayjs from 'dayjs'; // Import dayjs for consistent date formatting
 
 interface Bill {
   id: number;
@@ -39,17 +40,17 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
     } else if (bill.billType.toLowerCase().startsWith('senate')) {
       return 'senate';
     }
-    return null;
+    return 'unknown';
   };
 
   const getChamberIcon = () => {
     const chamber = bill.currentChamber || getChamberFromBillType();
     if (chamber === 'house') {
-      return <HouseIcon style={{ color: '#28a745' }} />;
+      return <HouseIcon style={{ color: '#28a745' }} aria-label="House" />;
     } else if (chamber === 'senate') {
-      return <GavelIcon style={{ color: '#007bff' }} />;
+      return <GavelIcon style={{ color: '#007bff' }} aria-label="Senate" />;
     } else {
-      return <HelpOutlineIcon />;
+      return <HelpOutlineIcon aria-label="Unknown" />;
     }
   };
 
@@ -95,13 +96,17 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
   }
 
   return (
-    <Card variant="outlined" style={{ marginBottom: '16px' }}>
+    <Card
+      data-testid="bill-card"
+      variant="outlined"
+      style={{ marginBottom: '16px' }}
+    >
       <CardContent>
         <Box display="flex" alignItems="center">
           {/* Chamber Icon */}
           <Tooltip
             title={`${toTitleCase(
-              bill.currentChamber || getChamberFromBillType() || 'Unknown'
+              bill.currentChamber || getChamberFromBillType()
             )}`}
           >
             {getChamberIcon()}
@@ -118,6 +123,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
 
           {/* Status Chip */}
           <Chip
+            data-testid="status-chip"
             label={bill.currentStatusLabel || bill.currentStatus}
             color={getStatusChipColor()}
             variant="outlined"
@@ -128,7 +134,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
         <Box display="flex" alignItems="center" mt={1}>
           <CalendarTodayIcon fontSize="small" />
           <Typography variant="body2" color="textSecondary" ml={1}>
-            Introduced on {new Date(bill.introducedDate).toLocaleDateString()}
+            Introduced on {dayjs(bill.introducedDate).format('M/D/YYYY')}
           </Typography>
         </Box>
 

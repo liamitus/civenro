@@ -1,0 +1,73 @@
+# docker-compose.e2e.yml
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: dev_admin
+      POSTGRES_PASSWORD: DO_NOT_USE_IN_PRODUCTION
+      POSTGRES_DB: civenro_db
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dev_admin", "-d", "civenro_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data-e2e:/var/lib/postgresql/data
+
+  backend:
+    # Use the multi-arch image from GHCR
+    image: ghcr.io/liamitus/civenro-backend:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: "development"
+      PORT: 5001
+      DATABASE_URL: "postgresql://dev_admin:DO_NOT_USE_IN_PRODUCTION@db:5432/civenro_db"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "5001:5001"
+
+  frontend:
+    build: .
+    environment:
+      REACT_APP_API_URL: "http://backend:5001"
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  cypress:
+    image: cypress/included:13.17.0
+    depends_on:
+      frontend:
+        condition: service_healthy
+    entrypoint: ["/bin/sh"]
+    command:
+      - "-c"
+      - |
+        npm ci
+        npx cypress run --config-file cypress.config.ts
+    environment:
+      CYPRESS_BASE_URL: "http://frontend:3000"
+    volumes:
+      - .:/e2e
+    working_dir: /e2e
+
+volumes:
+  db-data-e2e:
+
