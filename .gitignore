@@ -142,6 +142,9 @@ dist
 # production
 /build
 
+# cypress
+/cypress/screenshots
+
 # misc
 .DS_Store
 .env.local
