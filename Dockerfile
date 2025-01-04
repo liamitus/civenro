@@ -7,10 +7,10 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # Define build argument
-ARG BACKEND_API_URL
+ARG VITE_API_URL
 
 # Set environment variable for Vite to use during build
-ENV BACKEND_API_URL=${BACKEND_API_URL}
+ENV VITE_API_URL=${VITE_API_URL}
 
 # Install dependencies
 COPY package*.json ./
@@ -37,7 +37,7 @@ WORKDIR /app
 COPY --from=build /app/dist ./dist
 
 # Set environment variables
-# ENV BACKEND_API_URL=${BACKEND_API_URL}
+# ENV VITE_API_URL=${VITE_API_URL}
 
 # Expose port
 EXPOSE 3000

@@ -12,12 +12,7 @@ describe('Home Page', () => {
     ).as('getBills');
   });
 
-  it('loads and displays expected content', () => {
-    cy.visit('/');
-    cy.contains(/bills/i).should('be.visible');
-  });
-
-  it('displays a list of bills', () => {
+  it('loads and displays a list of bills', () => {
     cy.visit('/');
     // Wait for that single request
     cy.wait('@getBills').then((interception) => {
