@@ -21,7 +21,7 @@ export const getBills = async (
   params: GetBillsParams = {}
 ): Promise<GetBillsResult> => {
   try {
-    const url = `${import.meta.env.VITE_API_URL}/bills`;
+    const url = `${import.meta.env.BACKEND_API_URL}/bills`;
     const response = await axiosInstance.get(url, {
       params,
     });
@@ -35,7 +35,7 @@ export const getBills = async (
 // New function to get a single bill by ID
 export const getBillById = async (id: number) => {
   try {
-    const url = `${import.meta.env.VITE_API_URL}/bills/${id}`;
+    const url = `${import.meta.env.BACKEND_API_URL}/bills/${id}`;
     const response = await axiosInstance.get(url);
     return response.data;
   } catch (error) {
