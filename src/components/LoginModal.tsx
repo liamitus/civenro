@@ -108,6 +108,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         {activeTab === 0 && (
           <Box component="form" onSubmit={handleLoginSubmit} sx={{ mt: 2 }}>
             <TextField
+              data-testid="login-email"
               label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -116,6 +117,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               sx={{ mt: 1 }}
             />
             <TextField
+              data-testid="login-password"
               label="Password"
               type="password"
               value={password}
@@ -129,7 +131,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 {errorMessage}
               </Typography>
             )}
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
+            <Button
+              data-testid="login-submit"
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 3 }}
+            >
               Login
             </Button>
             <Typography variant="body2" sx={{ mt: 2 }}>
@@ -143,6 +151,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         {activeTab === 1 && (
           <Box component="form" onSubmit={handleRegisterSubmit} sx={{ mt: 2 }}>
             <TextField
+              data-testid="register-username"
               label="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -151,6 +160,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               sx={{ mt: 1 }}
             />
             <TextField
+              data-testid="register-email"
               label="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -159,6 +169,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               sx={{ mt: 1 }}
             />
             <TextField
+              data-testid="register-password"
               label="Password"
               type="password"
               value={password}
@@ -172,7 +183,13 @@ const LoginModal: React.FC<LoginModalProps> = ({
                 {errorMessage}
               </Typography>
             )}
-            <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
+            <Button
+              data-testid="register-submit"
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 3 }}
+            >
               Register
             </Button>
             <Typography variant="body2" sx={{ mt: 2 }}>

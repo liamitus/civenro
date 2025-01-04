@@ -32,15 +32,20 @@ const NavBar: React.FC = () => {
         </Button> */}
         {/* Add more navigation links as needed */}
         {user ? (
-          <Button color="inherit" onClick={logout}>
+          <Button data-testid="logout-button" color="inherit" onClick={logout}>
             Logout
           </Button>
         ) : (
           <>
-            <Button color="inherit" onClick={() => showModal('auth')}>
+            <Button
+              data-testid="login-button"
+              color="inherit"
+              onClick={() => showModal('auth')}
+            >
               Login
             </Button>
             <Button
+              data-testid="register-button"
               color="inherit"
               onClick={() => showModal('auth', { initialTab: 1 })}
             >
