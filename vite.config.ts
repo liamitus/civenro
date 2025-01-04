@@ -4,13 +4,16 @@ import react from '@vitejs/plugin-react-swc';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://backend:5001',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
+  server:
+    process.env.NODE_ENV !== 'production'
+      ? {
+          proxy: {
+            '/api': {
+              target: 'http://backend:5001',
+              changeOrigin: true,
+              secure: false,
+            },
+          },
+        }
+      : {},
 });
