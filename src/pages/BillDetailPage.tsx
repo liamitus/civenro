@@ -175,6 +175,10 @@ const BillDetailPage: React.FC = () => {
     }
   }, [bill]);
 
+  useEffect(() => {
+    console.log('Bill chambers:', billChambers);
+  }, [bill]);
+
   const handleVote = async (voteType: 'For' | 'Against' | 'Abstain') => {
     if (!user) {
       showModal('auth', () => handleVote(voteType));
@@ -304,7 +308,6 @@ const BillDetailPage: React.FC = () => {
         address={address}
         representatives={representatives}
         getVoteBorderColor={getVoteBorderColor}
-        billChambers={billChambers}
         onAddressChange={onAddressChange}
       />
 

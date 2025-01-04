@@ -1,11 +1,8 @@
 // src/api/axiosInstance.ts
 
 import axios from 'axios';
-import { API_URL } from '../services/API_URL';
 
-const axiosInstance = axios.create({
-  baseURL: API_URL,
-});
+const axiosInstance = axios.create();
 
 // Request interceptor to add the token to headers
 axiosInstance.interceptors.request.use(

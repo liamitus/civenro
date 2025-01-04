@@ -1,14 +1,13 @@
-import axios from 'axios';
-import { API_URL } from './API_URL';
 import { getToken } from './authService';
+import axiosInstance from '../api/axiosInstance';
 
 export const getRepresentativesByAddress = async (
   address: string,
   billId: number
 ) => {
   const token = getToken(); // Retrieve the JWT token from localStorage or context
-  const response = await axios.post(
-    `${API_URL}/representatives/by-address`,
+  const response = await axiosInstance.post(
+    `/representatives/by-address`,
     {
       address,
       billId,

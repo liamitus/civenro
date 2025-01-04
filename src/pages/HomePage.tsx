@@ -1,15 +1,16 @@
+// src/pages/HomePage.tsx
+
 import React, { useEffect, useState } from 'react';
 import { getBills, GetBillsParams } from '../services/billService';
 import {
   Container,
   Typography,
   Box,
-  Button,
   TextField,
-  Select,
-  MenuItem,
   FormControl,
   InputLabel,
+  Select,
+  MenuItem,
   SelectChangeEvent,
 } from '@mui/material';
 import BillCard from '../components/BillCard';
@@ -30,9 +31,9 @@ interface Bill {
 
 const HomePage = () => {
   const [bills, setBills] = useState<Bill[]>([]);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalBills, setTotalBills] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [filters, setFilters] = useState<GetBillsParams>({
     page: 1,
     limit: 20,
@@ -46,6 +47,11 @@ const HomePage = () => {
   const fetchBills = async () => {
     try {
       const data = await getBills(filters);
+
+      if (!data || !data.bills) {
+        throw new Error('Invalid response structure (no bills array)');
+      }
+
       setBills((prevBills) => {
         const allBills = [...prevBills, ...data.bills];
         const uniqueBills = Array.from(
@@ -55,22 +61,21 @@ const HomePage = () => {
       });
       setTotalBills(data.total);
       setHasMore(bills.length + data.bills.length < data.total);
-      setPage((prevPage) => prevPage + 1);
       setFilters((prevFilters) => ({
         ...prevFilters,
         page: prevFilters.page! + 1,
       }));
     } catch (error) {
       console.error('Error fetching bills:', error);
+
+      setErrorMessage('Failed to load bills. Please try again later.');
     }
   };
 
   useEffect(() => {
     // Reset bills when filters change
     setBills([]);
-    setPage(1);
     setHasMore(true);
-    setFilters((prevFilters) => ({ ...prevFilters, page: 1 }));
     fetchBills();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -101,10 +106,20 @@ const HomePage = () => {
     setFilters({ ...filters, order: event.target.value as string, page: 1 });
   };
 
+  if (errorMessage) {
+    return (
+      <Container>
+        <Typography variant="h5" color="error">
+          {errorMessage}
+        </Typography>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
-        Latest Bills
+        {totalBills} Bills
       </Typography>
 
       {/* Filters */}
@@ -119,8 +134,9 @@ const HomePage = () => {
 
         {/* Chamber Filter */}
         <FormControl variant="outlined">
-          <InputLabel>Chamber</InputLabel>
+          <InputLabel id="chamber-label">Chamber</InputLabel>
           <Select
+            labelId="chamber-label"
             value={filters.chamber}
             onChange={handleChamberChange}
             label="Chamber"

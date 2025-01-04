@@ -1,10 +1,12 @@
-import React from 'react';
+// src/components/BillCard.test.tsx
+
 import { render, screen } from '@testing-library/react';
-import BillCard from './BillCard';
 import { MemoryRouter } from 'react-router-dom';
+import BillCard from './BillCard';
+import { makeBill } from '../test-utils/billFactory';
 
 // Helper: quickly create a default mock bill
-const mockBill = {
+const mockBill = makeBill({
   id: 1,
   billId: 'house_bill-123',
   title: 'A Bill to Improve Testing',
@@ -16,7 +18,7 @@ const mockBill = {
   currentStatusDate: '2024-01-02T00:00:00.000Z',
   introducedDate: '2024-01-01T12:00:00.000Z',
   link: 'https://example.com/bills/house_bill-123',
-};
+});
 
 describe('BillCard Component', () => {
   it('renders bill title, status, and introduced date', () => {

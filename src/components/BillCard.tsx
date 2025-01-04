@@ -1,3 +1,5 @@
+// src/components/BillCard.tsx
+
 import React from 'react';
 import {
   Card,

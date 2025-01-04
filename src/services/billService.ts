@@ -1,7 +1,6 @@
 // src/services/billService.ts
 
 import axiosInstance from '../api/axiosInstance';
-import { API_URL } from './API_URL';
 
 export interface GetBillsParams {
   page?: number;
@@ -13,9 +12,17 @@ export interface GetBillsParams {
   search?: string;
 }
 
-export const getBills = async (params: GetBillsParams = {}) => {
+export interface GetBillsResult {
+  bills: any[];
+  total: number;
+}
+
+export const getBills = async (
+  params: GetBillsParams = {}
+): Promise<GetBillsResult> => {
   try {
-    const response = await axiosInstance.get(`${API_URL}/bills`, {
+    const url = `${import.meta.env.VITE_API_URL}/bills`;
+    const response = await axiosInstance.get(url, {
       params,
     });
     return response.data;
@@ -28,7 +35,8 @@ export const getBills = async (params: GetBillsParams = {}) => {
 // New function to get a single bill by ID
 export const getBillById = async (id: number) => {
   try {
-    const response = await axiosInstance.get(`${API_URL}/bills/${id}`);
+    const url = `${import.meta.env.VITE_API_URL}/bills/${id}`;
+    const response = await axiosInstance.get(url);
     return response.data;
   } catch (error) {
     console.error('Error fetching bill:', error);

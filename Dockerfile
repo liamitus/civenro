@@ -1,9 +1,16 @@
 # Dockerfile
+# Force rebuild - updated 2025-01-01
 
 # Stage 1: Build the React app
 FROM node:20-alpine AS build
 
 WORKDIR /app
+
+# Define build argument
+ARG VITE_API_URL
+
+# Set environment variable for Vite to use during build
+ENV VITE_API_URL=${VITE_API_URL}
 
 # Install dependencies
 COPY package*.json ./
@@ -27,13 +34,13 @@ RUN npm install -g serve
 WORKDIR /app
 
 # Copy built app from previous stage
-COPY --from=build /app/build ./build
+COPY --from=build /app/dist ./dist
 
 # Set environment variables
-ENV REACT_APP_API_URL=http://backend:5001
+# ENV VITE_API_URL=${VITE_API_URL}
 
 # Expose port
 EXPOSE 3000
 
 # Command to serve the app
-CMD ["serve", "-s", "build", "-l", "3000"]
+CMD ["serve", "-s", "dist", "-l", "3000"]

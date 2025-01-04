@@ -47,10 +47,10 @@ const LoginModal: React.FC<LoginModalProps> = ({
     }
   }, [open, initialTab]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  function handleTabChange(_event: React.SyntheticEvent, newValue: number) {
     setActiveTab(newValue);
     setErrorMessage('');
-  };
+  }
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

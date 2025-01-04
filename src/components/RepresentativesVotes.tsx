@@ -30,7 +30,6 @@ interface RepresentativesVotesProps {
   address: string | null;
   representatives: Representative[];
   getVoteBorderColor: (vote: string) => string;
-  billChambers: string[];
   onAddressChange: (address: string) => void;
 }
 
@@ -40,7 +39,6 @@ const RepresentativesVotes: React.FC<RepresentativesVotesProps> = ({
   address,
   representatives,
   getVoteBorderColor,
-  billChambers,
   onAddressChange,
 }) => {
   const theme = useTheme();

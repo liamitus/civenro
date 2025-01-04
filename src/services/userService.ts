@@ -1,11 +1,10 @@
 // src/services/userService.ts
 
 import axiosInstance from '../api/axiosInstance';
-import { API_URL } from './API_URL';
 
 export const getUserProfile = async (userId: number) => {
   try {
-    const response = await axiosInstance.get(`${API_URL}/users/${userId}`);
+    const response = await axiosInstance.get(`/users/${userId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -15,7 +14,7 @@ export const getUserProfile = async (userId: number) => {
 
 export const updateUsername = async (username: string) => {
   try {
-    const response = await axiosInstance.put(`${API_URL}/users/username`, {
+    const response = await axiosInstance.put('/users/username', {
       username,
     });
     return response.data;
@@ -27,7 +26,7 @@ export const updateUsername = async (username: string) => {
 
 export const updateEmail = async (email: string) => {
   try {
-    const response = await axiosInstance.put(`${API_URL}/users/email`, {
+    const response = await axiosInstance.put('/users/email', {
       email,
     });
     return response.data;
@@ -42,7 +41,7 @@ export const updatePassword = async (
   newPassword: string
 ) => {
   try {
-    const response = await axiosInstance.put(`${API_URL}/users/password`, {
+    const response = await axiosInstance.put('/users/password', {
       currentPassword,
       newPassword,
     });

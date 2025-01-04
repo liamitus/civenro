@@ -1,8 +1,7 @@
 import axiosInstance from '../api/axiosInstance';
-import { API_URL } from './API_URL';
 
-const COMMENTS_API_URL = `${API_URL}/comments`;
-const COMMENT_VOTES_API_URL = `${API_URL}/comment-votes`;
+const COMMENTS_API_URL = '/comments';
+const COMMENT_VOTES_API_URL = '/comment-votes';
 
 // Function to submit a comment
 export const submitComment = async (

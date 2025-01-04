@@ -20,6 +20,7 @@ services:
   backend:
     # Use the multi-arch image from GHCR
     image: ghcr.io/liamitus/civenro-backend:latest
+    pull_policy: always
     depends_on:
       db:
         condition: service_healthy
@@ -27,18 +28,20 @@ services:
       NODE_ENV: "development"
       PORT: 5001
       DATABASE_URL: "postgresql://dev_admin:DO_NOT_USE_IN_PRODUCTION@db:5432/civenro_db"
+      FRONTEND_URL: "http://frontend:3000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
-      interval: 5s
+      interval: 15s
       timeout: 3s
       retries: 5
     ports:
       - "5001:5001"
 
   frontend:
-    build: .
-    environment:
-      REACT_APP_API_URL: "http://backend:5001"
+    build:
+      context: .
+      args:
+        VITE_API_URL: "http://backend:5001/api"
     depends_on:
       backend:
         condition: service_healthy
@@ -46,7 +49,7 @@ services:
       - "3000:3000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 5s
+      interval: 15s
       timeout: 5s
       retries: 5
       start_period: 10s

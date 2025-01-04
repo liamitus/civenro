@@ -28,8 +28,6 @@ const VoteOnBill: React.FC<VoteOnBillProps> = ({
   congressionalVotes,
 }) => {
   // Process public votes
-  const totalPublicVotes =
-    publicVotes.reduce((sum, vote) => sum + vote.count, 0) || 1;
   const publicForCount =
     publicVotes.find((vote) => vote.voteType === 'For')?.count || 0;
   const publicAgainstCount =

@@ -1,16 +1,16 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { vi } from 'vitest';
 import CommentsSection from './CommentsSection';
 
 describe('CommentsSection', () => {
   const mockProps = {
     expanded: true,
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     comments: [],
     commentContent: '',
-    setCommentContent: jest.fn(),
-    handleCommentSubmit: jest.fn(),
-    refreshComments: jest.fn(),
+    setCommentContent: vi.fn(),
+    handleCommentSubmit: vi.fn(),
+    refreshComments: vi.fn(),
     billId: 123,
   };
 

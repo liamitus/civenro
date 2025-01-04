@@ -1,9 +1,8 @@
 // src/services/voteService.ts
 
 import axios from 'axios';
-import { API_URL } from './API_URL';
 
-const BASE_URL = `${API_URL}/votes`;
+const BASE_URL = '/votes';
 
 // Function to submit a vote
 export const submitVote = async (

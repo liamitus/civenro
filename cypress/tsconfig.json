@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // If "noEmit" is in your root tsconfig, you can keep that or override it here
+    "isolatedModules": false,
+    "types": ["cypress"]
+  },
+  "include": [
+    "e2e/**/*.ts",
+    "e2e/**/*.tsx"
+    // or whatever directory pattern you have
+  ]
+}
