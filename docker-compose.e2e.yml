@@ -42,6 +42,8 @@ services:
       context: .
       args:
         VITE_API_URL: "http://backend:5001/api"
+    environment:
+      VITE_API_URL: "http://backend:5001/api"
     depends_on:
       backend:
         condition: service_healthy

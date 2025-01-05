@@ -17,14 +17,16 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "npm install && vite",
     "build": "vite build",
+    "build:e2e": "npm install && vite build --mode e2e",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "e2e": "docker compose -f docker-compose.e2e.yml down -v && docker compose -f docker-compose.e2e.yml build --no-cache && docker compose -f docker-compose.e2e.yml up --abort-on-container-exit --exit-code-from cypress",
-    "e2e:debug": "docker compose -f docker-compose.e2e.yml down -v && docker compose -f docker-compose.e2e.yml build --no-cache && docker compose -f docker-compose.e2e.yml up --scale cypress=0",
-    "e2e:open": "npx cypress open --config-file cypress.config.ts"
+    "e2e": "npm run e2e:down && docker compose -f docker-compose.e2e.yml build --no-cache && docker compose -f docker-compose.e2e.yml up --abort-on-container-exit --exit-code-from cypress",
+    "e2e:down": "docker compose -f docker-compose.e2e.yml down -v",
+    "e2e:debug": "npm run e2e:down && docker compose -f docker-compose.e2e.yml build --no-cache && docker compose -f docker-compose.e2e.yml up --scale cypress=0",
+    "cypress": "npm run build:e2e && NODE_ENV=\"development\" npx cypress open --config-file cypress.config.ts"
   },
   "browserslist": {
     "production": [
