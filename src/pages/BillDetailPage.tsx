@@ -159,7 +159,7 @@ const BillDetailPage: React.FC = () => {
   }, [address, bill?.id, fetchRepresentatives]);
 
   useEffect(() => {
-    if (bill) {
+    if (bill && bill.billType) {
       const chambers: string[] = [];
       const billTypeLower = bill.billType.toLowerCase();
       if (billTypeLower.startsWith('hr') || billTypeLower.startsWith('hres')) {
@@ -168,7 +168,7 @@ const BillDetailPage: React.FC = () => {
       if (billTypeLower.startsWith('s') || billTypeLower.startsWith('sres')) {
         chambers.push('Senate');
       }
-      if (bill.currentChamber.toLowerCase() === 'both') {
+      if (bill.currentChamber?.toLowerCase() === 'both') {
         chambers.push('House', 'Senate');
       }
       setBillChambers(Array.from(new Set(chambers)));
