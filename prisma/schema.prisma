@@ -1,0 +1,110 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model Bill {
+  id                Int                  @id @default(autoincrement())
+  billId            String               @unique
+  title             String
+  date              DateTime
+  billType          String
+  currentChamber    String?
+  currentStatus     String
+  currentStatusDate DateTime
+  introducedDate    DateTime
+  link              String
+  shortText         String?
+  fullText          String?
+  votes             RepresentativeVote[]
+  publicVotes       Vote[]
+  comments          Comment[]
+  conversations     Conversation[]
+}
+
+model Representative {
+  id        Int                  @id @default(autoincrement())
+  bioguideId String              @unique
+  firstName String
+  lastName  String
+  state     String
+  district  String?
+  party     String
+  chamber   String
+  imageUrl  String?
+  link      String?
+  votes     RepresentativeVote[]
+}
+
+model RepresentativeVote {
+  id               Int            @id @default(autoincrement())
+  representativeId Int
+  billId           Int
+  vote             String
+
+  representative Representative @relation(fields: [representativeId], references: [id])
+  bill           Bill           @relation(fields: [billId], references: [id])
+
+  @@unique([representativeId, billId])
+}
+
+model Vote {
+  id       Int    @id @default(autoincrement())
+  userId   String
+  billId   Int
+  voteType String
+
+  bill Bill @relation(fields: [billId], references: [id])
+
+  @@unique([userId, billId])
+}
+
+model Comment {
+  id              Int           @id @default(autoincrement())
+  content         String
+  userId          String
+  username        String        @default("Anonymous")
+  billId          Int
+  parentCommentId Int?
+  date            DateTime      @default(now())
+
+  bill          Bill           @relation(fields: [billId], references: [id])
+  parentComment Comment?       @relation("CommentToReplies", fields: [parentCommentId], references: [id])
+  replies       Comment[]      @relation("CommentToReplies")
+  commentVotes  CommentVote[]
+}
+
+model CommentVote {
+  id        Int    @id @default(autoincrement())
+  userId    String
+  commentId Int
+  voteType  Int
+
+  comment Comment @relation(fields: [commentId], references: [id])
+
+  @@unique([userId, commentId])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  userId    String
+  billId    Int
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  bill Bill @relation(fields: [billId], references: [id])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         String
+  text           String
+  createdAt      DateTime     @default(now())
+}

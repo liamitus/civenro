@@ -1,104 +1,36 @@
-# 🇺🇸 Civenro (Frontend)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-**Civenro** is a community-driven platform that enhances transparency and civic engagement in the legislative process. This repository now contains only the **frontend** code, providing the user interface and client-side logic. The backend code and data fetching logic have been moved to a separate repository, ensuring clear separation of concerns and easier independent development.
+## Getting Started
 
-## Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Features
-
-- **Government Bills Feed:** Explore a continuously updated feed of current bills with summaries and statuses.
-- **User Voting:** Cast votes (For, Against, or Abstain) on each bill and see aggregate public opinion.
-- **Comment Discussions:** Engage in threaded comment discussions to deliberate on legislation.
-- **Representative Votes:** See how senators voted on each bill to foster accountability.
-- **Personalized Experience:** Input your state to highlight relevant senators and bills affecting your region.
-
-## Tech Stack
-
-### Frontend
-
-- **React.js** with **TypeScript**
-- **Material-UI (MUI)** for responsive UI components
-- **React Router** for client-side routing
-- **Axios** for API requests to the backend
-
-**Note:** The backend services and database are now in [civenro-backend](https://github.com/liamitus/civenro-backend) repository. Please refer to that repository for backend-specific details.
-
-### Deployment
-
-- **Frontend:** Deployed on Vercel for rapid iteration and continuous deployment.
-- **Backend:** For backend deployment details, see the [civenro-backend](https://github.com/liamitus/civenro-backend) repository.
-
-## Installation
-
-### Prerequisites
-
-- **Node.js** and **npm** installed
-- **Git** installed
-
-### Clone the Repository
+First, run the development server:
 
 ```bash
-git clone https://github.com/liamitus/civenro.git
-cd civenro
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-### Install Dependencies
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```bash
-npm install
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Usage
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. **Run the Development Server:**
+## Learn More
 
-   ```bash
-   npm start
-   ```
+To learn more about Next.js, take a look at the following resources:
 
-   The app will be available at **http://localhost:3000**.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-2. **Connect to the Backend:**
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-   - Ensure the backend is running separately. Refer to [civenro-backend](https://github.com/liamitus/civenro-backend) for instructions.
-   - Update environment variables or .env files as needed to point the frontend to the backend API URL.
+## Deploy on Vercel
 
-Follow the [civenro-backend README](https://github.com/liamitus/civenro-backend)
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## Contributing
-
-We welcome community contributions! To get started:
-
-1. **Fork the Repository**
-2. **Create a Feature Branch**
-
-```bash
-git checkout -b feature/YourFeature
-```
-
-3. **Commit Your Changes**
-
-```bash
-git commit -m "Add some feature"
-```
-
-4. **Push to the Branch**
-
-```bash
-git push origin feature/YourFeature
-```
-
-5. **Open a Pull Request**
-
-Please ensure your code adheres to the project's coding standards and includes relevant tests.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
