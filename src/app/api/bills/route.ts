@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
   const chamber = searchParams.get("chamber");
   const status = searchParams.get("status");
-  const sortBy = searchParams.get("sortBy") || "introducedDate";
+  const sortBy = searchParams.get("sortBy") || "relevant";
   const order = searchParams.get("order") || "desc";
   const search = searchParams.get("search");
 
@@ -30,6 +30,20 @@ export async function GET(request: NextRequest) {
     filters.title = { contains: search, mode: "insensitive" };
   }
 
+  // Build sort order — "relevant" uses engagement + activity signals,
+  // anything else sorts by that field directly
+  let orderBy: Record<string, unknown>[] | Record<string, unknown>;
+  if (sortBy === "relevant") {
+    orderBy = [
+      { votes: { _count: "desc" } },
+      { publicVotes: { _count: "desc" } },
+      { comments: { _count: "desc" } },
+      { currentStatusDate: "desc" },
+    ];
+  } else {
+    orderBy = { [sortBy]: order };
+  }
+
   try {
     const [total, bills] = await Promise.all([
       prisma.bill.count({ where: filters }),
@@ -37,7 +51,7 @@ export async function GET(request: NextRequest) {
         where: filters,
         skip,
         take: limit,
-        orderBy: { [sortBy]: order },
+        orderBy,
         select: {
           id: true,
           billId: true,

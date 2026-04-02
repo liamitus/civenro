@@ -24,6 +24,23 @@ model Bill {
   publicVotes       Vote[]
   comments          Comment[]
   conversations     Conversation[]
+  actions           BillAction[]
+  textVersions      BillTextVersion[]
+  voteHistory       VoteHistory[]
+}
+
+model BillAction {
+  id          Int      @id @default(autoincrement())
+  billId      Int
+  actionDate  DateTime
+  chamber     String?
+  text        String
+  actionType  String?
+
+  bill Bill @relation(fields: [billId], references: [id])
+
+  @@unique([billId, actionDate, text])
+  @@index([billId])
 }
 
 model Representative {
@@ -45,22 +62,64 @@ model RepresentativeVote {
   representativeId Int
   billId           Int
   vote             String
+  rollCallNumber   Int?
+  chamber          String?
+  votedAt          DateTime?
 
   representative Representative @relation(fields: [representativeId], references: [id])
   bill           Bill           @relation(fields: [billId], references: [id])
 
-  @@unique([representativeId, billId])
+  @@unique([representativeId, billId, rollCallNumber])
+  @@index([billId, chamber])
+  @@index([billId, rollCallNumber])
+}
+
+model BillTextVersion {
+  id            Int      @id @default(autoincrement())
+  billId        Int
+  versionCode   String
+  versionType   String
+  versionDate   DateTime
+  fullText      String?
+  isSubstantive Boolean  @default(true)
+  changeSummary String?
+  createdAt     DateTime @default(now())
+
+  bill        Bill          @relation(fields: [billId], references: [id])
+  activeVotes Vote[]
+  voteHistory VoteHistory[]
+
+  @@unique([billId, versionCode])
+  @@index([billId])
 }
 
 model Vote {
-  id       Int    @id @default(autoincrement())
-  userId   String
-  billId   Int
-  voteType String
+  id            Int      @id @default(autoincrement())
+  userId        String
+  billId        Int
+  voteType      String
+  textVersionId Int?
+  votedAt       DateTime @default(now())
 
-  bill Bill @relation(fields: [billId], references: [id])
+  bill        Bill             @relation(fields: [billId], references: [id])
+  textVersion BillTextVersion? @relation(fields: [textVersionId], references: [id])
 
   @@unique([userId, billId])
+}
+
+model VoteHistory {
+  id            Int      @id @default(autoincrement())
+  userId        String
+  billId        Int
+  voteType      String
+  textVersionId Int?
+  createdAt     DateTime @default(now())
+
+  bill        Bill             @relation(fields: [billId], references: [id])
+  textVersion BillTextVersion? @relation(fields: [textVersionId], references: [id])
+
+  @@index([userId, billId])
+  @@index([billId])
 }
 
 model Comment {

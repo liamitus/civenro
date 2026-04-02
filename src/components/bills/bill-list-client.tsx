@@ -12,7 +12,7 @@ export function BillListClient() {
   const [search, setSearch] = useState("");
   const [chamber, setChamber] = useState("both");
   const [status, setStatus] = useState("");
-  const [sortBy] = useState("introducedDate");
+  const [sortBy] = useState("relevant");
   const [order] = useState("desc");
   const observerRef = useRef<HTMLDivElement>(null);
 
@@ -105,8 +105,10 @@ export function BillListClient() {
         <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
           {filterPill("Any", "", status, setStatus)}
           {filterPill("Introduced", "introduced", status, setStatus)}
+          {filterPill("In Progress", "in_progress", status, setStatus)}
           {filterPill("Passed", "passed", status, setStatus)}
           {filterPill("Enacted", "enacted", status, setStatus)}
+          {filterPill("Failed", "failed", status, setStatus)}
         </div>
       </div>
 

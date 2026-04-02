@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "theunitedstates.io",
-        pathname: "/images/congress/**",
+        hostname: "bioguide.congress.gov",
+        pathname: "/bioguide/photo/**",
       },
     ],
   },

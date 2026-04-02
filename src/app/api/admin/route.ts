@@ -3,6 +3,8 @@ import { fetchBillsFunction } from "@/scripts/fetch-bills";
 import { fetchRepresentativesFunction } from "@/scripts/fetch-representatives";
 import { fetchVotesFunction } from "@/scripts/fetch-votes";
 import { fetchBillTextFunction } from "@/scripts/fetch-bill-text";
+import { fetchBillActionsFunction } from "@/scripts/fetch-bill-actions";
+import { generateChangeSummariesFunction } from "@/scripts/generate-change-summaries";
 
 function checkAdminAuth(request: NextRequest): boolean {
   if (process.env.NODE_ENV === "development") return true;
@@ -37,6 +39,18 @@ export async function POST(request: NextRequest) {
         await fetchBillTextFunction(billId);
         return NextResponse.json({
           message: "Bill text fetched successfully.",
+        });
+
+      case "fetch-bill-actions":
+        await fetchBillActionsFunction(billIds);
+        return NextResponse.json({
+          message: "Bill actions fetched and statuses reconciled.",
+        });
+
+      case "generate-change-summaries":
+        await generateChangeSummariesFunction(billId ? parseInt(billId) : undefined);
+        return NextResponse.json({
+          message: "Change summaries generated.",
         });
 
       default:

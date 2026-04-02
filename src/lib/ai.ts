@@ -66,6 +66,42 @@ async function callOpenAI(
 }
 
 /**
+ * Generate a plain-language summary of what changed between two bill versions.
+ * The summary is cached in BillTextVersion.changeSummary after generation.
+ */
+export async function generateChangeSummary(
+  billTitle: string,
+  previousText: string,
+  currentText: string,
+  previousVersionType: string,
+  currentVersionType: string,
+): Promise<string> {
+  const provider = detectProvider();
+
+  const systemPrompt =
+    "You are a nonpartisan legislative analyst. Given two versions of a bill, provide a clear, plain-language summary of what changed. Focus on substantive policy changes — new provisions, removed sections, changed numbers or thresholds, altered scope. Skip procedural or formatting changes. Write 2-4 sentences maximum. Do not use bullet points. Write for a general audience, not lawyers.";
+
+  const userPrompt = `Bill: "${billTitle}"
+
+Previous version (${previousVersionType}):
+${previousText.slice(0, 30000)}
+
+Current version (${currentVersionType}):
+${currentText.slice(0, 30000)}
+
+Summarize the substantive changes between these two versions.`;
+
+  const messages: ChatMessage[] = [{ role: "user", content: userPrompt }];
+
+  const response =
+    provider === "anthropic"
+      ? await callAnthropic(systemPrompt, messages)
+      : await callOpenAI(systemPrompt, messages);
+
+  return response.content;
+}
+
+/**
  * Generate a chat response about a bill using context stuffing.
  */
 export async function generateBillChatResponse(

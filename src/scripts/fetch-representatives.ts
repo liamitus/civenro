@@ -18,7 +18,7 @@ export async function fetchRepresentativesFunction() {
         continue;
       }
 
-      const imageUrl = `https://theunitedstates.io/images/congress/225x275/${bioguideId}.jpg`;
+      const imageUrl = `https://bioguide.congress.gov/bioguide/photo/${bioguideId[0]}/${bioguideId}.jpg`;
 
       await prisma.representative.upsert({
         where: { bioguideId },

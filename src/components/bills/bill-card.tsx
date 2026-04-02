@@ -3,15 +3,18 @@ import dayjs from "dayjs";
 import type { BillSummary } from "@/types";
 
 function statusStyle(status: string): { label: string; className: string } {
-  const s = status.toLowerCase();
-  if (s.includes("enacted") || s.includes("signed"))
+  if (status.startsWith("enacted_"))
     return { label: "Enacted", className: "bg-enacted-soft text-enacted" };
-  if (s.includes("passed") || s.includes("conference"))
+  if (status === "passed_bill" || status.startsWith("conference_") ||
+      status === "passed_simpleres" || status === "passed_concurrentres")
     return { label: "Passed", className: "bg-passed-soft text-passed" };
-  return {
-    label: status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-    className: "bg-muted text-foreground/70",
-  };
+  if (status.startsWith("pass_over_") || status.startsWith("pass_back_"))
+    return { label: "In Progress", className: "bg-passed-soft text-passed" };
+  if (status.startsWith("fail_") || status.startsWith("vetoed_") || status.startsWith("prov_kill_"))
+    return { label: "Failed", className: "bg-failed-soft text-failed" };
+  if (status === "reported")
+    return { label: "In Committee", className: "bg-muted text-foreground/70" };
+  return { label: "Introduced", className: "bg-muted text-foreground/70" };
 }
 
 function chamberTag(billType: string): { label: string; className: string } | null {

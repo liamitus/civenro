@@ -25,10 +25,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 });
     }
 
+    // Find the latest text version for this bill
+    const latestVersion = await prisma.billTextVersion.findFirst({
+      where: { billId },
+      orderBy: { versionDate: "desc" },
+    });
+
     const vote = await prisma.vote.upsert({
       where: { userId_billId: { userId, billId } },
-      update: { voteType },
-      create: { userId, billId, voteType },
+      update: {
+        voteType,
+        textVersionId: latestVersion?.id ?? null,
+        votedAt: new Date(),
+      },
+      create: {
+        userId,
+        billId,
+        voteType,
+        textVersionId: latestVersion?.id ?? null,
+      },
+    });
+
+    // Append to vote history audit trail
+    await prisma.voteHistory.create({
+      data: {
+        userId,
+        billId,
+        voteType,
+        textVersionId: latestVersion?.id ?? null,
+      },
     });
 
     return NextResponse.json(vote);

@@ -3,9 +3,57 @@ import dayjs from "dayjs";
 import { parseStringPromise } from "xml2js";
 import { BillXmlParser, type ParsedChunk } from "./bill-xml-parser";
 
+const CONGRESS_API_KEY =
+  process.env.CONGRESS_DOT_GOV_API_KEY || "DEMO_KEY";
+
+const congressApiClient = axios.create({
+  baseURL: "https://api.congress.gov/v3",
+  headers: { "User-Agent": "Civenro/1.0 (civic transparency platform)" },
+  params: { api_key: CONGRESS_API_KEY },
+});
+
+export interface TextVersionMeta {
+  date: string | null;
+  type: string;
+  formats: { type: string; url: string }[];
+}
+
 interface TextVersion {
   date: string;
   formats: { type: string; url: string }[];
+}
+
+/**
+ * Fetch ALL text versions of a bill from congress.gov.
+ * Returns versions sorted oldest-first.
+ */
+export async function fetchAllTextVersions(
+  congress: number,
+  apiBillType: string,
+  billNumber: number,
+): Promise<TextVersionMeta[]> {
+  try {
+    const response = await congressApiClient.get(
+      `/bill/${congress}/${apiBillType}/${billNumber}/text`,
+    );
+
+    const versions = response.data?.textVersions as TextVersionMeta[];
+    if (!Array.isArray(versions)) return [];
+
+    // Sort oldest-first by date (null dates go last)
+    return [...versions].sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return dayjs(a.date).valueOf() - dayjs(b.date).valueOf();
+    });
+  } catch (error: unknown) {
+    console.error(
+      "Failed to fetch all text versions:",
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
 }
 
 /**
@@ -17,9 +65,8 @@ export async function fetchLatestTextVersion(
   billNumber: number
 ): Promise<TextVersion | null> {
   try {
-    const response = await axios.get(
-      `https://api.congress.gov/v3/bill/${congress}/${apiBillType}/${billNumber}/text`,
-      { params: { api_key: process.env.CONGRESS_DOT_GOV_API_KEY } }
+    const response = await congressApiClient.get(
+      `/bill/${congress}/${apiBillType}/${billNumber}/text`
     );
 
     const textVersions = response.data?.textVersions as TextVersion[];
@@ -77,6 +124,52 @@ export async function downloadTextFormats(
       error instanceof Error ? error.message : error
     );
     return { rawXml: null, rawText: null };
+  }
+}
+
+/**
+ * Fetch legislative actions for a bill from congress.gov.
+ * Returns actions sorted newest-first.
+ */
+export interface CongressAction {
+  actionDate: string;
+  text: string;
+  type: string | null;
+  chamber: string | null; // "Senate" | "House" | null
+}
+
+export async function fetchBillActions(
+  congress: number,
+  apiBillType: string,
+  billNumber: number,
+): Promise<CongressAction[] | null> {
+  try {
+    const response = await congressApiClient.get(
+      `/bill/${congress}/${apiBillType}/${billNumber}/actions`,
+      { params: { limit: 250 } },
+    );
+
+    const actions = response.data?.actions;
+    if (!Array.isArray(actions)) return null;
+
+    return actions.map(
+      (a: { actionDate?: string; text?: string; type?: string; sourceSystem?: { name?: string } }) => ({
+        actionDate: a.actionDate ?? "",
+        text: a.text ?? "",
+        type: a.type ?? null,
+        chamber: a.sourceSystem?.name === "Senate"
+          ? "Senate"
+          : a.sourceSystem?.name?.includes("House")
+            ? "House"
+            : null,
+      }),
+    );
+  } catch (error: unknown) {
+    console.error(
+      "Failed to fetch bill actions:",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
   }
 }
 

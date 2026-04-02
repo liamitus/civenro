@@ -95,6 +95,8 @@
   --color-enacted-soft: #D1FAE5;
   --color-passed: #2563EB;
   --color-passed-soft: #DBEAFE;
+  --color-failed: #DC2626;
+  --color-failed-soft: #FEE2E2;
 }
 
 :root {

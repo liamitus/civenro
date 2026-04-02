@@ -38,14 +38,54 @@ export interface RepresentativeInfo {
   link: string | null;
 }
 
+export interface RepVoteHistoryEntry {
+  vote: string;
+  rollCallNumber: number | null;
+  chamber: string | null;
+  votedAt: string | null;
+}
+
 export interface RepresentativeWithVote extends RepresentativeInfo {
   name: string;
   vote: string;
+  voteHistory: RepVoteHistoryEntry[] | null;
+}
+
+export interface VersionInfo {
+  id: number;
+  versionCode: string;
+  versionType: string;
+  versionDate: string;
+}
+
+export interface RollCallVote {
+  rollCallNumber: number | null;
+  chamber: string | null;
+  votedAt: string | null;
+  votes: { vote: string; count: number }[];
 }
 
 export interface VoteAggregation {
   publicVotes: { voteType: string; count: number }[];
   congressionalVotes: { vote: string; count: number }[];
+  rollCalls: RollCallVote[];
+  latestVersion: VersionInfo | null;
+}
+
+export interface UserVoteStatus {
+  vote: { voteType: VoteType; textVersionId: number | null; votedAt: string } | null;
+  isStale: boolean;
+  staleInfo: {
+    votedOnVersion: { versionCode: string; versionType: string; versionDate: string } | null;
+    currentVersion: { versionCode: string; versionType: string; versionDate: string };
+    changeSummary: string | null;
+  } | null;
+  voteHistory: {
+    voteType: string;
+    createdAt: string;
+    versionCode: string | null;
+    versionType: string | null;
+  }[];
 }
 
 export interface CommentData {

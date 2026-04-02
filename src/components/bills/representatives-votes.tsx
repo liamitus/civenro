@@ -8,11 +8,124 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { RepresentativeWithVote } from "@/types";
 
 function voteColor(vote: string) {
-  if (vote === "Yea") return "text-vote-yea";
-  if (vote === "Nay") return "text-vote-nay";
-  if (vote === "Present") return "text-vote-present";
-  if (vote === "Not Voting") return "text-vote-notvoting";
+  if (vote === "Yea") return "text-vote-yea bg-vote-yea-soft";
+  if (vote === "Nay") return "text-vote-nay bg-vote-nay-soft";
+  if (vote === "Present") return "text-vote-present bg-vote-present-soft";
+  if (vote === "Not Voting") return "text-vote-notvoting bg-vote-notvoting-soft";
+  return "text-muted-foreground bg-muted";
+}
+
+function partyBarClass(party: string) {
+  const p = party.toLowerCase();
+  if (p.includes("democrat")) return "party-bar-democrat";
+  if (p.includes("republican")) return "party-bar-republican";
+  if (p.includes("independent")) return "party-bar-independent";
+  if (p.includes("libertarian")) return "party-bar-libertarian";
+  if (p.includes("green")) return "party-bar-green";
+  return "party-bar-unknown";
+}
+
+function partyColor(party: string) {
+  const p = party.toLowerCase();
+  if (p.includes("democrat")) return "text-dem";
+  if (p.includes("republican")) return "text-rep";
+  if (p.includes("independent")) return "text-ind";
+  if (p.includes("libertarian")) return "text-lib";
+  if (p.includes("green")) return "text-green";
   return "text-muted-foreground";
+}
+
+function chamberLabel(chamber: string | null): string {
+  if (!chamber) return "";
+  if (chamber === "house") return "House";
+  if (chamber === "senate") return "Senate";
+  return chamber.charAt(0).toUpperCase() + chamber.slice(1);
+}
+
+function RepCard({ rep }: { rep: RepresentativeWithVote }) {
+  const [showHistory, setShowHistory] = useState(false);
+  const hasHistory = rep.voteHistory && rep.voteHistory.length > 1;
+
+  return (
+    <div className={`rounded-lg bg-card border ${partyBarClass(rep.party)}`}>
+      <div className="flex items-center gap-3 p-3">
+        <Avatar className="h-11 w-11 shrink-0">
+          <AvatarImage src={rep.imageUrl || undefined} />
+          <AvatarFallback className="text-xs font-semibold">
+            {rep.firstName[0]}
+            {rep.lastName[0]}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">
+            {rep.firstName} {rep.lastName}
+          </p>
+          <p className={`text-xs ${partyColor(rep.party)}`}>
+            {rep.party} — {rep.state}
+            {rep.district ? `, District ${rep.district}` : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${voteColor(rep.vote)}`}
+          >
+            {rep.vote}
+          </span>
+          {hasHistory && (
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              title="View vote history"
+            >
+              <svg
+                className={`h-4 w-4 transition-transform ${showHistory ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {hasHistory && showHistory && (
+        <div className="px-3 pb-3 pt-0">
+          <div className="border-t pt-2 space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">Vote History</p>
+            {rep.voteHistory!.map((vh, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between text-xs"
+              >
+                <span className="text-muted-foreground">
+                  {chamberLabel(vh.chamber)}
+                  {vh.votedAt
+                    ? ` — ${new Date(vh.votedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}`
+                    : ""}
+                </span>
+                <span
+                  className={`font-semibold px-2 py-0.5 rounded-full ${voteColor(vh.vote)}`}
+                >
+                  {vh.vote}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function RepresentativesVotes({ billId }: { billId: number }) {
@@ -53,10 +166,9 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
 
   if (!address) {
     return (
-      <div className="space-y-4">
-        <h3 className="font-semibold text-base">Your Representatives</h3>
+      <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Enter your address to see how your representatives voted.
+          Enter your address to see how your representatives voted on this bill.
         </p>
         <div className="flex gap-2">
           <Input
@@ -74,49 +186,47 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-base">Your Representatives</h3>
+    <div className="space-y-3">
+      <div className="flex items-center justify-end">
         <button
           onClick={() => setUserAddress("")}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Change address
         </button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+          <svg
+            className="h-4 w-4 animate-spin"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          Finding your representatives...
+        </div>
       ) : reps.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground py-2">
           No representatives found for this bill.
         </p>
       ) : (
         <div className="space-y-2">
           {reps.map((rep) => (
-            <div
-              key={rep.bioguideId}
-              className="flex items-center gap-3 p-2 rounded-md bg-accent/30"
-            >
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={rep.imageUrl || undefined} />
-                <AvatarFallback>
-                  {rep.firstName[0]}
-                  {rep.lastName[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {rep.firstName} {rep.lastName}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {rep.party} — {rep.state}
-                </p>
-              </div>
-              <span className={`text-sm font-semibold ${voteColor(rep.vote)}`}>
-                {rep.vote}
-              </span>
-            </div>
+            <RepCard key={rep.bioguideId} rep={rep} />
           ))}
         </div>
       )}

@@ -16,14 +16,6 @@ export async function POST(request: NextRequest) {
     const data = await getRepresentativesByAddress(address);
     const { officials } = data;
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const reps = officials.map((official: any) => ({
-      name: official.name,
-      party: official.party,
-      bioguideId: official.bioguideId || "",
-      chamber: official.chamber || "",
-    }));
-
     const bill = await prisma.bill.findUnique({
       where: { id: parseInt(billId) },
     });
@@ -32,23 +24,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 });
     }
 
-    // Determine relevant chambers based on bill type
+    // Determine relevant chambers based on bill type and status
     const relevantChambers: string[] = [];
     if (bill.billType.startsWith("house_")) relevantChambers.push("representative");
     else if (bill.billType.startsWith("senate_")) relevantChambers.push("senator");
     if (bill.currentStatus === "passed_house") relevantChambers.push("senator");
     else if (bill.currentStatus === "passed_senate") relevantChambers.push("representative");
 
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const repsWithVotes = await Promise.all(
-      reps.map(async (rep: any) => {
-        let dbRep = rep.bioguideId
+      officials.map(async (official: any) => {
+        let dbRep = official.bioguideId
           ? await prisma.representative.findUnique({
-              where: { bioguideId: rep.bioguideId },
+              where: { bioguideId: official.bioguideId },
             })
           : null;
 
         if (!dbRep) {
-          const nameParts = rep.name.split(" ");
+          const nameParts = official.name.split(" ");
           const firstName = nameParts[0];
           const lastName = nameParts.slice(1).join(" ");
           dbRep = await prisma.representative.findFirst({
@@ -60,27 +53,61 @@ export async function POST(request: NextRequest) {
         }
 
         if (dbRep) {
-          const repVote = await prisma.representativeVote.findUnique({
+          // Get ALL votes for this rep on this bill (across roll calls)
+          const allVotes = await prisma.representativeVote.findMany({
             where: {
-              representativeId_billId: {
-                representativeId: dbRep.id,
-                billId: parseInt(billId),
-              },
+              representativeId: dbRep.id,
+              billId: parseInt(billId),
+            },
+            orderBy: { votedAt: "desc" },
+            select: {
+              vote: true,
+              rollCallNumber: true,
+              chamber: true,
+              votedAt: true,
             },
           });
 
+          const latestVote = allVotes[0];
+
           return {
-            ...rep,
-            ...dbRep,
-            vote: repVote?.vote || "No vote recorded",
+            bioguideId: dbRep.bioguideId,
+            firstName: dbRep.firstName,
+            lastName: dbRep.lastName,
+            state: dbRep.state,
+            district: dbRep.district,
+            party: dbRep.party,
+            chamber: dbRep.chamber,
+            imageUrl: dbRep.imageUrl,
+            link: dbRep.link,
+            id: dbRep.id,
+            name: official.name,
+            vote: latestVote?.vote || "No vote recorded",
+            voteHistory: allVotes.length > 1
+              ? allVotes.map((v: any) => ({
+                  vote: v.vote,
+                  rollCallNumber: v.rollCallNumber,
+                  chamber: v.chamber,
+                  votedAt: v.votedAt?.toISOString() || null,
+                }))
+              : null,
           };
         }
 
         return {
-          ...rep,
-          vote: "Representative not found in database",
+          name: official.name,
+          bioguideId: official.bioguideId || "",
+          firstName: official.firstName || "",
+          lastName: official.lastName || "",
+          state: official.state || "",
+          district: official.district || null,
+          party: official.party || "",
+          chamber: official.chamber || "",
           imageUrl: null,
           link: null,
+          id: 0,
+          vote: "Representative not found in database",
+          voteHistory: null,
         };
       })
     );
