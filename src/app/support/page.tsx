@@ -10,6 +10,7 @@ export const metadata = {
     "Civenro is supported by readers, not lobbyists. Your contribution keeps AI-powered bill analysis and civic tools free for everyone.",
 };
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 min cache
 
 export default async function SupportPage() {

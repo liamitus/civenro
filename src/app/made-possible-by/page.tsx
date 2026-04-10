@@ -8,6 +8,7 @@ export const metadata = {
   description: "Civenro is funded by readers. Meet the citizens keeping civic transparency alive.",
 };
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 min cache
 
 /** Deterministic daily shuffle so the order is stable for a day but fair over time. */
