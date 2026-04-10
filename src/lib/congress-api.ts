@@ -9,7 +9,9 @@ const CONGRESS_API_KEY =
 const congressApiClient = axios.create({
   baseURL: "https://api.congress.gov/v3",
   headers: { "User-Agent": "Civenro/1.0 (civic transparency platform)" },
-  params: { api_key: CONGRESS_API_KEY },
+  // format=json is required — the API defaults to XML when omitted, which silently
+  // breaks every JSON-shaped response handler in this file.
+  params: { api_key: CONGRESS_API_KEY, format: "json" },
 });
 
 export interface TextVersionMeta {
@@ -167,6 +169,99 @@ export async function fetchBillActions(
   } catch (error: unknown) {
     console.error(
       "Failed to fetch bill actions:",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
+/**
+ * Fetch the official title for a bill from Congress.gov.
+ * Used to cross-check titles against GovTrack, which has been observed
+ * to return wrong titles for some bill IDs.
+ */
+export async function fetchOfficialBillTitle(
+  congress: number,
+  apiBillType: string,
+  billNumber: number,
+): Promise<string | null> {
+  try {
+    const response = await congressApiClient.get(
+      `/bill/${congress}/${apiBillType}/${billNumber}`,
+    );
+    return response.data?.bill?.title || null;
+  } catch (error: unknown) {
+    console.error(
+      "Failed to fetch official bill title:",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
+/**
+ * Bill metadata for AI chat context — sponsor, cosponsors, status, latest action.
+ * Fetched on-demand from Congress.gov.
+ */
+export interface BillMetadata {
+  sponsor: string | null;          // "Sen. Rick Scott (R-FL)"
+  cosponsorCount: number | null;
+  cosponsorPartySplit: string | null; // "5 D, 3 R"
+  policyArea: string | null;
+  latestActionDate: string | null;
+  latestActionText: string | null;
+}
+
+export async function fetchBillMetadata(
+  congress: number,
+  apiBillType: string,
+  billNumber: number,
+): Promise<BillMetadata | null> {
+  try {
+    const [billRes, cosponsorsRes] = await Promise.all([
+      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
+      congressApiClient
+        .get(`/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`, {
+          params: { limit: 250 },
+        })
+        .catch(() => null),
+    ]);
+
+    const bill = billRes.data?.bill;
+    if (!bill) return null;
+
+    const sponsorItem = Array.isArray(bill.sponsors) ? bill.sponsors[0] : null;
+    const sponsor = sponsorItem
+      ? `${sponsorItem.fullName ?? ""}`.trim() || null
+      : null;
+
+    type Cosponsor = { party?: string };
+    const cosponsorList: Cosponsor[] = cosponsorsRes?.data?.cosponsors ?? [];
+    let partySplit: string | null = null;
+    if (cosponsorList.length > 0) {
+      const counts: Record<string, number> = {};
+      for (const c of cosponsorList) {
+        const p = (c.party || "?").toUpperCase();
+        counts[p] = (counts[p] || 0) + 1;
+      }
+      partySplit = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([p, n]) => `${n} ${p}`)
+        .join(", ");
+    }
+
+    return {
+      sponsor,
+      cosponsorCount:
+        bill.cosponsors?.count ?? cosponsorList.length ?? null,
+      cosponsorPartySplit: partySplit,
+      policyArea: bill.policyArea?.name ?? null,
+      latestActionDate: bill.latestAction?.actionDate ?? null,
+      latestActionText: bill.latestAction?.text ?? null,
+    };
+  } catch (error: unknown) {
+    console.error(
+      "Failed to fetch bill metadata:",
       error instanceof Error ? error.message : error,
     );
     return null;

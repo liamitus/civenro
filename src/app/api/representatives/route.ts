@@ -26,10 +26,27 @@ export async function POST(request: NextRequest) {
 
     // Determine relevant chambers based on bill type and status
     const relevantChambers: string[] = [];
-    if (bill.billType.startsWith("house_")) relevantChambers.push("representative");
-    else if (bill.billType.startsWith("senate_")) relevantChambers.push("senator");
-    if (bill.currentStatus === "passed_house") relevantChambers.push("senator");
-    else if (bill.currentStatus === "passed_senate") relevantChambers.push("representative");
+
+    // Enacted bills passed both chambers — show all representatives
+    const bothChambers = bill.currentStatus.startsWith("enacted_")
+      || bill.currentStatus.startsWith("vetoed")
+      || bill.currentStatus.startsWith("prov_kill_veto")
+      || bill.currentStatus === "passed_bill"
+      || bill.currentStatus.startsWith("conference_")
+      || bill.currentStatus === "pass_back_house"
+      || bill.currentStatus === "pass_back_senate";
+    if (bothChambers) {
+      relevantChambers.push("representative", "senator");
+    } else {
+      // Origin chamber is always relevant
+      if (bill.billType.startsWith("house_")) relevantChambers.push("representative");
+      else if (bill.billType.startsWith("senate_")) relevantChambers.push("senator");
+      // If it crossed to the other chamber, add that too
+      if (bill.currentStatus === "passed_house" || bill.currentStatus === "pass_over_house")
+        relevantChambers.push("senator");
+      else if (bill.currentStatus === "passed_senate" || bill.currentStatus === "pass_over_senate")
+        relevantChambers.push("representative");
+    }
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const repsWithVotes = await Promise.all(
@@ -53,7 +70,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (dbRep) {
-          // Get ALL votes for this rep on this bill (across roll calls)
+          // Get all votes for this rep on this bill
           const allVotes = await prisma.representativeVote.findMany({
             where: {
               representativeId: dbRep.id,
@@ -65,10 +82,37 @@ export async function POST(request: NextRequest) {
               rollCallNumber: true,
               chamber: true,
               votedAt: true,
+              category: true,
             },
           });
 
-          const latestVote = allVotes[0];
+          // Pick the best vote: passage categories first, then
+          // uncategorized (likely passage with missing metadata),
+          // then anything else (amendments, procedural) as last resort
+          const passageCategories = ["passage", "passage_suspension", "veto_override"];
+          const amendmentCategories = ["amendment", "procedural", "cloture", "nomination"];
+
+          const passageVotes = allVotes.filter(
+            (v) => v.category && passageCategories.includes(v.category)
+          );
+          const uncategorizedVotes = allVotes.filter((v) => !v.category);
+          const otherVotes = allVotes.filter(
+            (v) => v.category && !passageCategories.includes(v.category) && !amendmentCategories.includes(v.category)
+          );
+          const amendmentVotes = allVotes.filter(
+            (v) => v.category && amendmentCategories.includes(v.category)
+          );
+
+          // Prioritized: passage > uncategorized > other > amendment
+          const votes = passageVotes.length > 0
+            ? passageVotes
+            : uncategorizedVotes.length > 0
+              ? uncategorizedVotes
+              : otherVotes.length > 0
+                ? otherVotes
+                : amendmentVotes;
+
+          const latestVote = votes[0];
 
           return {
             bioguideId: dbRep.bioguideId,

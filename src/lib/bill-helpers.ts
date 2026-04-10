@@ -723,15 +723,55 @@ function getFutureSteps(
  *
  * Falls back to the static getJourneySteps() if no actions are available.
  */
+/**
+ * Derive the effective status from real actions + versions.
+ *
+ * The DB `currentStatus` can be wrong (e.g. `passed_bill` when the House
+ * passed with amendments and the Senate hasn't voted on those changes yet).
+ * This function detects that case by looking at whether the last milestone
+ * is a cross-chamber amendment ("with changes") and corrects the status.
+ *
+ * Returns the original status when no correction is needed, or when there
+ * are no actions to analyze.
+ */
+export function getEffectiveStatus(
+  billType: string,
+  currentStatus: string,
+  actions: ActionRecord[],
+  textVersions: VersionRecord[],
+): string {
+  if (actions.length === 0) return currentStatus;
+
+  const isFailed =
+    currentStatus.startsWith("fail_") ||
+    currentStatus.startsWith("prov_kill_") ||
+    currentStatus.startsWith("vetoed_");
+  if (isFailed || currentStatus.startsWith("enacted_")) return currentStatus;
+
+  const actionMilestones = extractActionMilestones(actions);
+  const enrichedMilestones = attachVersionDetails(actionMilestones, textVersions);
+  const lastMilestone = enrichedMilestones[enrichedMilestones.length - 1];
+
+  if (lastMilestone?.label.includes("(with changes)")) {
+    if (lastMilestone.chamber === "House") return "pass_back_house";
+    if (lastMilestone.chamber === "Senate") return "pass_back_senate";
+  }
+
+  return currentStatus;
+}
+
 export function buildDynamicJourney(
   billType: string,
   currentStatus: string,
   actions: ActionRecord[],
   textVersions: VersionRecord[],
+  effectiveStatus?: string,
 ): JourneyStep[] {
   if (actions.length === 0) {
-    return getJourneySteps(billType, currentStatus);
+    return getJourneySteps(billType, effectiveStatus ?? currentStatus);
   }
+
+  const status = effectiveStatus ?? getEffectiveStatus(billType, currentStatus, actions, textVersions);
 
   // Extract milestones from actions, then attach version details
   const actionMilestones = extractActionMilestones(actions);
@@ -739,9 +779,9 @@ export function buildDynamicJourney(
 
   // Convert to JourneySteps (all completed — they happened)
   const isFailed =
-    currentStatus.startsWith("fail_") ||
-    currentStatus.startsWith("prov_kill_") ||
-    currentStatus.startsWith("vetoed_");
+    status.startsWith("fail_") ||
+    status.startsWith("prov_kill_") ||
+    status.startsWith("vetoed_");
 
   const completedSteps: JourneyStep[] = enrichedMilestones.map((m, i) => {
     const isLastAndFailed = isFailed && i === enrichedMilestones.length - 1;
@@ -760,7 +800,7 @@ export function buildDynamicJourney(
   // Add current + upcoming steps
   const futureSteps = isFailed
     ? []
-    : getFutureSteps(billType, currentStatus, completedLabels);
+    : getFutureSteps(billType, status, completedLabels);
 
   return [...completedSteps, ...futureSteps];
 }

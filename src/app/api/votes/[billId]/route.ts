@@ -9,15 +9,20 @@ export async function GET(
   const id = parseInt(billId);
 
   try {
-    const [publicVotes, congressionalVotes, latestVersion] = await Promise.all([
+    const passageCategories = ["passage", "passage_suspension", "veto_override"];
+
+    const [publicVotes, passageVotes, latestVersion] = await Promise.all([
       prisma.vote.groupBy({
         by: ["voteType"],
         where: { billId: id },
         _count: { voteType: true },
       }),
-      // Get all individual roll call votes with chamber info
+      // Get passage roll call votes (not amendments/procedural)
       prisma.representativeVote.findMany({
-        where: { billId: id },
+        where: {
+          billId: id,
+          category: { in: passageCategories },
+        },
         select: {
           vote: true,
           rollCallNumber: true,
@@ -36,6 +41,19 @@ export async function GET(
         },
       }),
     ]);
+
+    // Fall back to all votes if no passage-categorized votes found
+    const congressionalVotes = passageVotes.length > 0
+      ? passageVotes
+      : await prisma.representativeVote.findMany({
+          where: { billId: id },
+          select: {
+            vote: true,
+            rollCallNumber: true,
+            chamber: true,
+            votedAt: true,
+          },
+        });
 
     // Group congressional votes by roll call
     const rollCallMap = new Map<

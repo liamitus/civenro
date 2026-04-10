@@ -3,6 +3,8 @@ import {
   fetchAllTextVersions,
   downloadTextFormats,
   parseXmlIntoSections,
+  fetchOfficialBillTitle,
+  fetchBillMetadata,
 } from "../lib/congress-api";
 import type { TextVersionMeta } from "../lib/congress-api";
 import { extractVersionCode, isSubstantiveVersion } from "../lib/version-helpers";
@@ -42,12 +44,18 @@ async function parseToFullText(
  * Fetch bill text versions from congress.gov and store each version.
  * Also updates Bill.fullText with the latest version's text for backward compatibility.
  */
-export async function fetchBillTextFunction(targetBillId?: string) {
-  console.log("Fetching bill text for:", targetBillId || "bills without text");
+export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
+  console.log(
+    `Fetching bill text for: ${targetBillId || `up to ${limit} bills without text`}`,
+  );
   try {
     const bills = targetBillId
       ? await prisma.bill.findMany({ where: { billId: targetBillId }, take: 1 })
-      : await prisma.bill.findMany({ where: { fullText: null }, take: 10 });
+      : await prisma.bill.findMany({
+          where: { fullText: null },
+          orderBy: { introducedDate: "desc" },
+          take: limit,
+        });
 
     console.log(`Found ${bills.length} bills to process.`);
 
@@ -57,6 +65,39 @@ export async function fetchBillTextFunction(targetBillId?: string) {
         if (!congress || !apiBillType || !billNumber) {
           console.warn(`Skipping bill ${bill.billId} — invalid parse.`);
           continue;
+        }
+
+        // Pull official title + metadata from Congress.gov (authoritative source).
+        // The title cross-check catches GovTrack stale data; metadata feeds AI chat.
+        const [officialTitle, metadata] = await Promise.all([
+          fetchOfficialBillTitle(congress, apiBillType, billNumber),
+          fetchBillMetadata(congress, apiBillType, billNumber),
+        ]);
+
+        const updates: Record<string, unknown> = {};
+        if (
+          officialTitle &&
+          officialTitle.trim() &&
+          officialTitle.trim() !== bill.title.trim()
+        ) {
+          console.warn(
+            `  Title mismatch for ${bill.billId}:\n    stored:   ${bill.title}\n    official: ${officialTitle}\n  Updating stored title to match Congress.gov.`,
+          );
+          updates.title = officialTitle;
+        }
+        if (metadata) {
+          updates.sponsor = metadata.sponsor;
+          updates.cosponsorCount = metadata.cosponsorCount;
+          updates.cosponsorPartySplit = metadata.cosponsorPartySplit;
+          updates.policyArea = metadata.policyArea;
+          updates.latestActionText = metadata.latestActionText;
+          updates.latestActionDate = metadata.latestActionDate
+            ? new Date(metadata.latestActionDate)
+            : null;
+        }
+        if (Object.keys(updates).length > 0) {
+          await prisma.bill.update({ where: { id: bill.id }, data: updates });
+          if (updates.title) bill.title = updates.title as string;
         }
 
         const allVersions = await fetchAllTextVersions(congress, apiBillType, billNumber);
@@ -171,6 +212,14 @@ async function downloadAndParse(
 }
 
 if (require.main === module) {
-  const billId = process.argv[2];
-  fetchBillTextFunction(billId);
+  // Usage:
+  //   tsx fetch-bill-text.ts                        → 10 bills without text
+  //   tsx fetch-bill-text.ts <billId>               → just that bill
+  //   tsx fetch-bill-text.ts --limit 100            → 100 bills without text
+  const args = process.argv.slice(2);
+  const limitIdx = args.indexOf("--limit");
+  const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1] || "10", 10) : 10;
+  const billId =
+    limitIdx === 0 ? undefined : args[0]?.startsWith("--") ? undefined : args[0];
+  fetchBillTextFunction(billId, limit);
 }

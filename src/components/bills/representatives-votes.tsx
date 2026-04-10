@@ -7,11 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { RepresentativeWithVote } from "@/types";
 
+/** Normalize congressional vote jargon to plain English */
+function normalizeVote(vote: string): string {
+  if (vote === "Yea" || vote === "Aye") return "Yes";
+  if (vote === "Nay" || vote === "No") return "No";
+  return vote;
+}
+
 function voteColor(vote: string) {
-  if (vote === "Yea") return "text-vote-yea bg-vote-yea-soft";
-  if (vote === "Nay") return "text-vote-nay bg-vote-nay-soft";
-  if (vote === "Present") return "text-vote-present bg-vote-present-soft";
-  if (vote === "Not Voting") return "text-vote-notvoting bg-vote-notvoting-soft";
+  const v = normalizeVote(vote);
+  if (v === "Yes") return "text-vote-yea bg-vote-yea-soft";
+  if (v === "No") return "text-vote-nay bg-vote-nay-soft";
+  if (v === "Present") return "text-vote-present bg-vote-present-soft";
+  if (v === "Not Voting") return "text-vote-notvoting bg-vote-notvoting-soft";
   return "text-muted-foreground bg-muted";
 }
 
@@ -69,7 +77,7 @@ function RepCard({ rep }: { rep: RepresentativeWithVote }) {
           <span
             className={`text-xs font-semibold px-2.5 py-1 rounded-full ${voteColor(rep.vote)}`}
           >
-            {rep.vote}
+            {normalizeVote(rep.vote)}
           </span>
           {hasHistory && (
             <button
@@ -117,7 +125,7 @@ function RepCard({ rep }: { rep: RepresentativeWithVote }) {
                 <span
                   className={`font-semibold px-2 py-0.5 rounded-full ${voteColor(vh.vote)}`}
                 >
-                  {vh.vote}
+                  {normalizeVote(vh.vote)}
                 </span>
               </div>
             ))}
@@ -170,14 +178,19 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
         <p className="text-sm text-muted-foreground">
           Enter your address to see how your representatives voted on this bill.
         </p>
-        <div className="flex gap-2">
+        <div className="flex items-center rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1">
           <Input
             value={inputAddress}
             onChange={(e) => setInputAddress(e.target.value)}
             placeholder="Enter your US street address"
             onKeyDown={(e) => e.key === "Enter" && handleSubmitAddress()}
+            className="border-0 shadow-none focus-visible:ring-0 flex-1"
           />
-          <Button size="sm" onClick={handleSubmitAddress}>
+          <Button
+            size="sm"
+            onClick={handleSubmitAddress}
+            className="m-1 shrink-0"
+          >
             Look up
           </Button>
         </div>

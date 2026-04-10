@@ -148,7 +148,7 @@ export function CommentsSection({ billId }: { billId: number }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-sm">
-          Comments ({total})
+          Comments{total > 0 ? ` (${total})` : ""}
         </h3>
         <div className="flex gap-1">
           {(["new", "best"] as const).map((s) => (
@@ -184,15 +184,12 @@ export function CommentsSection({ billId }: { billId: number }) {
       )}
 
       {comments.length === 0 ? (
-        <div className="text-center py-6 space-y-2">
+        <div className="text-center py-8 space-y-1">
           <p className="text-sm text-muted-foreground">
-            No comments yet. Be the first to share your perspective on this bill.
+            {user
+              ? "Start the conversation — share your perspective above."
+              : "No comments yet. Sign in to be the first to weigh in."}
           </p>
-          {!user && (
-            <p className="text-xs text-muted-foreground">
-              Sign in to start the conversation.
-            </p>
-          )}
         </div>
       ) : (
         <div className="space-y-2">

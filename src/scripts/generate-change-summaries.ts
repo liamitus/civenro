@@ -84,7 +84,7 @@ export async function generateChangeSummariesFunction(targetBillId?: number) {
             `  ${version.versionCode.toUpperCase()} (${previous.versionCode} → ${version.versionCode}) — generating...`,
           );
 
-          const summary = await generateChangeSummary(
+          const summaryResult = await generateChangeSummary(
             bill.title,
             previous.fullText,
             version.fullText,
@@ -94,10 +94,10 @@ export async function generateChangeSummariesFunction(targetBillId?: number) {
 
           await prisma.billTextVersion.update({
             where: { id: version.id },
-            data: { changeSummary: summary },
+            data: { changeSummary: summaryResult.content },
           });
 
-          console.log(`    "${summary.slice(0, 100)}..."`);
+          console.log(`    "${summaryResult.content.slice(0, 100)}..."`);
           generated++;
         } catch (error: unknown) {
           console.error(

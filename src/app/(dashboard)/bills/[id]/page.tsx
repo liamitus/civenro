@@ -5,6 +5,7 @@ import {
   getBillTypeInfo,
   getJourneySteps,
   getStatusExplanation,
+  getEffectiveStatus,
   buildDynamicJourney,
 } from "@/lib/bill-helpers";
 import { BillAboutSection } from "@/components/bills/bill-about-section";
@@ -54,29 +55,31 @@ export default async function BillDetailPage({
   if (!bill) notFound();
 
   const typeInfo = getBillTypeInfo(bill.billType);
+  const effectiveStatus = getEffectiveStatus(
+    bill.billType, bill.currentStatus, actions, textVersions,
+  );
   const journeySteps = actions.length > 0
-    ? buildDynamicJourney(bill.billType, bill.currentStatus, actions, textVersions)
-    : getJourneySteps(bill.billType, bill.currentStatus);
+    ? buildDynamicJourney(bill.billType, bill.currentStatus, actions, textVersions, effectiveStatus)
+    : getJourneySteps(bill.billType, effectiveStatus);
   const statusExplanation = getStatusExplanation(
     bill.billType,
-    bill.currentStatus,
+    effectiveStatus,
   );
-  const isEnacted = bill.currentStatus.startsWith("enacted_");
+  const isEnacted = effectiveStatus.startsWith("enacted_");
   const isPassed =
-    bill.currentStatus.startsWith("passed_") ||
-    bill.currentStatus.startsWith("conference_") ||
-    bill.currentStatus.startsWith("pass_over_") ||
-    bill.currentStatus.startsWith("pass_back_");
+    effectiveStatus.startsWith("passed_") ||
+    effectiveStatus.startsWith("conference_") ||
+    effectiveStatus.startsWith("pass_over_") ||
+    effectiveStatus.startsWith("pass_back_");
   const isFailed =
-    bill.currentStatus.startsWith("fail_") ||
-    bill.currentStatus.startsWith("vetoed_") ||
-    bill.currentStatus.startsWith("prov_kill_");
+    effectiveStatus.startsWith("fail_") ||
+    effectiveStatus.startsWith("vetoed_") ||
+    effectiveStatus.startsWith("prov_kill_");
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8 space-y-6">
+    <div className="mx-auto max-w-4xl px-6 py-8 space-y-5">
       {/* ── Title + expandable about section (title, journey, explainer, AI chat) ── */}
       <BillAboutSection
-        billId={bill.id}
         title={bill.title}
         shortText={bill.shortText}
         introducedDate={dayjs(bill.introducedDate).format("MMM D, YYYY")}

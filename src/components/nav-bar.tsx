@@ -29,6 +29,12 @@ export function NavBar() {
             >
               Bills
             </Link>
+            <Link
+              href="/support"
+              className="px-3 py-1.5 text-sm font-medium text-civic-gold/90 hover:text-civic-gold hover:bg-white/5 rounded transition-colors tracking-wide uppercase"
+            >
+              Support
+            </Link>
           </div>
         </div>
 
@@ -55,7 +61,7 @@ export function NavBar() {
               variant="ghost"
               size="sm"
               onClick={() => setAuthOpen(true)}
-              className="text-sm text-white/80 hover:text-white border border-white/15 hover:border-white/30 h-8 px-4 tracking-wide uppercase"
+              className="text-sm text-white/80 hover:text-white border border-white/15 hover:border-white/30 hover:bg-white/10 h-8 px-4 tracking-wide uppercase"
             >
               Sign In
             </Button>

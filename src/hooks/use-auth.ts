@@ -1,28 +1,36 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
+
+const supabase = createSupabaseBrowserClient();
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createSupabaseBrowserClient();
+  const initialized = useRef(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    if (initialized.current) return;
+    initialized.current = true;
+
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null } }) => {
+      setUser(data.user);
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, []);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -32,7 +40,7 @@ export function useAuth() {
       });
       return { error };
     },
-    [supabase.auth]
+    []
   );
 
   const signUp = useCallback(
@@ -44,12 +52,12 @@ export function useAuth() {
       });
       return { error };
     },
-    [supabase.auth]
+    []
   );
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-  }, [supabase.auth]);
+  }, []);
 
   return { user, loading, signIn, signUp, signOut };
 }

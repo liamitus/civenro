@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateBillChatResponse } from "@/lib/ai";
+import { parseSectionsFromFullText } from "@/lib/bill-sections";
+import type { BillMetadata } from "@/lib/congress-api";
+import { assertAiEnabled, AiDisabledError } from "@/lib/ai-gate";
+import { recordSpend } from "@/lib/budget";
 
 export async function GET(request: NextRequest) {
   const billId = request.nextUrl.searchParams.get("billId");
@@ -55,6 +59,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Budget gate — throws AiDisabledError if Civenro is out of AI budget.
+    await assertAiEnabled("chat");
+
     const numericBillId = parseInt(billId);
 
     let conversation;
@@ -90,10 +97,32 @@ export async function POST(request: NextRequest) {
       take: 10,
     });
 
-    // Fetch the bill with full text for context stuffing
-    const bill = await prisma.bill.findUnique({
-      where: { id: numericBillId },
-    });
+    // Fetch bill row + latest text version in parallel
+    const [bill, latestVersion] = await Promise.all([
+      prisma.bill.findUnique({ where: { id: numericBillId } }),
+      prisma.billTextVersion.findFirst({
+        where: { billId: numericBillId, fullText: { not: null } },
+        orderBy: { versionDate: "desc" },
+        select: { fullText: true },
+      }),
+    ]);
+
+    const rawText = latestVersion?.fullText || bill?.fullText || null;
+    const billSections = rawText ? parseSectionsFromFullText(rawText) : null;
+
+    // Read cached metadata directly off the Bill row (backfilled by fetch-bill-text).
+    const metadata: BillMetadata | null = bill
+      ? {
+          sponsor: bill.sponsor,
+          cosponsorCount: bill.cosponsorCount,
+          cosponsorPartySplit: bill.cosponsorPartySplit,
+          policyArea: bill.policyArea,
+          latestActionDate: bill.latestActionDate
+            ? bill.latestActionDate.toISOString().slice(0, 10)
+            : null,
+          latestActionText: bill.latestActionText,
+        }
+      : null;
 
     const conversationHistory = recentMessages
       .slice(0, -1) // exclude the message we just added
@@ -102,27 +131,47 @@ export async function POST(request: NextRequest) {
         content: m.text,
       }));
 
-    const aiAnswer = await generateBillChatResponse(
+    const aiResult = await generateBillChatResponse(
       bill?.title || "Unknown Bill",
-      bill?.fullText || null,
+      billSections,
       conversationHistory,
-      userMessage
+      userMessage,
+      metadata,
     );
+
+    // Log every provider call to the budget ledger. Done after the response so
+    // a failure to record spend doesn't break the user's chat turn.
+    for (const u of aiResult.usage) {
+      try {
+        await recordSpend({
+          userId: String(userId),
+          feature: "chat",
+          model: u.model,
+          inputTokens: u.inputTokens,
+          outputTokens: u.outputTokens,
+        });
+      } catch (err) {
+        console.error("Failed to record AI spend:", err);
+      }
+    }
 
     // Store AI response
     await prisma.message.create({
       data: {
         conversationId: conversation.id,
         sender: "ai",
-        text: aiAnswer,
+        text: aiResult.content,
       },
     });
 
     return NextResponse.json({
       conversationId: conversation.id,
-      aiAnswer,
+      aiAnswer: aiResult.content,
     });
   } catch (error) {
+    if (error instanceof AiDisabledError) {
+      return NextResponse.json(error.toJSON(), { status: 503 });
+    }
     console.error("Error in /ai/chat route:", error);
     return NextResponse.json(
       { error: "Internal server error." },

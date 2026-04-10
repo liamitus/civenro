@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { PasswordStrengthIndicator, validatePassword } from "@/components/auth/password-strength";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { DonationHistory } from "@/components/account/donation-history";
 import Link from "next/link";
 import type { CommentData } from "@/types";
 
@@ -21,9 +24,24 @@ export default function AccountPage() {
   // Settings state
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
+
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const supabase = createSupabaseBrowserClient();
+
+  const showMessage = (text: string, type: "success" | "error" = "success") => {
+    setMessage(text);
+    setMessageType(type);
+    if (type === "success") {
+      setTimeout(() => setMessage(""), 4000);
+    }
+  };
 
   const fetchComments = useCallback(async () => {
     if (!user) return;
@@ -50,6 +68,67 @@ export default function AccountPage() {
   if (authLoading || !user) return null;
 
   const username = user.user_metadata?.username || "User";
+
+  const handleUpdateUsername = async () => {
+    if (!newUsername.trim()) return;
+    const { error } = await supabase.auth.updateUser({
+      data: { username: newUsername.trim() },
+    });
+    if (error) {
+      showMessage(error.message, "error");
+    } else {
+      showMessage("Username updated");
+      setNewUsername("");
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail.trim()) return;
+    const { error } = await supabase.auth.updateUser({
+      email: newEmail.trim(),
+    });
+    if (error) {
+      showMessage(error.message, "error");
+    } else {
+      showMessage("Confirmation email sent to your new address. Check both inboxes.");
+      setNewEmail("");
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      showMessage("Password does not meet requirements", "error");
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) {
+      showMessage(error.message, "error");
+    } else {
+      showMessage("Password updated");
+      setNewPassword("");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleting(true);
+
+    const res = await fetch("/api/account/delete", {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      await supabase.auth.signOut();
+      router.push("/");
+    } else {
+      const data = await res.json();
+      showMessage(data.error || "Failed to delete account", "error");
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 space-y-6">
@@ -79,13 +158,7 @@ export default function AccountPage() {
             onChange={(e) => setNewUsername(e.target.value)}
             placeholder="New username"
           />
-          <Button
-            size="sm"
-            onClick={async () => {
-              // Note: username updates go through Supabase user metadata
-              setMessage("Username update — feature coming soon");
-            }}
-          >
+          <Button size="sm" onClick={handleUpdateUsername}>
             Update
           </Button>
         </div>
@@ -93,6 +166,9 @@ export default function AccountPage() {
 
       <Card className="p-4 space-y-4">
         <h2 className="font-semibold">Update Email</h2>
+        <p className="text-xs text-muted-foreground">
+          A confirmation link will be sent to both your current and new email.
+        </p>
         <div className="flex gap-2">
           <Input
             type="email"
@@ -100,12 +176,7 @@ export default function AccountPage() {
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="New email"
           />
-          <Button
-            size="sm"
-            onClick={async () => {
-              setMessage("Email update — feature coming soon");
-            }}
-          >
+          <Button size="sm" onClick={handleUpdateEmail}>
             Update
           </Button>
         </div>
@@ -114,32 +185,32 @@ export default function AccountPage() {
       <Card className="p-4 space-y-4">
         <h2 className="font-semibold">Change Password</h2>
         <div className="space-y-2">
-          <Label>Current Password</Label>
-          <Input
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
           <Label>New Password</Label>
           <Input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
-          <Button
-            size="sm"
-            onClick={async () => {
-              setMessage("Password update — feature coming soon");
-            }}
-          >
+          <PasswordStrengthIndicator password={newPassword} />
+          <Button size="sm" onClick={handleUpdatePassword}>
             Change Password
           </Button>
         </div>
       </Card>
 
       {message && (
-        <p className="text-sm text-muted-foreground">{message}</p>
+        <p
+          className={`text-sm ${
+            messageType === "error" ? "text-red-500" : "text-green-600"
+          }`}
+        >
+          {message}
+        </p>
       )}
+
+      <Separator />
+
+      <DonationHistory userId={user.id} />
 
       <Separator />
 
@@ -177,6 +248,58 @@ export default function AccountPage() {
           </Button>
         )}
       </div>
+
+      <Separator />
+
+      <Card className="p-4 space-y-4 border-red-200">
+        <h2 className="font-semibold text-red-600">Danger Zone</h2>
+        <p className="text-sm text-muted-foreground">
+          Permanently delete your account and all associated data. This action
+          cannot be undone.
+        </p>
+        {!showDeleteConfirm ? (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            Delete Account
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-red-600">
+              Type <span className="font-mono font-bold">DELETE</span> to
+              confirm:
+            </p>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE"
+              className="max-w-xs"
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== "DELETE" || deleting}
+              >
+                {deleting ? "Deleting..." : "Permanently Delete"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteConfirmText("");
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

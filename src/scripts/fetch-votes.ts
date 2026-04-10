@@ -91,19 +91,20 @@ export async function fetchVotesFunction() {
             },
           });
 
-          const rollCallNumber = vote.number || null;
+          const rollCallNumber = vote.number ?? 0;
           const chamber = vote.chamber || null;
           const votedAt = vote.created ? new Date(vote.created) : null;
+          const category = vote.category || null;
 
           await prisma.representativeVote.upsert({
             where: {
               representativeId_billId_rollCallNumber: {
                 representativeId: representative.id,
                 billId: bill.id,
-                rollCallNumber: rollCallNumber ?? 0,
+                rollCallNumber,
               },
             },
-            update: { vote: voteVoter.option.value, chamber, votedAt },
+            update: { vote: voteVoter.option.value, chamber, votedAt, category },
             create: {
               representativeId: representative.id,
               billId: bill.id,
@@ -111,6 +112,7 @@ export async function fetchVotesFunction() {
               rollCallNumber,
               chamber,
               votedAt,
+              category,
             },
           });
         } catch (error: any) {

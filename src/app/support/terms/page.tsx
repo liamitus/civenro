@@ -1,0 +1,181 @@
+import Link from "next/link";
+
+export const metadata = {
+  title: "Contribution Terms — Civenro",
+};
+
+export default function TermsPage() {
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-10 space-y-8">
+      <header className="space-y-2">
+        <Link
+          href="/support"
+          className="text-xs text-primary hover:underline"
+        >
+          Back to Support
+        </Link>
+        <h1 className="text-2xl font-bold">Contribution Terms</h1>
+      </header>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">About your contribution</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Civenro is an independent civic transparency project supported
+          entirely by readers. Your contribution helps cover the
+          infrastructure, data, and AI costs that keep the platform running
+          and free to use.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Tax status</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Civenro is not currently a registered 501(c)(3) organization.
+          Contributions are{" "}
+          <strong className="text-foreground">not tax-deductible</strong> for
+          U.S. federal income tax purposes. You should not claim your
+          contribution as a charitable deduction.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Who receives your contribution</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Contributions are processed by Stripe and received by Civenro, the
+          operator of this platform.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">One-time contributions</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Your card will be charged once for the amount you select. You will
+          receive an email receipt within a few minutes.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Recurring contributions</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          If you choose to support Civenro monthly, your card will be charged
+          the same amount on the same day each month until you cancel. You can
+          cancel at any time by replying to any receipt email or emailing{" "}
+          <span className="text-foreground font-medium">
+            support@civenro.com
+          </span>
+          . Cancellations take effect immediately and no further charges will
+          be made. Canceling does not refund prior months.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Display of your contribution</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          By default, contributions are shown anonymously on Civenro&apos;s{" "}
+          <Link href="/made-possible-by" className="text-primary hover:underline">
+            Made possible by
+          </Link>{" "}
+          page. If you choose to be listed by name or to dedicate your
+          contribution in honor of someone, the name you provide may be
+          displayed publicly after a brief moderation review. You can change
+          how your contribution is displayed — or remove it from public
+          display entirely — at any time from your account page or by
+          contacting us.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Refund policy</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          All contributions to Civenro are considered final and
+          non-refundable, with two exceptions:
+        </p>
+        <ol className="text-sm text-muted-foreground leading-relaxed list-decimal pl-5 space-y-2">
+          <li>
+            <strong className="text-foreground">Input errors.</strong> If you
+            accidentally contributed the wrong amount, made a duplicate
+            contribution, or contributed in error, email{" "}
+            <span className="text-foreground font-medium">
+              support@civenro.com
+            </span>{" "}
+            within 14 days of the charge and we will refund the transaction in
+            full.
+          </li>
+          <li>
+            <strong className="text-foreground">Unauthorized charges.</strong>{" "}
+            If a charge was made without your authorization, contact us
+            immediately and we will refund the charge and take appropriate
+            steps to prevent recurrence.
+          </li>
+        </ol>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Refunds are processed through Stripe and typically appear on your
+          statement within 5&ndash;10 business days. Recurring contributions
+          can be canceled at any time and will stop future charges immediately.
+          Past monthly charges are subject to the same 14-day window above.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Name display and moderation</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Civenro&apos;s Made possible by page celebrates the people who fund
+          this platform. To keep that space focused on individual supporters
+          rather than organizations or political messaging, the following
+          rules apply:
+        </p>
+        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
+          <li>
+            <strong className="text-foreground">Personal names only.</strong>{" "}
+            We do not display names of companies, organizations, political
+            parties, political campaigns, or advocacy groups.
+          </li>
+          <li>
+            <strong className="text-foreground">Tribute dedications</strong>{" "}
+            (&ldquo;In honor of [name]&rdquo;) must also be personal names —
+            a family member, a teacher, a friend. Not a company, campaign, or
+            official.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              No public figures without consent.
+            </strong>{" "}
+            We decline names of sitting politicians, candidates, and prominent
+            public figures to avoid any implication of endorsement.
+          </li>
+          <li>
+            No slurs, harassment, impersonation, URLs, or promotional content.
+          </li>
+        </ul>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Submitted names are reviewed by a combination of automated
+          moderation and human review. If a name cannot be used, your
+          contribution will still be processed — it will simply be displayed
+          anonymously, and we will contact you if you would like to submit a
+          different name.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Your data</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          We store: your contribution amount, the date, the payment method
+          identifier provided by Stripe, and (optionally) the email address
+          and display name you provide. We do not store your full card number.
+          We do not share your contribution data with third parties except as
+          required to process the payment (Stripe) or respond to lawful legal
+          requests.
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          You can request removal of your name from public display, or
+          deletion of your contribution record entirely (subject to legal
+          record-keeping requirements), at any time by contacting{" "}
+          <span className="text-foreground font-medium">
+            support@civenro.com
+          </span>
+          .
+        </p>
+      </section>
+    </div>
+  );
+}
