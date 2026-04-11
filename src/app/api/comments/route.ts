@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUserId } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveUsername } from "@/lib/citizen-id";
 
 export async function POST(request: NextRequest) {
   const { userId, error } = await getAuthenticatedUserId();
@@ -46,10 +47,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 });
     }
 
-    // Get username from Supabase user metadata
+    // Resolve display name: explicit username > OAuth first name > Citizen-XXXX
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const username = user?.user_metadata?.username || "Anonymous";
+    const username = user ? resolveUsername(user) : "Anonymous";
 
     const comment = await prisma.comment.create({
       data: {

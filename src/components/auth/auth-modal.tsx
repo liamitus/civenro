@@ -26,7 +26,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { signIn, signUp } = useAuth();
@@ -34,7 +33,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const resetForm = () => {
     setEmail("");
     setPassword("");
-    setUsername("");
     setError("");
   };
 
@@ -94,7 +92,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     const result =
       mode === "login"
         ? await signIn(email, password)
-        : await signUp(email, password, username);
+        : await signUp(email, password);
 
     setSubmitting(false);
 
@@ -218,18 +216,6 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === "register" && (
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

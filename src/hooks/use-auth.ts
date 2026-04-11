@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { generateCitizenId, resolveUsername } from "@/lib/citizen-id";
 
 const supabase = createSupabaseBrowserClient();
 
@@ -24,9 +25,19 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setLoading(false);
+
+      // Backfill username for existing users who don't have one
+      if (currentUser && _event === "SIGNED_IN") {
+        const existing = currentUser.user_metadata?.username as string | undefined;
+        if (!existing || existing === "Anonymous") {
+          const username = resolveUsername(currentUser);
+          await supabase.auth.updateUser({ data: { username } });
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -44,12 +55,18 @@ export function useAuth() {
   );
 
   const signUp = useCallback(
-    async (email: string, password: string, username: string) => {
-      const { error } = await supabase.auth.signUp({
+    async (email: string, password: string) => {
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { username } },
+        options: { data: { username: generateCitizenId() } },
       });
+      // If signup succeeds and we have the user ID, update with a
+      // deterministic Citizen ID based on their actual UUID.
+      if (!error && data.user) {
+        const stableId = generateCitizenId(data.user.id);
+        await supabase.auth.updateUser({ data: { username: stableId } });
+      }
       return { error };
     },
     []

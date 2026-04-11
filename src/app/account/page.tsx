@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { PasswordStrengthIndicator, validatePassword } from "@/components/auth/password-strength";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DonationHistory } from "@/components/account/donation-history";
+import { resolveUsername } from "@/lib/citizen-id";
 import Link from "next/link";
 import type { CommentData } from "@/types";
 
@@ -67,7 +68,7 @@ export default function AccountPage() {
 
   if (authLoading || !user) return null;
 
-  const username = user.user_metadata?.username || "User";
+  const username = resolveUsername(user);
 
   const handleUpdateUsername = async () => {
     if (!newUsername.trim()) return;
@@ -151,12 +152,17 @@ export default function AccountPage() {
       </Card>
 
       <Card className="p-4 space-y-4">
-        <h2 className="font-semibold">Update Username</h2>
+        <h2 className="font-semibold">Display Name</h2>
+        <p className="text-xs text-muted-foreground">
+          This is how you appear in comments and discussions. You were
+          assigned <span className="font-medium text-foreground">{username}</span> — change
+          it to your name or a pseudonym you prefer.
+        </p>
         <div className="flex gap-2">
           <Input
             value={newUsername}
             onChange={(e) => setNewUsername(e.target.value)}
-            placeholder="New username"
+            placeholder="New display name"
           />
           <Button size="sm" onClick={handleUpdateUsername}>
             Update
