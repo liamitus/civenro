@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Civenro
 
-## Getting Started
+Civic transparency platform that makes legislation accessible to everyday people. Track bills, see how your representatives vote, and engage with the legislative process.
 
-First, run the development server:
+**Production:** [civenro.com](https://civenro.com)
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Database:** PostgreSQL via Prisma (with `@prisma/adapter-pg`)
+- **Auth:** Supabase Auth
+- **Hosting:** Vercel
+- **AI:** OpenAI + Anthropic (bill chat)
+- **Payments:** Stripe (donations)
+- **Data Sources:** GovTrack API, Congress.gov API
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 20+
+- Docker (for local PostgreSQL)
+
+### Setup
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Copy environment template and fill in your values
+cp .env.example .env
+
+# 3. Start local PostgreSQL
+docker compose up -d
+
+# 4. Run database migrations
+npx prisma migrate deploy
+
+# 5. Seed with sample data
+npm run db:seed
+
+# 6. Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs at **http://localhost:1776**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Useful Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server on port 1776 |
+| `npm run db:seed` | Seed local DB with sample data |
+| `npm run db:reset` | Reset DB and re-run all migrations |
+| `npm run db:studio` | Open Prisma Studio (DB browser) |
+| `npm run lint` | Run ESLint |
+| `npx prisma migrate dev` | Create a new migration after schema changes |
 
-## Learn More
+### Data Backfill Scripts
 
-To learn more about Next.js, take a look at the following resources:
+To populate your local DB with real data from legislative APIs:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx tsx src/scripts/fetch-representatives.ts      # ~5s, no API key needed
+npx tsx src/scripts/fetch-bills.ts                 # ~3min, no API key needed
+npx tsx src/scripts/fetch-bill-text.ts --limit 20  # ~1min, needs CONGRESS_DOT_GOV_API_KEY
+npx tsx src/scripts/fetch-bill-actions.ts          # ~2min, needs CONGRESS_DOT_GOV_API_KEY
+npx tsx src/scripts/fetch-votes.ts                 # ~15min, no API key needed
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Strategy
 
-## Deploy on Vercel
+| File | Committed | Purpose |
+|------|-----------|---------|
+| `.env.example` | Yes | Template with placeholder values |
+| `.env` | No | Local dev config (copy from `.env.example`) |
+| Vercel env vars | N/A | Production secrets (set in dashboard) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+There is no staging environment. All changes go directly from local dev to production via `main` branch pushes.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Syncing Env Vars to Vercel
+
+```bash
+./scripts/setup-vercel-env.sh
+```
+
+This script reads your `.env` and upserts each variable into Vercel project settings. `NEXT_PUBLIC_*` vars go to all environments; secrets go to production only. `DATABASE_URL` is excluded (production uses a different database).
+
+## Deployment
+
+Push to `main` triggers an automatic Vercel deployment. The build runs:
+
+```
+prisma generate && next build
+```
+
+### Cron Jobs
+
+| Cron | Schedule | Description |
+|------|----------|-------------|
+| `/api/cron/fetch-data` | Daily 10 AM ET | Fetches new bills, text, actions, votes, reps |
+| `/api/cron/evaluate-budget` | Daily midnight UTC | Recomputes AI budget gate |
+
+Both require `CRON_SECRET` to be set in Vercel project settings.
+
+## Architecture Notes
+
+- **API routes** live in `src/app/api/`. Protected routes use `getAuthenticatedUserId()` from `src/lib/auth.ts`.
+- **Admin endpoints** (`/api/admin/*`) require the `ADMIN_API_KEY` header.
+- **AI chat** is budget-gated: if monthly AI spend exceeds donation income, chat is automatically disabled. See `src/lib/budget.ts` and `src/lib/ai-gate.ts`.
+- **Bill data** flows: GovTrack (bills, votes, reps) + Congress.gov (text, actions, metadata). The daily cron keeps both in sync.

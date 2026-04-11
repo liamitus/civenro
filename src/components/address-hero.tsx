@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAddress } from "@/hooks/use-address";
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 import Link from "next/link";
 
 export function AddressHero() {
@@ -58,16 +59,20 @@ export function AddressHero() {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative">
-            <input
+            <AddressAutocomplete
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Enter your US street address"
+              onChange={setInputValue}
+              onSelect={(addr) => {
+                setInputValue(addr);
+                setUserAddress(addr);
+                router.push("/bills");
+              }}
               className="w-full h-14 px-5 pr-24 rounded-lg border-2 border-navy/10 bg-white text-base placeholder:text-muted-foreground focus:outline-none focus:border-navy/30 focus:ring-4 focus:ring-navy/5 transition-all"
               autoFocus
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-5 bg-navy text-white text-sm font-medium rounded-md hover:bg-navy-light transition-colors tracking-wide"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-5 bg-navy text-white text-sm font-medium rounded-md hover:bg-navy-light transition-colors tracking-wide z-10"
             >
               Go
             </button>

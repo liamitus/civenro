@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAddress } from "@/hooks/use-address";
+import { AddressAutocomplete } from "@/components/address-autocomplete";
 import { partyColor, chamberLabel, nextElection } from "@/lib/representative-utils";
 
 interface Rep {
@@ -67,9 +68,10 @@ export function RepresentativesDashboard() {
           }}
           className="flex gap-2 max-w-md mx-auto"
         >
-          <input
+          <AddressAutocomplete
             value={inputAddr}
-            onChange={(e) => setInputAddr(e.target.value)}
+            onChange={setInputAddr}
+            onSelect={(addr) => { setInputAddr(addr); setUserAddress(addr); }}
             placeholder="Your US street address"
             className="flex-1 h-10 px-3 rounded-md border border-input text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
           />
@@ -102,9 +104,14 @@ export function RepresentativesDashboard() {
               }}
               className="flex gap-1.5"
             >
-              <input
+              <AddressAutocomplete
                 value={inputAddr}
-                onChange={(e) => setInputAddr(e.target.value)}
+                onChange={setInputAddr}
+                onSelect={(addr) => {
+                  setInputAddr(addr);
+                  setUserAddress(addr);
+                  setEditAddress(false);
+                }}
                 placeholder={address}
                 className="h-7 w-52 px-2 rounded border border-input text-xs focus:outline-none focus:ring-2 focus:ring-navy/30"
                 autoFocus
