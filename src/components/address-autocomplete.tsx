@@ -24,8 +24,9 @@ export function AddressAutocomplete({
   autoFocus = false,
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [noResults, setNoResults] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const abortRef = useRef<AbortController>(null);
@@ -34,12 +35,11 @@ export function AddressAutocomplete({
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
-      setOpen(false);
       setLoading(false);
+      setNoResults(false);
       return;
     }
 
-    // Abort any in-flight request
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -52,7 +52,7 @@ export function AddressAutocomplete({
       if (!res.ok) return;
       const data: Suggestion[] = await res.json();
       setSuggestions(data);
-      setOpen(data.length > 0);
+      setNoResults(data.length === 0);
       setActiveIndex(-1);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
@@ -64,28 +64,32 @@ export function AddressAutocomplete({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     onChange(val);
+    setDismissed(false);
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (val.trim().length >= 3) {
       setLoading(true);
+      setNoResults(false);
       debounceRef.current = setTimeout(() => fetchSuggestions(val), 200);
     } else {
       setLoading(false);
       setSuggestions([]);
-      setOpen(false);
+      setNoResults(false);
     }
   };
 
   const handleSelect = (suggestion: Suggestion) => {
     onChange(suggestion.label);
     onSelect(suggestion.label);
-    setOpen(false);
     setSuggestions([]);
+    setDismissed(true);
+    setLoading(false);
+    setNoResults(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open) return;
+    if (suggestions.length === 0) return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -97,7 +101,7 @@ export function AddressAutocomplete({
       e.preventDefault();
       handleSelect(suggestions[activeIndex]);
     } else if (e.key === "Escape") {
-      setOpen(false);
+      setDismissed(true);
     }
   };
 
@@ -108,7 +112,7 @@ export function AddressAutocomplete({
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        setOpen(false);
+        setDismissed(true);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -123,7 +127,8 @@ export function AddressAutocomplete({
     };
   }, []);
 
-  const showDropdown = open && (suggestions.length > 0 || loading);
+  const showDropdown =
+    !dismissed && (loading || suggestions.length > 0 || noResults);
 
   return (
     <div ref={containerRef} className="relative">
@@ -131,7 +136,9 @@ export function AddressAutocomplete({
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        onFocus={() => {
+          if (suggestions.length > 0) setDismissed(false);
+        }}
         placeholder={placeholder}
         className={className}
         autoFocus={autoFocus}
@@ -148,18 +155,16 @@ export function AddressAutocomplete({
           role="listbox"
           className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg overflow-hidden"
         >
-          {loading && suggestions.length === 0 ? (
-            <>
-              {[0, 1, 2].map((i) => (
-                <li key={i} className="px-4 py-2.5">
-                  <div
-                    className="h-4 bg-muted rounded animate-pulse"
-                    style={{ width: `${70 - i * 12}%` }}
-                  />
-                </li>
-              ))}
-            </>
-          ) : (
+          {loading ? (
+            [0, 1, 2].map((i) => (
+              <li key={i} className="px-4 py-2.5" role="presentation">
+                <div
+                  className="h-4 bg-muted rounded animate-pulse"
+                  style={{ width: `${70 - i * 12}%` }}
+                />
+              </li>
+            ))
+          ) : suggestions.length > 0 ? (
             suggestions.map((s, i) => (
               <li
                 key={i}
@@ -177,6 +182,10 @@ export function AddressAutocomplete({
                 {s.label}
               </li>
             ))
+          ) : (
+            <li className="px-4 py-2.5 text-sm text-muted-foreground">
+              No addresses found — try adding more detail
+            </li>
           )}
         </ul>
       )}
