@@ -70,7 +70,7 @@ export function AiChatbox({ billId }: { billId: number }) {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    fetch(`/api/ai/chat?billId=${billId}&userId=${user.id}`)
+    fetch(`/api/ai/chat?billId=${billId}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (cancelled) return;
@@ -114,7 +114,6 @@ export function AiChatbox({ billId }: { billId: number }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: user.id,
             billId,
             userMessage: text,
             conversationId,

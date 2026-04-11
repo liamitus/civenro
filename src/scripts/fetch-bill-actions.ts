@@ -118,10 +118,10 @@ function reconcileStatus(
  * Fetch actions from congress.gov for bills that might have stale statuses,
  * store the actions, and reconcile the bill's currentStatus if needed.
  */
-export async function fetchBillActionsFunction(targetBillIds?: string[]) {
+export async function fetchBillActionsFunction(targetBillIds?: string[], limit = 100) {
   console.log(
     "Fetching bill actions for:",
-    targetBillIds?.join(", ") || "active bills with non-terminal statuses",
+    targetBillIds?.join(", ") || `up to ${limit} active bills with non-terminal statuses`,
   );
 
   try {
@@ -140,7 +140,7 @@ export async function fetchBillActionsFunction(targetBillIds?: string[]) {
             introducedDate: { gte: new Date("2023-01-01") },
           },
           orderBy: { currentStatusDate: "desc" },
-          take: 100,
+          take: limit,
         });
 
     console.log(`Found ${bills.length} bills to check.`);

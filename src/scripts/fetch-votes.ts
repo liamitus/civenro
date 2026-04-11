@@ -18,12 +18,14 @@ interface GovTrackBillData {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export async function fetchVotesFunction() {
+export async function fetchVotesFunction(since?: Date) {
   try {
-    // Use env var for last fetched date, default to 2 years ago
-    const startDate = process.env.VOTES_LAST_FETCHED
-      ? dayjs(process.env.VOTES_LAST_FETCHED)
-      : dayjs().subtract(2, "year");
+    // Use explicit parameter, then env var, then default to 2 years ago
+    const startDate = since
+      ? dayjs(since)
+      : process.env.VOTES_LAST_FETCHED
+        ? dayjs(process.env.VOTES_LAST_FETCHED)
+        : dayjs().subtract(2, "year");
 
     const endDate = dayjs();
     let currentDate = startDate;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUserId } from "@/lib/auth";
 import { generateBillChatResponse } from "@/lib/ai";
 import { parseSectionsFromFullText } from "@/lib/bill-sections";
 import type { BillMetadata } from "@/lib/congress-api";
@@ -7,12 +8,14 @@ import { assertAiEnabled, AiDisabledError } from "@/lib/ai-gate";
 import { recordSpend } from "@/lib/budget";
 
 export async function GET(request: NextRequest) {
-  const billId = request.nextUrl.searchParams.get("billId");
-  const userId = request.nextUrl.searchParams.get("userId");
+  const { userId, error } = await getAuthenticatedUserId();
+  if (error) return error;
 
-  if (!billId || !userId) {
+  const billId = request.nextUrl.searchParams.get("billId");
+
+  if (!billId) {
     return NextResponse.json(
-      { error: "Missing required query parameters: billId and userId." },
+      { error: "Missing required query parameter: billId." },
       { status: 400 }
     );
   }
@@ -48,11 +51,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { userId, error: authError } = await getAuthenticatedUserId();
+  if (authError) return authError;
+
   try {
-    const { userId, billId, userMessage, conversationId } =
+    const { billId, userMessage, conversationId } =
       await request.json();
 
-    if (!userId || !billId || !userMessage) {
+    if (!billId || !userMessage) {
       return NextResponse.json(
         { error: "Missing required fields." },
         { status: 400 }
@@ -69,7 +75,7 @@ export async function POST(request: NextRequest) {
       conversation = await prisma.conversation.findUnique({
         where: { id: conversationId },
       });
-      if (!conversation) {
+      if (!conversation || conversation.userId !== userId) {
         return NextResponse.json(
           { error: "Conversation not found." },
           { status: 404 }
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       conversation = await prisma.conversation.create({
-        data: { userId: String(userId), billId: numericBillId },
+        data: { userId, billId: numericBillId },
       });
     }
 
@@ -144,7 +150,7 @@ export async function POST(request: NextRequest) {
     for (const u of aiResult.usage) {
       try {
         await recordSpend({
-          userId: String(userId),
+          userId,
           feature: "chat",
           model: u.model,
           inputTokens: u.inputTokens,

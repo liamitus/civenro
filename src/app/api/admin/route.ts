@@ -7,9 +7,10 @@ import { fetchBillActionsFunction } from "@/scripts/fetch-bill-actions";
 import { generateChangeSummariesFunction } from "@/scripts/generate-change-summaries";
 
 function checkAdminAuth(request: NextRequest): boolean {
-  if (process.env.NODE_ENV === "development") return true;
+  const expected = process.env.ADMIN_API_KEY;
+  if (!expected) return false;
   const token = request.headers.get("x-api-key");
-  return token === process.env.ADMIN_API_KEY;
+  return token === expected;
 }
 
 export async function POST(request: NextRequest) {

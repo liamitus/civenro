@@ -6,6 +6,10 @@
     {
       "path": "/api/cron/evaluate-budget",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/fetch-data",
+      "schedule": "0 14 * * *"
     }
   ]
 }

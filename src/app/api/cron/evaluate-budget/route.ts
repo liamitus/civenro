@@ -11,9 +11,13 @@ import { invalidateAiGateCache } from "@/lib/ai-gate";
  * the Authorization header automatically when configured in project settings.
  */
 export async function GET(request: Request) {
-  const auth = request.headers.get("authorization");
   const expected = process.env.CRON_SECRET;
-  if (expected && auth !== `Bearer ${expected}`) {
+  if (!expected) {
+    console.error("CRON_SECRET is not configured");
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const auth = request.headers.get("authorization");
+  if (auth !== `Bearer ${expected}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
