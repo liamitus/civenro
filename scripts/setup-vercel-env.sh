@@ -21,15 +21,16 @@ fi
 
 # Vars that must be set for the app to function.
 REQUIRED_VARS=(
-  DATABASE_URL
   NEXT_PUBLIC_SUPABASE_URL
   NEXT_PUBLIC_SUPABASE_ANON_KEY
   ANTHROPIC_API_KEY
 )
 
 # All vars to sync. Add new ones here as features grow.
+# NOTE: DATABASE_URL is excluded — prod uses the Supabase pooler URL,
+# not the local dev DB. Set it manually via:
+#   npx vercel env add DATABASE_URL production --value "..." --scope civenro --yes --force
 SYNC_VARS=(
-  DATABASE_URL
   NEXT_PUBLIC_SUPABASE_URL
   NEXT_PUBLIC_SUPABASE_ANON_KEY
   SUPABASE_SERVICE_ROLE_KEY
