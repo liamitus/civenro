@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const data: PhotonResponse = await res.json();
 
     const suggestions = data.features
-      .filter((f) => f.properties.countrycode === "us")
+      .filter((f) => f.properties.countrycode?.toLowerCase() === "us")
       .map((f) => {
         const p = f.properties;
         const street = [p.housenumber, p.street || p.name]
