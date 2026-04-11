@@ -38,13 +38,14 @@ export async function GET(request: NextRequest) {
       q,
       limit: "5",
       lang: "en",
-      layer: "house,street",
       // Bias toward geographic center of US
       lat: "39.8",
       lon: "-98.5",
     });
+    // Photon requires separate layer= params (URLSearchParams dedupes keys)
+    const url = `https://photon.komoot.io/api/?${params}&layer=house&layer=street`;
 
-    const res = await fetch(`https://photon.komoot.io/api/?${params}`, {
+    const res = await fetch(url, {
       headers: { Accept: "application/json" },
     });
 
