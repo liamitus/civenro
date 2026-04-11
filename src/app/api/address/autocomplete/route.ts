@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Proxy address autocomplete requests to Nominatim (OpenStreetMap).
- * Keeps the provider behind our own endpoint so we can swap to a paid
- * service (Radar, Geoapify, etc.) without touching the frontend.
+ * Proxy address autocomplete requests to Photon (Komoot).
+ * Photon uses the same OpenStreetMap data as Nominatim but is
+ * purpose-built for autocomplete — typically 50-150ms vs 500-2000ms.
  *
- * Nominatim usage policy: max 1 req/s, must include User-Agent.
- * The frontend debounces at 300ms per user, and we're server-side
- * so multiple concurrent users share the limit — acceptable at
- * low-to-moderate traffic. Upgrade if we outgrow it.
+ * Free, no API key, no hard rate limit (be respectful).
+ * Proxied so we can swap to a paid provider without frontend changes.
  */
 
-interface NominatimResult {
-  display_name: string;
-  lat: string;
-  lon: string;
-  address: {
-    house_number?: string;
-    road?: string;
+interface PhotonFeature {
+  properties: {
+    name?: string;
+    housenumber?: string;
+    street?: string;
     city?: string;
-    town?: string;
-    village?: string;
     state?: string;
     postcode?: string;
     country?: string;
+    countrycode?: string;
+    type?: string;
   };
+}
+
+interface PhotonResponse {
+  features: PhotonFeature[];
 }
 
 export async function GET(request: NextRequest) {
@@ -36,45 +36,36 @@ export async function GET(request: NextRequest) {
   try {
     const params = new URLSearchParams({
       q,
-      format: "json",
-      countrycodes: "us",
       limit: "5",
-      addressdetails: "1",
+      lang: "en",
+      layer: "house,street",
+      // Bias toward geographic center of US
+      lat: "39.8",
+      lon: "-98.5",
     });
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?${params}`,
-      {
-        headers: {
-          "User-Agent": "Civenro/1.0 (https://civenro.com)",
-          Accept: "application/json",
-        },
-        // Don't cache on the edge — results change and Nominatim prefers fresh requests
-        next: { revalidate: 0 },
-      },
-    );
+    const res = await fetch(`https://photon.komoot.io/api/?${params}`, {
+      headers: { Accept: "application/json" },
+    });
 
     if (!res.ok) {
       return NextResponse.json([]);
     }
 
-    const data: NominatimResult[] = await res.json();
+    const data: PhotonResponse = await res.json();
 
-    const suggestions = data.map((r) => {
-      const { house_number, road, city, town, village, state, postcode } =
-        r.address;
-      const locality = city || town || village || "";
-      const parts = [
-        [house_number, road].filter(Boolean).join(" "),
-        locality,
-        [state, postcode].filter(Boolean).join(" "),
-      ].filter(Boolean);
+    const suggestions = data.features
+      .filter((f) => f.properties.countrycode === "us")
+      .map((f) => {
+        const p = f.properties;
+        const street = [p.housenumber, p.street || p.name]
+          .filter(Boolean)
+          .join(" ");
+        const parts = [street, p.city, [p.state, p.postcode].filter(Boolean).join(" ")]
+          .filter(Boolean);
 
-      return {
-        label: parts.join(", ") || r.display_name,
-        fullAddress: r.display_name,
-      };
-    });
+        return { label: parts.join(", ") };
+      });
 
     return NextResponse.json(suggestions);
   } catch (error) {

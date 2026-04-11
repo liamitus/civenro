@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 interface Suggestion {
   label: string;
-  fullAddress: string;
 }
 
 interface AddressAutocompleteProps {
@@ -26,29 +25,39 @@ export function AddressAutocomplete({
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const abortRef = useRef<AbortController>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
       setOpen(false);
+      setLoading(false);
       return;
     }
+
+    // Abort any in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     try {
       const res = await fetch(
         `/api/address/autocomplete?q=${encodeURIComponent(query)}`,
+        { signal: controller.signal },
       );
       if (!res.ok) return;
       const data: Suggestion[] = await res.json();
       setSuggestions(data);
       setOpen(data.length > 0);
       setActiveIndex(-1);
-    } catch {
-      // Silently fail — the user can still type and submit manually
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -57,7 +66,15 @@ export function AddressAutocomplete({
     onChange(val);
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => fetchSuggestions(val), 300);
+
+    if (val.trim().length >= 3) {
+      setLoading(true);
+      debounceRef.current = setTimeout(() => fetchSuggestions(val), 200);
+    } else {
+      setLoading(false);
+      setSuggestions([]);
+      setOpen(false);
+    }
   };
 
   const handleSelect = (suggestion: Suggestion) => {
@@ -68,7 +85,7 @@ export function AddressAutocomplete({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open || suggestions.length === 0) return;
+    if (!open) return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -98,17 +115,19 @@ export function AddressAutocomplete({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Cleanup debounce
+  // Cleanup
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
     };
   }, []);
+
+  const showDropdown = open && (suggestions.length > 0 || loading);
 
   return (
     <div ref={containerRef} className="relative">
       <input
-        ref={inputRef}
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -118,34 +137,47 @@ export function AddressAutocomplete({
         autoFocus={autoFocus}
         autoComplete="off"
         role="combobox"
-        aria-expanded={open}
+        aria-expanded={showDropdown}
         aria-autocomplete="list"
         aria-activedescendant={
           activeIndex >= 0 ? `address-option-${activeIndex}` : undefined
         }
       />
-      {open && suggestions.length > 0 && (
+      {showDropdown && (
         <ul
           role="listbox"
           className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg overflow-hidden"
         >
-          {suggestions.map((s, i) => (
-            <li
-              key={i}
-              id={`address-option-${i}`}
-              role="option"
-              aria-selected={i === activeIndex}
-              onMouseDown={() => handleSelect(s)}
-              onMouseEnter={() => setActiveIndex(i)}
-              className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
-                i === activeIndex
-                  ? "bg-navy/5 text-navy"
-                  : "text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {s.label}
-            </li>
-          ))}
+          {loading && suggestions.length === 0 ? (
+            <>
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="px-4 py-2.5">
+                  <div
+                    className="h-4 bg-muted rounded animate-pulse"
+                    style={{ width: `${70 - i * 12}%` }}
+                  />
+                </li>
+              ))}
+            </>
+          ) : (
+            suggestions.map((s, i) => (
+              <li
+                key={i}
+                id={`address-option-${i}`}
+                role="option"
+                aria-selected={i === activeIndex}
+                onMouseDown={() => handleSelect(s)}
+                onMouseEnter={() => setActiveIndex(i)}
+                className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                  i === activeIndex
+                    ? "bg-navy/5 text-navy"
+                    : "text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {s.label}
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>
