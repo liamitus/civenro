@@ -6,6 +6,14 @@ import { parseSectionsFromFullText } from "@/lib/bill-sections";
 import type { BillMetadata } from "@/lib/congress-api";
 import { assertAiEnabled, AiDisabledError } from "@/lib/ai-gate";
 import { recordSpend } from "@/lib/budget";
+import { assertUserRateLimit, RateLimitError } from "@/lib/rate-limit";
+import { getCachedResponse, setCachedResponse } from "@/lib/ai-cache";
+
+/** Max characters allowed in a single user message. */
+const MAX_MESSAGE_LENGTH = 2000;
+
+/** Max AI chat requests per user per hour. */
+const MAX_CHAT_PER_USER_PER_HOUR = 20;
 
 export async function GET(request: NextRequest) {
   const { userId, error } = await getAuthenticatedUserId();
@@ -64,6 +72,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Input length guard — reject oversized prompts before they burn tokens.
+    if (typeof userMessage !== "string" || userMessage.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { error: `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.` },
+        { status: 400 }
+      );
+    }
+
+    // Per-user rate limit — DB-backed, persists across serverless instances.
+    await assertUserRateLimit(userId, "chat", MAX_CHAT_PER_USER_PER_HOUR);
 
     // Budget gate — throws AiDisabledError if Govroll is out of AI budget.
     await assertAiEnabled("chat");
@@ -137,6 +156,38 @@ export async function POST(request: NextRequest) {
         content: m.text,
       }));
 
+    // Cache check — only for first-turn messages (no prior history) since
+    // those are the most commonly duplicated across users.
+    const isFirstTurn = conversationHistory.length === 0;
+    if (isFirstTurn) {
+      const cached = await getCachedResponse(numericBillId, userMessage);
+      if (cached) {
+        await prisma.message.create({
+          data: {
+            conversationId: conversation.id,
+            sender: "ai",
+            text: cached.response,
+          },
+        });
+        // Record as zero-cost cache hit for tracking.
+        try {
+          await recordSpend({
+            userId,
+            feature: "chat",
+            model: `${cached.model}:cache-hit`,
+            inputTokens: 0,
+            outputTokens: 0,
+          });
+        } catch {
+          // Non-critical
+        }
+        return NextResponse.json({
+          conversationId: conversation.id,
+          aiAnswer: cached.response,
+        });
+      }
+    }
+
     const aiResult = await generateBillChatResponse(
       bill?.title || "Unknown Bill",
       billSections,
@@ -161,6 +212,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Cache the response for future identical first-turn queries on this bill.
+    if (isFirstTurn) {
+      try {
+        const modelUsed = aiResult.usage[0]?.model ?? "unknown";
+        await setCachedResponse(numericBillId, userMessage, aiResult.content, modelUsed);
+      } catch {
+        // Non-critical — cache write failure shouldn't break the response.
+      }
+    }
+
     // Store AI response
     await prisma.message.create({
       data: {
@@ -175,6 +236,9 @@ export async function POST(request: NextRequest) {
       aiAnswer: aiResult.content,
     });
   } catch (error) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(error.toJSON(), { status: 429 });
+    }
     if (error instanceof AiDisabledError) {
       return NextResponse.json(error.toJSON(), { status: 503 });
     }

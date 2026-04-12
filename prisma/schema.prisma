@@ -309,6 +309,19 @@ model AiUsageEvent {
   @@index([feature, createdAt])
 }
 
+model AiResponseCache {
+  id         String   @id @default(cuid())
+  billId     Int
+  promptHash String
+  response   String
+  model      String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@unique([billId, promptHash])
+  @@index([expiresAt])
+}
+
 model AdminUser {
   id        String   @id @default(cuid())
   // Supabase auth user id (uuid)

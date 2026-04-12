@@ -2,12 +2,17 @@
  * Layer 2 — AI-powered name moderation via OpenAI's free /moderations endpoint.
  *
  * Only called on names that pass Layer 1. Rate-limited per IP to prevent
- * abuse, with a daily spend cap for safety (though the endpoint is free).
+ * abuse, with a DB-backed daily cap for safety (though the endpoint is free).
  *
  * Server-only — never import this on the client.
  */
 
 import { recordSpend } from "@/lib/budget";
+import {
+  assertIpRateLimit,
+  assertGlobalDailyLimit,
+  RateLimitError,
+} from "@/lib/rate-limit";
 
 export type L2Result = {
   ok: boolean;
@@ -16,35 +21,8 @@ export type L2Result = {
   error?: string;
 };
 
-/** IP-based in-memory rate limiter (simple, no Redis required for v1). */
-const ipCounts = new Map<string, { count: number; resetAt: number }>();
 const MAX_CHECKS_PER_IP_PER_HOUR = 10;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = ipCounts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    ipCounts.set(ip, { count: 1, resetAt: now + 60 * 60 * 1000 });
-    return true;
-  }
-  if (entry.count >= MAX_CHECKS_PER_IP_PER_HOUR) return false;
-  entry.count++;
-  return true;
-}
-
-/** Daily call counter — circuit breaker if something goes haywire. */
-let dailyCalls = { count: 0, date: "" };
 const MAX_DAILY_CALLS = 500;
-
-function checkDailyLimit(): boolean {
-  const today = new Date().toISOString().slice(0, 10);
-  if (dailyCalls.date !== today) {
-    dailyCalls = { count: 0, date: today };
-  }
-  if (dailyCalls.count >= MAX_DAILY_CALLS) return false;
-  dailyCalls.count++;
-  return true;
-}
 
 /**
  * Call OpenAI's free /moderations endpoint to check a name.
@@ -55,12 +33,15 @@ export async function checkNameL2(
   name: string,
   ip?: string
 ): Promise<L2Result> {
-  // Rate limiting
-  if (ip && !checkRateLimit(ip)) {
-    return { ok: true, flagged: false, error: "rate_limited" };
-  }
-  if (!checkDailyLimit()) {
-    return { ok: true, flagged: false, error: "daily_limit" };
+  // Rate limiting — IP check is in-memory (fast reject), daily is DB-backed.
+  try {
+    if (ip) assertIpRateLimit(ip, MAX_CHECKS_PER_IP_PER_HOUR);
+    await assertGlobalDailyLimit("moderation", MAX_DAILY_CALLS);
+  } catch (err) {
+    if (err instanceof RateLimitError) {
+      return { ok: true, flagged: false, error: "rate_limited" };
+    }
+    throw err;
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
