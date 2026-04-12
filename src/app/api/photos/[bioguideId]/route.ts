@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 
-// GitHub raw serves the same images without rate-limiting/403s
-const SOURCE_URL = "https://raw.githubusercontent.com/unitedstates/images/gh-pages/congress/225x275";
+/**
+ * Lightweight redirect to photos hosted in our Supabase Storage bucket.
+ * Photos are uploaded once by src/scripts/upload-photos.ts.
+ *
+ * We redirect instead of proxy to let Supabase's CDN serve the image
+ * directly — no serverless function time or bandwidth consumed.
+ */
 
-const PHOTO_HEADERS = {
-  "Content-Type": "image/jpeg",
-  "Cache-Control": "public, max-age=2592000, immutable",
-} as const;
+const STORAGE_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/congress`;
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ bioguideId: string }> }
+  { params }: { params: Promise<{ bioguideId: string }> },
 ) {
   const { bioguideId } = await params;
 
@@ -19,27 +21,10 @@ export async function GET(
     return new NextResponse("Invalid ID", { status: 400 });
   }
 
-  try {
-    const res = await fetch(`${SOURCE_URL}/${safe}.jpg`, {
-      headers: {
-        "User-Agent": "Civenro/1.0 (civic engagement platform)",
-      },
-    });
-
-    if (!res.ok) {
-      return new NextResponse(null, { status: 404, headers: { "Cache-Control": "no-cache" } });
-    }
-
-    const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("image")) {
-      return new NextResponse(null, { status: 404 });
-    }
-
-    const buffer = Buffer.from(await res.arrayBuffer());
-
-    return new NextResponse(buffer, { headers: PHOTO_HEADERS });
-  } catch (error) {
-    console.error(`Failed to fetch photo for ${safe}:`, error);
-    return new NextResponse(null, { status: 502 });
-  }
+  return NextResponse.redirect(`${STORAGE_BASE}/${safe}.jpg`, {
+    status: 302,
+    headers: {
+      "Cache-Control": "public, max-age=86400",
+    },
+  });
 }
