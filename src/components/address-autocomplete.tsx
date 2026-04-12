@@ -24,8 +24,7 @@ export function AddressAutocomplete({
   autoFocus = false,
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [noResults, setNoResults] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "loading" | "done">("idle");
   const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
@@ -35,8 +34,7 @@ export function AddressAutocomplete({
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
-      setLoading(false);
-      setNoResults(false);
+      setPhase("idle");
       return;
     }
 
@@ -52,12 +50,10 @@ export function AddressAutocomplete({
       if (!res.ok) return;
       const data: Suggestion[] = await res.json();
       setSuggestions(data);
-      setNoResults(data.length === 0);
+      setPhase("done");
       setActiveIndex(-1);
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -69,13 +65,15 @@ export function AddressAutocomplete({
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (val.trim().length >= 3) {
-      setLoading(true);
-      setNoResults(false);
-      debounceRef.current = setTimeout(() => fetchSuggestions(val), 200);
+      // Only show shimmer if we don't already have suggestions visible.
+      // This prevents flicker when typing more chars with results on screen.
+      if (suggestions.length === 0) {
+        setPhase("loading");
+      }
+      debounceRef.current = setTimeout(() => fetchSuggestions(val), 250);
     } else {
-      setLoading(false);
+      setPhase("idle");
       setSuggestions([]);
-      setNoResults(false);
     }
   };
 
@@ -84,8 +82,7 @@ export function AddressAutocomplete({
     onSelect(suggestion.label);
     setSuggestions([]);
     setDismissed(true);
-    setLoading(false);
-    setNoResults(false);
+    setPhase("idle");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -105,7 +102,6 @@ export function AddressAutocomplete({
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -119,7 +115,6 @@ export function AddressAutocomplete({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Cleanup
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -128,7 +123,7 @@ export function AddressAutocomplete({
   }, []);
 
   const showDropdown =
-    !dismissed && (loading || suggestions.length > 0 || noResults);
+    !dismissed && phase !== "idle" && (phase === "loading" || suggestions.length > 0 || phase === "done");
 
   return (
     <div ref={containerRef} className="relative">
@@ -153,14 +148,14 @@ export function AddressAutocomplete({
       {showDropdown && (
         <ul
           role="listbox"
-          className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg overflow-hidden"
+          className="absolute z-50 top-[calc(100%+6px)] left-0 right-0 bg-white border border-border/80 rounded-xl shadow-xl overflow-hidden py-1"
         >
-          {loading ? (
+          {phase === "loading" && suggestions.length === 0 ? (
             [0, 1, 2].map((i) => (
-              <li key={i} className="px-4 py-2.5" role="presentation">
+              <li key={i} className="px-4 py-3" role="presentation">
                 <div
-                  className="h-4 bg-muted rounded animate-pulse"
-                  style={{ width: `${70 - i * 12}%` }}
+                  className="h-4 bg-muted/60 rounded-md animate-pulse"
+                  style={{ width: `${75 - i * 15}%` }}
                 />
               </li>
             ))
@@ -173,17 +168,29 @@ export function AddressAutocomplete({
                 aria-selected={i === activeIndex}
                 onMouseDown={() => handleSelect(s)}
                 onMouseEnter={() => setActiveIndex(i)}
-                className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 text-sm cursor-pointer transition-colors ${
                   i === activeIndex
-                    ? "bg-navy/5 text-navy"
-                    : "text-foreground hover:bg-muted/50"
+                    ? "bg-navy/[0.06]"
+                    : "hover:bg-muted/40"
                 }`}
               >
-                {s.label}
+                <svg
+                  className="w-4 h-4 text-navy/30 flex-shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span className="text-foreground">{s.label}</span>
               </li>
             ))
           ) : (
-            <li className="px-4 py-2.5 text-sm text-muted-foreground">
+            <li className="px-4 py-3 text-sm text-muted-foreground">
               No addresses found — try adding more detail
             </li>
           )}
