@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { PasswordStrengthIndicator, validatePassword } from "./password-strength";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface AuthModalProps {
   open: boolean;
@@ -262,6 +263,20 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     ? "Sign In"
                     : "Create Account"}
               </Button>
+
+              {mode === "register" && (
+                <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                  By creating an account, you agree to our{" "}
+                  <Link href="/terms" className="underline underline-offset-2 hover:text-foreground" onClick={() => onOpenChange(false)}>
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground" onClick={() => onOpenChange(false)}>
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
+              )}
 
               <p className="text-center text-sm text-muted-foreground">
                 {mode === "login" ? (

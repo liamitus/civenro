@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
+import { Footer } from "@/components/footer";
 import { BfcacheReload } from "@/components/bfcache-reload";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
         <BfcacheReload />
         <NavBar />
         <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );
