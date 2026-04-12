@@ -31,30 +31,30 @@ export async function POST(request: NextRequest) {
       orderBy: { versionDate: "desc" },
     });
 
-    const vote = await prisma.vote.upsert({
-      where: { userId_billId: { userId, billId } },
-      update: {
-        voteType,
-        textVersionId: latestVersion?.id ?? null,
-        votedAt: new Date(),
-      },
-      create: {
-        userId,
-        billId,
-        voteType,
-        textVersionId: latestVersion?.id ?? null,
-      },
-    });
-
-    // Append to vote history audit trail
-    await prisma.voteHistory.create({
-      data: {
-        userId,
-        billId,
-        voteType,
-        textVersionId: latestVersion?.id ?? null,
-      },
-    });
+    const [vote] = await prisma.$transaction([
+      prisma.vote.upsert({
+        where: { userId_billId: { userId, billId } },
+        update: {
+          voteType,
+          textVersionId: latestVersion?.id ?? null,
+          votedAt: new Date(),
+        },
+        create: {
+          userId,
+          billId,
+          voteType,
+          textVersionId: latestVersion?.id ?? null,
+        },
+      }),
+      prisma.voteHistory.create({
+        data: {
+          userId,
+          billId,
+          voteType,
+          textVersionId: latestVersion?.id ?? null,
+        },
+      }),
+    ]);
 
     return NextResponse.json(vote);
   } catch (error) {

@@ -19,7 +19,7 @@ import type { ConversationMessage } from "@/types";
 const MIN_WIDTH = 380;
 const MAX_WIDTH_VW = 0.95;
 const DEFAULT_WIDTH = 640;
-const WIDTH_STORAGE_KEY = "civenro:ai-chat:width";
+const WIDTH_STORAGE_KEY = "govroll:ai-chat:width";
 
 function AiMessageContent({ text }: { text: string }) {
   return (

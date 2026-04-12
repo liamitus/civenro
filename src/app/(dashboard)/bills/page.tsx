@@ -2,7 +2,7 @@ import { BillListClient } from "@/components/bills/bill-list-client";
 import { RepresentativesDashboard } from "@/components/representatives-dashboard";
 
 export const metadata = {
-  title: "Bills — Civenro",
+  title: "Bills — Govroll",
   description: "Browse current government bills, filter by chamber and status.",
 };
 

@@ -91,7 +91,7 @@ export interface UserVoteStatus {
 export interface CommentData {
   id: number;
   content: string;
-  userId: string;
+  userId: string | null;
   username: string;
   billId: number;
   parentCommentId: number | null;

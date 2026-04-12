@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact — Civenro",
+  title: "Contact — Govroll",
   description:
-    "Report a bug, send feedback, or get in touch with the Civenro team.",
+    "Report a bug, send feedback, or get in touch with the Govroll team.",
 };
 
 export default function ContactPage() {
@@ -32,10 +32,10 @@ export default function ContactPage() {
           </p>
           <p className="text-sm">
             <a
-              href="mailto:support@civenro.com?subject=Bug Report"
+              href="mailto:support@govroll.com?subject=Bug Report"
               className="text-primary underline underline-offset-2"
             >
-              support@civenro.com
+              support@govroll.com
             </a>
           </p>
         </section>
@@ -43,15 +43,15 @@ export default function ContactPage() {
         <section className="rounded-lg border p-5 space-y-2">
           <h2 className="font-semibold">General feedback</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Feature ideas, usability feedback, or thoughts on how Civenro can
+            Feature ideas, usability feedback, or thoughts on how Govroll can
             better serve you — all welcome.
           </p>
           <p className="text-sm">
             <a
-              href="mailto:feedback@civenro.com?subject=Feedback"
+              href="mailto:feedback@govroll.com?subject=Feedback"
               className="text-primary underline underline-offset-2"
             >
-              feedback@civenro.com
+              feedback@govroll.com
             </a>
           </p>
         </section>
@@ -64,10 +64,10 @@ export default function ContactPage() {
           </p>
           <p className="text-sm">
             <a
-              href="mailto:support@civenro.com?subject=Account Question"
+              href="mailto:support@govroll.com?subject=Account Question"
               className="text-primary underline underline-offset-2"
             >
-              support@civenro.com
+              support@govroll.com
             </a>
           </p>
         </section>
@@ -87,10 +87,10 @@ export default function ContactPage() {
           </p>
           <p className="text-sm">
             <a
-              href="mailto:privacy@civenro.com?subject=Privacy Request"
+              href="mailto:privacy@govroll.com?subject=Privacy Request"
               className="text-primary underline underline-offset-2"
             >
-              privacy@civenro.com
+              privacy@govroll.com
             </a>
           </p>
         </section>

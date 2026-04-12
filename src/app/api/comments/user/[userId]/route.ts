@@ -11,27 +11,33 @@ export async function GET(
   const skip = (page - 1) * limit;
 
   try {
-    const [total, comments] = await Promise.all([
+    const [total, comments, voteSums] = await Promise.all([
       prisma.comment.count({ where: { userId } }),
       prisma.comment.findMany({
         where: { userId },
         include: {
           bill: { select: { id: true, title: true } },
-          commentVotes: true,
         },
         orderBy: { date: "desc" },
         skip,
         take: limit,
       }),
+      prisma.commentVote.groupBy({
+        by: ["commentId"],
+        where: { comment: { userId } },
+        _sum: { voteType: true },
+      }),
     ]);
 
-    const commentsWithVoteCounts = comments.map((comment) => {
-      const voteCount = comment.commentVotes.reduce(
-        (sum, vote) => sum + vote.voteType,
-        0
-      );
-      return { ...comment, voteCount };
-    });
+    const voteMap = new Map<number, number>();
+    for (const v of voteSums) {
+      voteMap.set(v.commentId, v._sum.voteType || 0);
+    }
+
+    const commentsWithVoteCounts = comments.map((comment) => ({
+      ...comment,
+      voteCount: voteMap.get(comment.id) || 0,
+    }));
 
     return NextResponse.json({ comments: commentsWithVoteCounts, total });
   } catch (error) {

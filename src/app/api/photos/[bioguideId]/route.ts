@@ -87,7 +87,7 @@ export async function GET(
   for (const url of urls) {
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": "Civenro/1.0 (lazy photo fetch)" },
+        headers: { "User-Agent": "Govroll/1.0 (lazy photo fetch)" },
       });
       if (!res.ok) continue;
 

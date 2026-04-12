@@ -69,7 +69,7 @@ export function BudgetThermometer({
 
       {!aiEnabled && (
         <p className="text-sm text-red-700 font-medium">
-          Civenro&apos;s AI features are paused this month because costs have
+          Govroll&apos;s AI features are paused this month because costs have
           exceeded reader support. Your contribution brings them back online.
         </p>
       )}

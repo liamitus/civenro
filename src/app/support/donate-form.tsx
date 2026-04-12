@@ -278,7 +278,7 @@ export function DonateForm({
       >
         {submitting
           ? "Redirecting to Stripe..."
-          : `Support Civenro — $${(effectiveAmount / 100).toFixed(effectiveAmount % 100 ? 2 : 0)}${isRecurring ? "/mo" : ""}`}
+          : `Support Govroll — $${(effectiveAmount / 100).toFixed(effectiveAmount % 100 ? 2 : 0)}${isRecurring ? "/mo" : ""}`}
       </Button>
     </Card>
   );

@@ -101,10 +101,10 @@ export async function POST(request: NextRequest) {
 
     // Metadata passed through to the webhook for donation creation
     const metadata: Record<string, string> = {
-      civenroDisplayMode: displayMode,
-      civenroDisplayNameRaw: displayName?.trim() ?? "",
-      civenroTributeNameRaw: tributeName?.trim() ?? "",
-      civenroUserId: userId ?? "",
+      govrollDisplayMode: displayMode,
+      govrollDisplayNameRaw: displayName?.trim() ?? "",
+      govrollTributeNameRaw: tributeName?.trim() ?? "",
+      govrollUserId: userId ?? "",
     };
 
     if (isRecurring) {
@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
               unit_amount: amountCents,
               recurring: { interval: "month" },
               product_data: {
-                name: "Civenro Monthly Support",
-                description: "Monthly contribution to keep Civenro running.",
+                name: "Govroll Monthly Support",
+                description: "Monthly contribution to keep Govroll running.",
               },
             },
             quantity: 1,
@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
             currency: "usd",
             unit_amount: amountCents,
             product_data: {
-              name: "Civenro Support",
-              description: "One-time contribution to keep Civenro running.",
+              name: "Govroll Support",
+              description: "One-time contribution to keep Govroll running.",
             },
           },
           quantity: 1,

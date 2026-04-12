@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Idempotent Vercel environment variable setup for Civenro.
+# Idempotent Vercel environment variable setup for Govroll.
 #
 # Reads values from .env (or .env.local) and upserts them into the Vercel
 # project. Safe to run repeatedly — existing vars are updated, missing vars
@@ -11,7 +11,7 @@ set -euo pipefail
 #   ./scripts/setup-vercel-env.sh              # uses .env
 #   ENV_FILE=.env.production ./scripts/setup-vercel-env.sh
 
-SCOPE="civenro"
+SCOPE="govroll"
 ENV_FILE="${ENV_FILE:-.env}"
 
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -29,7 +29,7 @@ REQUIRED_VARS=(
 # All vars to sync. Add new ones here as features grow.
 # NOTE: DATABASE_URL is excluded — prod uses the Supabase pooler URL,
 # not the local dev DB. Set it manually via:
-#   npx vercel env add DATABASE_URL production --value "..." --scope civenro --yes --force
+#   npx vercel env add DATABASE_URL production --value "..." --scope govroll --yes --force
 SYNC_VARS=(
   NEXT_PUBLIC_SUPABASE_URL
   NEXT_PUBLIC_SUPABASE_ANON_KEY

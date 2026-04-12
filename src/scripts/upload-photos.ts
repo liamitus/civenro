@@ -77,7 +77,7 @@ async function main() {
       let buffer: Buffer | null = null;
       for (const url of urls) {
         const res = await fetch(url, {
-          headers: { "User-Agent": "Civenro/1.0 (one-time photo sync)" },
+          headers: { "User-Agent": "Govroll/1.0 (one-time photo sync)" },
         });
         if (res.ok) {
           buffer = Buffer.from(await res.arrayBuffer());

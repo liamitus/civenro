@@ -19,12 +19,12 @@ export function Footer() {
               Contact
             </Link>
             <Link href="/support" className="hover:text-foreground transition-colors">
-              Support Civenro
+              Support Govroll
             </Link>
           </nav>
 
           <p className="text-xs text-muted-foreground/70">
-            &copy; {new Date().getFullYear()} Civenro &middot; Built by{" "}
+            &copy; {new Date().getFullYear()} Govroll &middot; Built by{" "}
             <a
               href="https://liamhowell.com"
               target="_blank"
@@ -46,7 +46,7 @@ export function Footer() {
           >
             congress.gov
           </a>
-          . Civenro is not affiliated with or endorsed by the U.S. government.
+          . Govroll is not affiliated with or endorsed by the U.S. government.
         </p>
       </div>
     </footer>

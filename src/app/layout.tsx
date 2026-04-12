@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Civenro — See What Your Representatives Are Doing",
+  title: "Govroll — See What Your Representatives Are Doing",
   description:
     "Track bills, see how your elected officials vote, and make your voice heard in the legislative process.",
 };

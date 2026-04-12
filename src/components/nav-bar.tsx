@@ -24,7 +24,7 @@ export function NavBar() {
         <Link href="/" className="flex items-center gap-2 group">
           <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
           <span className="text-white text-base font-semibold tracking-wide uppercase">
-            Civenro
+            Govroll
           </span>
           <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
         </Link>
@@ -63,7 +63,7 @@ export function NavBar() {
                 Bills
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/support" />}>
-                Support Civenro
+                Support Govroll
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/about" />}>
                 About

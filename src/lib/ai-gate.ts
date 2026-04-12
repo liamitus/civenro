@@ -22,7 +22,7 @@ export class AiDisabledError extends Error {
       error: "ai_disabled",
       reason: this.reason,
       message:
-        "Civenro's AI features are funded by readers and are currently paused for this period.",
+        "Govroll's AI features are funded by readers and are currently paused for this period.",
       donateUrl: this.donateUrl,
       budget: {
         incomeCents: this.snapshot.incomeCents,

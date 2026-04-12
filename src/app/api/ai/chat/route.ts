@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Budget gate — throws AiDisabledError if Civenro is out of AI budget.
+    // Budget gate — throws AiDisabledError if Govroll is out of AI budget.
     await assertAiEnabled("chat");
 
     const numericBillId = parseInt(billId);

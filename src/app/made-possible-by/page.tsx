@@ -4,8 +4,8 @@ import { DonorGrid } from "./donor-grid";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Made Possible By — Civenro",
-  description: "Civenro is funded by readers. Meet the citizens keeping civic transparency alive.",
+  title: "Made Possible By — Govroll",
+  description: "Govroll is funded by readers. Meet the citizens keeping civic transparency alive.",
 };
 
 export const dynamic = "force-dynamic";
@@ -121,7 +121,7 @@ export default async function MadePossibleByPage() {
           Made Possible By
         </p>
         <h1 className="text-3xl font-bold tracking-tight">
-          {totalCount.toLocaleString()} citizens keep Civenro running.
+          {totalCount.toLocaleString()} citizens keep Govroll running.
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
           No ads. No corporate sponsors. Just people who believe civic

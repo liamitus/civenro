@@ -76,13 +76,13 @@ export async function POST(request: NextRequest) {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const meta = session.metadata ?? {};
-  const displayMode = (meta.civenroDisplayMode || "ANONYMOUS") as
+  const displayMode = (meta.govrollDisplayMode || meta.civenroDisplayMode || "ANONYMOUS") as
     | "ANONYMOUS"
     | "NAMED"
     | "TRIBUTE";
-  const displayNameRaw = meta.civenroDisplayNameRaw || null;
-  const tributeNameRaw = meta.civenroTributeNameRaw || null;
-  const userId = meta.civenroUserId || null;
+  const displayNameRaw = meta.govrollDisplayNameRaw || meta.civenroDisplayNameRaw || null;
+  const tributeNameRaw = meta.govrollTributeNameRaw || meta.civenroTributeNameRaw || null;
+  const userId = meta.govrollUserId || meta.civenroUserId || null;
 
   const isRecurring = session.mode === "subscription";
   const amountCents = session.amount_total ?? 0;

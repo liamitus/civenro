@@ -24,7 +24,7 @@ export function AiPausedPanel({
         AI features are paused this month
       </p>
       <p className="text-xs text-red-700/80">
-        Civenro&apos;s AI summaries and chat are funded entirely by readers.
+        Govroll&apos;s AI summaries and chat are funded entirely by readers.
         {hasNumbers && (
           <>
             {" "}

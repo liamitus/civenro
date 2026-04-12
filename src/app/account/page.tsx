@@ -78,6 +78,12 @@ export default function AccountPage() {
     if (error) {
       showMessage(error.message, "error");
     } else {
+      // Sync display name to existing comments
+      await fetch("/api/account/username", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: newUsername.trim() }),
+      });
       showMessage("Username updated");
       setNewUsername("");
     }

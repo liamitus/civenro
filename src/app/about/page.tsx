@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — Civenro",
+  title: "About — Govroll",
   description:
-    "Civenro is an independent civic transparency platform making legislation accessible to everyday people.",
+    "Govroll is an independent civic transparency platform making legislation accessible to everyday people.",
 };
 
 export default function AboutPage() {
@@ -22,7 +22,7 @@ export default function AboutPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Our mission</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is an independent civic transparency platform. We believe
+          Govroll is an independent civic transparency platform. We believe
           everyone should be able to see what Congress is doing — what bills are
           moving, how their representatives vote, and what proposed legislation
           actually means — without needing a law degree or hours of free time.
@@ -70,7 +70,7 @@ export default function AboutPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Nonpartisan commitment</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro does not endorse candidates, political parties, or positions
+          Govroll does not endorse candidates, political parties, or positions
           on legislation. We present legislative data and voting records as
           they are. Our goal is to inform, not to persuade.
         </p>
@@ -79,7 +79,7 @@ export default function AboutPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">How it&apos;s funded</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is supported entirely by{" "}
+          Govroll is supported entirely by{" "}
           <Link
             href="/support"
             className="text-primary underline underline-offset-2"
@@ -95,7 +95,7 @@ export default function AboutPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Who built this</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is built and maintained by{" "}
+          Govroll is built and maintained by{" "}
           <a
             href="https://liamhowell.com"
             target="_blank"

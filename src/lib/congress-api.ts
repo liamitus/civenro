@@ -8,7 +8,7 @@ const CONGRESS_API_KEY =
 
 const congressApiClient = axios.create({
   baseURL: "https://api.congress.gov/v3",
-  headers: { "User-Agent": "Civenro/1.0 (civic transparency platform)" },
+  headers: { "User-Agent": "Govroll/1.0 (civic transparency platform)" },
   // format=json is required — the API defaults to XML when omitted, which silently
   // breaks every JSON-shaped response handler in this file.
   params: { api_key: CONGRESS_API_KEY, format: "json" },

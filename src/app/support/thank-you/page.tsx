@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Thank You — Civenro",
+  title: "Thank You — Govroll",
 };
 
 export default function ThankYouPage() {
@@ -14,7 +14,7 @@ export default function ThankYouPage() {
         You&apos;re keeping civic transparency alive.
       </h1>
       <p className="text-muted-foreground">
-        Your contribution goes directly to powering Civenro&apos;s AI tools,
+        Your contribution goes directly to powering Govroll&apos;s AI tools,
         data infrastructure, and the mission of making legislation accessible to
         everyone. A receipt has been sent to your email.
       </p>
@@ -23,7 +23,7 @@ export default function ThankYouPage() {
           href="/made-possible-by"
           className="text-sm text-primary underline underline-offset-2 hover:text-navy"
         >
-          See who makes Civenro possible
+          See who makes Govroll possible
         </Link>
         <span className="text-muted-foreground">|</span>
         <Link

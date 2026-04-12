@@ -4,9 +4,9 @@ services:
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: civenro
-      POSTGRES_PASSWORD: civenro
-      POSTGRES_DB: civenro_dev
+      POSTGRES_USER: govroll
+      POSTGRES_PASSWORD: govroll
+      POSTGRES_DB: govroll_dev
     volumes:
       - pgdata:/var/lib/postgresql/data
 

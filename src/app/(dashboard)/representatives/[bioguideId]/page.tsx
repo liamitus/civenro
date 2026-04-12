@@ -17,8 +17,8 @@ export async function generateMetadata({
 
   return {
     title: rep
-      ? `${rep.firstName} ${rep.lastName} — Civenro`
-      : "Representative — Civenro",
+      ? `${rep.firstName} ${rep.lastName} — Govroll`
+      : "Representative — Govroll",
   };
 }
 

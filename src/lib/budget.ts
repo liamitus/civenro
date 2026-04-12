@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { computeCostCents } from "@/lib/ai-pricing";
 
 /**
- * Civenro runs on reader contributions. AI features are the largest variable
+ * Govroll runs on reader contributions. AI features are the largest variable
  * cost, so we track monthly income vs. spend in a simple ledger and flip
  * `aiEnabled` off when the remaining budget drops below zero.
  *

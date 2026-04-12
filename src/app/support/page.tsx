@@ -5,9 +5,9 @@ import { BudgetThermometer } from "./budget-thermometer";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Support Civenro — Keep Civic Transparency Running",
+  title: "Support Govroll — Keep Civic Transparency Running",
   description:
-    "Civenro is supported by readers, not lobbyists. Your contribution keeps AI-powered bill analysis and civic tools free for everyone.",
+    "Govroll is supported by readers, not lobbyists. Your contribution keeps AI-powered bill analysis and civic tools free for everyone.",
 };
 
 export const dynamic = "force-dynamic";
@@ -30,11 +30,11 @@ export default async function SupportPage() {
           Reader-Supported
         </p>
         <h1 className="text-3xl font-bold tracking-tight">
-          Civenro is supported by readers,{" "}
+          Govroll is supported by readers,{" "}
           <span className="text-navy-light">not lobbyists.</span>
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
-          Every AI summary, every vote tracker, and every civic tool on Civenro
+          Every AI summary, every vote tracker, and every civic tool on Govroll
           is funded by people like you. No ads. No corporate sponsors. No
           paywalls.
         </p>
@@ -64,14 +64,14 @@ export default async function SupportPage() {
           >
             {donorCount.toLocaleString()} citizen{donorCount !== 1 ? "s" : ""}
           </Link>{" "}
-          keeping Civenro running.
+          keeping Govroll running.
         </p>
       )}
 
       {/* Legal disclosure */}
       <footer className="border-t pt-6 space-y-2 text-xs text-muted-foreground leading-relaxed">
         <p>
-          Contributions are processed by Stripe and received by Civenro.
+          Contributions are processed by Stripe and received by Govroll.
           Contributions are <strong>not tax-deductible</strong> for U.S. federal
           income tax purposes.
         </p>

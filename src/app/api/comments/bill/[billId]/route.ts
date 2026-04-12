@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 interface CommentWithReplies {
   id: number;
   content: string;
-  userId: string;
+  userId: string | null;
   username: string;
   billId: number;
   parentCommentId: number | null;
@@ -22,20 +22,83 @@ export async function GET(
   const page = parseInt(request.nextUrl.searchParams.get("page") || "1");
   const limit = parseInt(request.nextUrl.searchParams.get("limit") || "20");
   const skip = (page - 1) * limit;
-  const sortOption = request.nextUrl.searchParams.get("sort") === "best" ? "best" : "new";
+  const sortOption =
+    request.nextUrl.searchParams.get("sort") === "best" ? "best" : "new";
 
   try {
-    const total = await prisma.comment.count({
-      where: { billId: id, parentCommentId: null },
-    });
+    // 2 queries total — no N+1
+    const [allComments, voteSums] = await Promise.all([
+      prisma.comment.findMany({
+        where: { billId: id },
+        include: { profile: { select: { username: true } } },
+        orderBy: { date: "desc" },
+      }),
+      prisma.commentVote.groupBy({
+        by: ["commentId"],
+        where: { comment: { billId: id } },
+        _sum: { voteType: true },
+      }),
+    ]);
 
-    const comments = await getCommentsWithVotes(null, id, skip, limit);
-
-    if (sortOption === "best") {
-      comments.sort((a, b) => b.voteCount - a.voteCount);
+    // Build vote count map
+    const voteMap = new Map<number, number>();
+    for (const v of voteSums) {
+      voteMap.set(v.commentId, v._sum.voteType || 0);
     }
 
-    return NextResponse.json({ comments, total });
+    // Build tree in memory
+    const commentMap = new Map<number, CommentWithReplies>();
+    const topLevel: CommentWithReplies[] = [];
+
+    for (const c of allComments) {
+      const node: CommentWithReplies = {
+        id: c.id,
+        content: c.content,
+        userId: c.userId,
+        username: c.profile?.username ?? c.username,
+        billId: c.billId,
+        parentCommentId: c.parentCommentId,
+        date: c.date,
+        voteCount: voteMap.get(c.id) || 0,
+        replies: [],
+      };
+      commentMap.set(c.id, node);
+    }
+
+    // Assemble tree
+    for (const node of commentMap.values()) {
+      if (node.parentCommentId === null) {
+        topLevel.push(node);
+      } else {
+        const parent = commentMap.get(node.parentCommentId);
+        if (parent) {
+          parent.replies.push(node);
+        } else {
+          // Orphaned reply — show at top level
+          topLevel.push(node);
+        }
+      }
+    }
+
+    // Sort
+    if (sortOption === "best") {
+      topLevel.sort((a, b) => b.voteCount - a.voteCount);
+    } else {
+      topLevel.sort((a, b) => b.date.getTime() - a.date.getTime());
+    }
+
+    // Sort replies by date within each thread
+    for (const node of commentMap.values()) {
+      if (node.replies.length > 1) {
+        node.replies.sort((a, b) => a.date.getTime() - b.date.getTime());
+      }
+    }
+
+    // Paginate top-level only
+    const paginated = topLevel.slice(skip, skip + limit);
+    const total = allComments.length;
+
+    return NextResponse.json({ comments: paginated, total });
   } catch (error) {
     console.error("Error fetching comments:", error);
     return NextResponse.json(
@@ -43,38 +106,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
-
-async function getCommentsWithVotes(
-  parentCommentId: number | null,
-  billId: number,
-  skip: number,
-  take: number
-): Promise<CommentWithReplies[]> {
-  const comments = await prisma.comment.findMany({
-    where: { billId, parentCommentId },
-    orderBy: { date: "desc" },
-    skip,
-    take,
-  });
-
-  return Promise.all(
-    comments.map(async (comment) => {
-      const voteCount = await getVoteCount(comment.id);
-      const replies = await getCommentsWithVotes(comment.id, billId, 0, 10);
-      return {
-        ...comment,
-        voteCount,
-        replies,
-      };
-    })
-  );
-}
-
-async function getVoteCount(commentId: number): Promise<number> {
-  const result = await prisma.commentVote.aggregate({
-    where: { commentId },
-    _sum: { voteType: true },
-  });
-  return result._sum.voteType || 0;
 }

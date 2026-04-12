@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Civenro",
-  description: "Terms governing use of the Civenro platform.",
+  title: "Terms of Service — Govroll",
+  description: "Terms governing use of the Govroll platform.",
 };
 
 export default function TermsPage() {
@@ -18,15 +18,15 @@ export default function TermsPage() {
 
       <p className="text-sm text-muted-foreground leading-relaxed">
         These Terms of Service (&ldquo;Terms&rdquo;) govern your use of
-        Civenro (the &ldquo;Service&rdquo;), operated at civenro.com. By
-        accessing or using Civenro, you agree to be bound by these Terms. If
+        Govroll (the &ldquo;Service&rdquo;), operated at govroll.com. By
+        accessing or using Govroll, you agree to be bound by these Terms. If
         you do not agree, do not use the Service.
       </p>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">1. Description of the Service</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is a civic transparency platform that displays U.S.
+          Govroll is a civic transparency platform that displays U.S.
           congressional legislation, voting records, and representative
           information sourced from official government data. We use artificial
           intelligence to generate plain-language summaries of bills and provide
@@ -61,20 +61,20 @@ export default function TermsPage() {
             </li>
             <li>
               <strong className="text-foreground">Not legal, political, or professional advice.</strong>{" "}
-              Nothing on Civenro constitutes legal advice, political
-              recommendation, or professional guidance. Do not rely on Civenro
+              Nothing on Govroll constitutes legal advice, political
+              recommendation, or professional guidance. Do not rely on Govroll
               as your sole source of information for any decision.
             </li>
             <li>
               <strong className="text-foreground">Data may lag or differ from official sources.</strong>{" "}
               Legislative data is updated periodically from government APIs.
               There may be delays between when Congress takes action and when
-              that action appears on Civenro. Vote tallies, bill statuses, and
+              that action appears on Govroll. Vote tallies, bill statuses, and
               other data may temporarily differ from official records.
             </li>
             <li>
               <strong className="text-foreground">Not a government website.</strong>{" "}
-              Civenro is an independent project. It is not affiliated with,
+              Govroll is an independent project. It is not affiliated with,
               endorsed by, or operated by the U.S. government, Congress, or any
               government agency.
             </li>
@@ -85,7 +85,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">3. User accounts</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          You may browse Civenro without an account. Creating an account allows
+          You may browse Govroll without an account. Creating an account allows
           you to participate in discussions and make contributions. You are
           responsible for maintaining the security of your account credentials.
           You must provide accurate information when creating an account and
@@ -96,7 +96,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">4. User-generated content</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          When you post comments or other content on Civenro, you grant us a
+          When you post comments or other content on Govroll, you grant us a
           non-exclusive, royalty-free, worldwide license to display, distribute,
           and moderate that content in connection with the Service. You retain
           ownership of your content.
@@ -122,7 +122,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">5. Contributions</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Financial contributions to Civenro are governed by our{" "}
+          Financial contributions to Govroll are governed by our{" "}
           <Link
             href="/support/terms"
             className="text-primary underline underline-offset-2"
@@ -139,7 +139,7 @@ export default function TermsPage() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           U.S. government works — including bill text, vote records, and
           congressional data — are in the public domain and are not subject to
-          copyright. Civenro&apos;s original content, design, code, and
+          copyright. Govroll&apos;s original content, design, code, and
           AI-generated summaries are protected by applicable intellectual
           property laws. You may not reproduce, distribute, or create derivative
           works from our original content without permission.
@@ -163,14 +163,14 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">8. Limitation of liability</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          To the fullest extent permitted by law, Civenro and its operator are
+          To the fullest extent permitted by law, Govroll and its operator are
           provided &ldquo;as is&rdquo; without warranties of any kind, whether
           express or implied. We do not warrant that the Service will be
           uninterrupted, error-free, or that information displayed will be
           accurate or complete.
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          In no event shall Civenro or its operator be liable for any indirect,
+          In no event shall Govroll or its operator be liable for any indirect,
           incidental, special, consequential, or punitive damages arising from
           your use of or inability to use the Service, including but not limited
           to reliance on AI-generated summaries or legislative data displayed
@@ -181,7 +181,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">9. Indemnification</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          You agree to indemnify and hold harmless Civenro and its operator
+          You agree to indemnify and hold harmless Govroll and its operator
           from any claims, damages, losses, or expenses (including reasonable
           attorney&apos;s fees) arising from your use of the Service, your
           violation of these Terms, or your violation of any rights of another.
@@ -219,7 +219,7 @@ export default function TermsPage() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           We may update these Terms from time to time. If we make material
           changes, we will update the date at the top of this page. Your
-          continued use of Civenro after changes are posted constitutes
+          continued use of Govroll after changes are posted constitutes
           acceptance of the updated Terms.
         </p>
       </section>
@@ -229,10 +229,10 @@ export default function TermsPage() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           Questions about these Terms? Contact us at{" "}
           <a
-            href="mailto:support@civenro.com"
+            href="mailto:support@govroll.com"
             className="text-primary underline underline-offset-2"
           >
-            support@civenro.com
+            support@govroll.com
           </a>
           .
         </p>

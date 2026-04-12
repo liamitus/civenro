@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Civenro",
+  title: "Privacy Policy — Govroll",
   description:
-    "How Civenro collects, uses, and protects your personal information.",
+    "How Govroll collects, uses, and protects your personal information.",
 };
 
 export default function PrivacyPage() {
@@ -18,8 +18,8 @@ export default function PrivacyPage() {
       </header>
 
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Civenro (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;)
-        operates the website at civenro.com. This Privacy Policy explains what
+        Govroll (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;)
+        operates the website at govroll.com. This Privacy Policy explains what
         information we collect, how we use it, who we share it with, and your
         rights regarding your data.
       </p>
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-foreground">Correspondence:</strong> emails
-            you send to us at support@civenro.com or related addresses.
+            you send to us at support@govroll.com or related addresses.
           </li>
         </ul>
 
@@ -163,7 +163,7 @@ export default function PrivacyPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">6. Children&apos;s privacy</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is not directed to children under the age of 13. We do not
+          Govroll is not directed to children under the age of 13. We do not
           knowingly collect personal information from children under 13. If you
           believe a child has provided us with personal information, please{" "}
           <Link href="/contact" className="text-primary underline underline-offset-2">
@@ -188,10 +188,10 @@ export default function PrivacyPage() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           To exercise any of these rights, email{" "}
           <a
-            href="mailto:privacy@civenro.com"
+            href="mailto:privacy@govroll.com"
             className="text-primary underline underline-offset-2"
           >
-            privacy@civenro.com
+            privacy@govroll.com
           </a>
           . We will respond within 30 days.
         </p>
@@ -205,10 +205,10 @@ export default function PrivacyPage() {
           the &ldquo;sale&rdquo; of personal information. We do not sell your
           personal information. To make a request, contact{" "}
           <a
-            href="mailto:privacy@civenro.com"
+            href="mailto:privacy@govroll.com"
             className="text-primary underline underline-offset-2"
           >
-            privacy@civenro.com
+            privacy@govroll.com
           </a>
           .
         </p>
@@ -230,7 +230,7 @@ export default function PrivacyPage() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           We may update this Privacy Policy from time to time. If we make
           material changes, we will notify you by updating the date at the top
-          of this page. Your continued use of Civenro after changes are posted
+          of this page. Your continued use of Govroll after changes are posted
           constitutes acceptance of the updated policy.
         </p>
       </section>
@@ -241,10 +241,10 @@ export default function PrivacyPage() {
           If you have questions about this Privacy Policy or our data practices,
           contact us at{" "}
           <a
-            href="mailto:privacy@civenro.com"
+            href="mailto:privacy@govroll.com"
             className="text-primary underline underline-offset-2"
           >
-            privacy@civenro.com
+            privacy@govroll.com
           </a>
           .
         </p>

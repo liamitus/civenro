@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Contribution Terms — Civenro",
+  title: "Contribution Terms — Govroll",
 };
 
 export default function TermsPage() {
@@ -20,7 +20,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">About your contribution</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is an independent civic transparency project supported
+          Govroll is an independent civic transparency project supported
           entirely by readers. Your contribution helps cover the
           infrastructure, data, and AI costs that keep the platform running
           and free to use.
@@ -30,7 +30,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Tax status</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro is not currently a registered 501(c)(3) organization.
+          Govroll is not currently a registered 501(c)(3) organization.
           Contributions are{" "}
           <strong className="text-foreground">not tax-deductible</strong> for
           U.S. federal income tax purposes. You should not claim your
@@ -41,7 +41,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Who receives your contribution</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Contributions are processed by Stripe and received by Civenro, the
+          Contributions are processed by Stripe and received by Govroll, the
           operator of this platform.
         </p>
       </section>
@@ -57,11 +57,11 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Recurring contributions</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          If you choose to support Civenro monthly, your card will be charged
+          If you choose to support Govroll monthly, your card will be charged
           the same amount on the same day each month until you cancel. You can
           cancel at any time by replying to any receipt email or emailing{" "}
           <span className="text-foreground font-medium">
-            support@civenro.com
+            support@govroll.com
           </span>
           . Cancellations take effect immediately and no further charges will
           be made. Canceling does not refund prior months.
@@ -71,7 +71,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Display of your contribution</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          By default, contributions are shown anonymously on Civenro&apos;s{" "}
+          By default, contributions are shown anonymously on Govroll&apos;s{" "}
           <Link href="/made-possible-by" className="text-primary hover:underline">
             Made possible by
           </Link>{" "}
@@ -87,7 +87,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Refund policy</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          All contributions to Civenro are considered final and
+          All contributions to Govroll are considered final and
           non-refundable, with two exceptions:
         </p>
         <ol className="text-sm text-muted-foreground leading-relaxed list-decimal pl-5 space-y-2">
@@ -96,7 +96,7 @@ export default function TermsPage() {
             accidentally contributed the wrong amount, made a duplicate
             contribution, or contributed in error, email{" "}
             <span className="text-foreground font-medium">
-              support@civenro.com
+              support@govroll.com
             </span>{" "}
             within 14 days of the charge and we will refund the transaction in
             full.
@@ -119,7 +119,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Name display and moderation</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Civenro&apos;s Made possible by page celebrates the people who fund
+          Govroll&apos;s Made possible by page celebrates the people who fund
           this platform. To keep that space focused on individual supporters
           rather than organizations or political messaging, the following
           rules apply:
@@ -171,7 +171,7 @@ export default function TermsPage() {
           deletion of your contribution record entirely (subject to legal
           record-keeping requirements), at any time by contacting{" "}
           <span className="text-foreground font-medium">
-            support@civenro.com
+            support@govroll.com
           </span>
           .
         </p>

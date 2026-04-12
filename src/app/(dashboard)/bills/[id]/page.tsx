@@ -23,7 +23,7 @@ export async function generateMetadata({
   });
 
   return {
-    title: bill ? `${bill.title} — Civenro` : "Bill — Civenro",
+    title: bill ? `${bill.title} — Govroll` : "Bill — Govroll",
   };
 }
 
