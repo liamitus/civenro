@@ -43,13 +43,50 @@ export function AddressAutocomplete({
     abortRef.current = controller;
 
     try {
+      // Call Photon directly from the browser — no API key needed,
+      // avoids Vercel serverless cold-start latency (~0.5s vs ~8s).
+      const params = new URLSearchParams({
+        q: query,
+        limit: "5",
+        lang: "en",
+        lat: "39.8",
+        lon: "-98.5",
+      });
       const res = await fetch(
-        `/api/address/autocomplete?q=${encodeURIComponent(query)}`,
+        `https://photon.komoot.io/api/?${params}&layer=house&layer=street`,
         { signal: controller.signal },
       );
       if (!res.ok) return;
-      const data: Suggestion[] = await res.json();
-      setSuggestions(data);
+
+      interface PhotonFeature {
+        properties: {
+          name?: string;
+          housenumber?: string;
+          street?: string;
+          city?: string;
+          state?: string;
+          postcode?: string;
+          countrycode?: string;
+        };
+      }
+      const data: { features: PhotonFeature[] } = await res.json();
+
+      const results = data.features
+        .filter((f) => f.properties.countrycode?.toLowerCase() === "us")
+        .map((f) => {
+          const p = f.properties;
+          const street = [p.housenumber, p.street || p.name]
+            .filter(Boolean)
+            .join(" ");
+          const parts = [
+            street,
+            p.city,
+            [p.state, p.postcode].filter(Boolean).join(" "),
+          ].filter(Boolean);
+          return { label: parts.join(", ") };
+        });
+
+      setSuggestions(results);
       setPhase("done");
       setActiveIndex(-1);
     } catch (e) {
