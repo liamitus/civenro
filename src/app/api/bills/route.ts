@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const filters: Record<string, unknown> = {};
 
   if (chamber && chamber !== "both") {
-    filters.currentChamber = chamber.toLowerCase();
+    filters.billType = { startsWith: chamber.toLowerCase() };
   }
 
   if (status && statusMapping[status]) {
