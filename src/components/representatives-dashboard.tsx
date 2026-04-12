@@ -167,7 +167,6 @@ export function RepresentativesDashboard() {
               >
                 <div className="p-5">
                   <div className="flex gap-4">
-                    {/* Photo — served via our caching proxy */}
                     <div className="relative w-20 h-24 rounded overflow-hidden bg-muted flex-shrink-0">
                       {rep.bioguideId ? (
                         <img
@@ -176,12 +175,16 @@ export function RepresentativesDashboard() {
                           className="w-full h-full object-cover object-top select-none pointer-events-none"
                           draggable={false}
                           loading="lazy"
+                          onError={(e) => {
+                            const el = e.currentTarget;
+                            el.style.display = "none";
+                            el.parentElement!.querySelector("[data-fallback]")!.removeAttribute("hidden");
+                          }}
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xl font-medium">
-                          {rep.firstName?.[0]}{rep.lastName?.[0]}
-                        </div>
-                      )}
+                      ) : null}
+                      <div data-fallback hidden={!!rep.bioguideId} className="w-full h-full flex items-center justify-center text-muted-foreground text-xl font-medium">
+                        {rep.firstName?.[0]}{rep.lastName?.[0]}
+                      </div>
                     </div>
 
                     {/* Info */}

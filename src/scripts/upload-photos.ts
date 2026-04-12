@@ -13,8 +13,10 @@ import { createStandalonePrisma } from "../lib/prisma-standalone";
  */
 
 const BUCKET = "photos";
-const SOURCE_URL =
+const GITHUB_URL =
   "https://raw.githubusercontent.com/unitedstates/images/gh-pages/congress/225x275";
+const BIOGUIDE_URL =
+  "https://bioguide.congress.gov/bioguide/photo";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,17 +68,28 @@ async function main() {
     }
 
     try {
-      const res = await fetch(`${SOURCE_URL}/${filename}`, {
-        headers: { "User-Agent": "Civenro/1.0 (one-time photo sync)" },
-      });
+      // Try GitHub first (faster CDN), fall back to bioguide.congress.gov
+      const urls = [
+        `${GITHUB_URL}/${filename}`,
+        `${BIOGUIDE_URL}/${rep.bioguideId[0]}/${filename}`,
+      ];
 
-      if (!res.ok) {
-        console.warn(`  ${rep.bioguideId}: ${res.status} from GitHub, skipping`);
+      let buffer: Buffer | null = null;
+      for (const url of urls) {
+        const res = await fetch(url, {
+          headers: { "User-Agent": "Civenro/1.0 (one-time photo sync)" },
+        });
+        if (res.ok) {
+          buffer = Buffer.from(await res.arrayBuffer());
+          break;
+        }
+      }
+
+      if (!buffer) {
+        console.warn(`  ${rep.bioguideId}: not found on any source, skipping`);
         failed++;
         continue;
       }
-
-      const buffer = Buffer.from(await res.arrayBuffer());
 
       const { error } = await supabase.storage
         .from(BUCKET)

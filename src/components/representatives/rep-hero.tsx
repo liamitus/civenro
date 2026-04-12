@@ -19,13 +19,17 @@ export function RepHero({ rep }: RepHeroProps) {
             alt={`${rep.firstName} ${rep.lastName}`}
             className="w-full h-full object-cover object-top select-none pointer-events-none"
             draggable={false}
+            onError={(e) => {
+              const el = e.currentTarget;
+              el.style.display = "none";
+              el.parentElement!.querySelector("[data-fallback]")!.removeAttribute("hidden");
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-2xl font-medium">
-            {rep.firstName?.[0]}
-            {rep.lastName?.[0]}
-          </div>
-        )}
+        ) : null}
+        <div data-fallback hidden={!!rep.bioguideId} className="w-full h-full flex items-center justify-center text-muted-foreground text-2xl font-medium">
+          {rep.firstName?.[0]}
+          {rep.lastName?.[0]}
+        </div>
       </div>
 
       {/* Info */}
