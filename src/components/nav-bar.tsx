@@ -13,15 +13,18 @@ import {
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { useAddress } from "@/hooks/use-address";
 
 export function NavBar() {
   const { user, loading, signOut } = useAuth();
+  const { address, isLoaded } = useAddress();
   const [authOpen, setAuthOpen] = useState(false);
+  const logoHref = isLoaded && address ? "/bills" : "/";
 
   return (
     <header className="sticky top-0 z-50 bg-navy border-b border-white/10">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href={logoHref} className="flex items-center gap-2 group">
           <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
           <span className="text-white text-base font-semibold tracking-wide uppercase">
             Govroll
