@@ -30,6 +30,14 @@ export function BudgetThermometer({
   const incomeDollars = (incomeCents / 100).toFixed(0);
   const target = Math.max(totalCostCents, 1);
   const pct = Math.min(Math.round((incomeCents / target) * 100), 100);
+  const funded = incomeCents >= totalCostCents;
+
+  // Three-tier status: Funded > Needs Support > AI Paused
+  const status = !aiEnabled
+    ? { label: "AI Paused", bg: "bg-red-100 text-red-800" }
+    : funded
+      ? { label: "Funded", bg: "bg-green-100 text-green-800" }
+      : { label: "Needs Support", bg: "bg-amber-100 text-amber-800" };
 
   // Format period: "2026-04" → "April 2026"
   const [year, month] = period.split("-");
@@ -38,48 +46,47 @@ export function BudgetThermometer({
     { month: "long" }
   );
 
+  // Card style follows status
+  const cardBg = !aiEnabled
+    ? "bg-red-50 border-red-200"
+    : funded
+      ? "bg-card"
+      : "bg-amber-50 border-amber-200";
+
   return (
-    <div
-      className={`rounded-lg border p-5 space-y-3 ${
-        aiEnabled ? "bg-card" : "bg-red-50 border-red-200"
-      }`}
-    >
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">
+    <div className={`rounded-xl border p-8 space-y-5 ${cardBg}`}>
+      <div className="flex items-center justify-between text-lg">
+        <span className="font-semibold">
           {monthName} {year} Running Costs
         </span>
         <span
-          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-            aiEnabled
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
+          className={`text-base font-semibold px-3 py-1 rounded-full ${status.bg}`}
         >
-          {aiEnabled ? "AI Active" : "AI Paused"}
+          {status.label}
         </span>
       </div>
 
       {/* Bar */}
-      <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+      <div className="w-full h-5 bg-muted rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-700 ${
-            aiEnabled ? "bg-navy" : "bg-red-500"
+            !aiEnabled ? "bg-red-500" : funded ? "bg-navy" : "bg-amber-500"
           }`}
           style={{ width: `${pct}%` }}
         />
       </div>
 
-      <div className="flex justify-between text-xs text-muted-foreground">
+      <div className="flex justify-between text-base text-muted-foreground">
         <span>${incomeDollars} raised</span>
         <span>${totalDollars} to run this month</span>
       </div>
 
       {/* Cost breakdown */}
-      <details className="text-xs text-muted-foreground">
+      <details className="text-base text-muted-foreground">
         <summary className="cursor-pointer hover:text-foreground transition-colors">
           What does this cover?
         </summary>
-        <ul className="mt-2 space-y-1 pl-4">
+        <ul className="mt-4 space-y-2 pl-4">
           {FIXED_MONTHLY_COSTS.filter((item) => item.monthlyCents > 0).map(
             (item) => (
               <li key={item.name} className="flex justify-between">
@@ -103,15 +110,15 @@ export function BudgetThermometer({
               </span>
             </span>
             <span className="font-mono">
-              ~${(aiCostCents / 100).toFixed(0)}
+              ${(aiCostCents / 100).toFixed(0)}
             </span>
           </li>
-          <li className="flex justify-between border-t pt-1 font-medium text-foreground">
+          <li className="flex justify-between border-t pt-2 font-medium text-foreground">
             <span>Total</span>
-            <span className="font-mono">~${totalDollars}</span>
+            <span className="font-mono">${totalDollars}</span>
           </li>
         </ul>
-        <p className="mt-2 text-muted-foreground/60">
+        <p className="mt-4 text-muted-foreground/60">
           Hosting and database are free for now — these costs will grow with
           traffic.{" "}
           <a
@@ -126,10 +133,17 @@ export function BudgetThermometer({
       </details>
 
       {!aiEnabled && (
-        <p className="text-sm text-red-700 font-medium">
+        <p className="text-base text-red-700 font-medium">
           AI features are paused this month because costs have exceeded what
           citizens have chipped in. When more people contribute, they come back
           online for everyone.
+        </p>
+      )}
+
+      {aiEnabled && !funded && (
+        <p className="text-base text-amber-800 font-medium">
+          AI is active but not yet funded this month. Contributions keep it
+          running for everyone.
         </p>
       )}
     </div>

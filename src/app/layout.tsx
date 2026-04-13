@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Gelasio, Roboto, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
 import { Footer } from "@/components/footer";
 import { BfcacheReload } from "@/components/bfcache-reload";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const roboto = Roboto({
+  variable: "--font-roboto",
   subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const gelasio = Gelasio({
+  variable: "--font-gelasio",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -36,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${roboto.variable} ${geistMono.variable} ${gelasio.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <BfcacheReload />

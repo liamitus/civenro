@@ -26,7 +26,7 @@ export function NavBar() {
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link href={logoHref} className="flex items-center gap-2 group">
           <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
-          <span className="text-white text-base font-semibold tracking-wide uppercase">
+          <span className="text-white text-base font-semibold tracking-wide uppercase font-heading">
             Govroll
           </span>
           <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
