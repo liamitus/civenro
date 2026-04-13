@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { reportError } from "@/lib/error-reporting";
 
 export async function GET(
   _request: Request,
@@ -18,6 +19,7 @@ export async function GET(
     return NextResponse.json(bill);
   } catch (error) {
     console.error("Error fetching bill:", error);
+    reportError(error, { route: "GET /api/bills/[id]", billId });
     return NextResponse.json(
       { error: "Failed to fetch bill" },
       { status: 500 }

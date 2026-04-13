@@ -9,6 +9,7 @@ export function BillListClient() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [chamber, setChamber] = useState("both");
   const [status, setStatus] = useState("");
@@ -34,6 +35,9 @@ export function BillListClient() {
         const data = await res.json();
         setBills((prev) => (append ? [...prev, ...data.bills] : data.bills));
         setTotal(data.total);
+        setError(null);
+      } else {
+        setError("Something went wrong loading bills. Please try again.");
       }
       setLoading(false);
     },
@@ -141,7 +145,13 @@ export function BillListClient() {
         </div>
       )}
 
-      {!loading && bills.length === 0 && (
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && bills.length === 0 && (
         <div className="py-16 text-center">
           <p className="text-sm text-muted-foreground">
             No bills found matching your filters.

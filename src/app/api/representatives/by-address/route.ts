@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRepresentativesByAddress } from "@/lib/civic-api";
+import { reportError } from "@/lib/error-reporting";
 
 export async function POST(request: NextRequest) {
   const { address } = await request.json();
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching representatives by address:", error);
+    reportError(error, { route: "POST /api/representatives/by-address", address });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to look up representatives" },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { statusMapping } from "@/lib/status-mapping";
+import { reportError } from "@/lib/error-reporting";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ total, page, pageSize: limit, bills });
   } catch (error) {
     console.error("Error fetching bills:", error);
+    reportError(error, { route: "GET /api/bills", filters, sortBy });
     return NextResponse.json(
       { error: "Failed to fetch bills" },
       { status: 500 }
