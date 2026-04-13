@@ -32,12 +32,8 @@ export const FIXED_MONTHLY_COSTS: CostLineItem[] = [
   },
 ];
 
-/**
- * Minimum expected AI spend per month. Early on, actual usage may be near
- * zero, but this floor reflects what we expect once citizens are actively
- * using summaries and chat. Keeps the thermometer honest.
- */
-export const AI_FLOOR_CENTS = 3000; // $30/mo
+/** Buffer added on top of the AI estimate so we don't run dry mid-month. */
+export const AI_BUFFER_CENTS = 500; // $5
 
 /** Total fixed costs in cents per month. */
 export const FIXED_TOTAL_CENTS = FIXED_MONTHLY_COSTS.reduce(
@@ -46,9 +42,28 @@ export const FIXED_TOTAL_CENTS = FIXED_MONTHLY_COSTS.reduce(
 );
 
 /**
- * Total monthly cost = fixed infrastructure + variable AI spend (with floor).
+ * Estimated AI cost for this month:
+ *   max(last month's total, this month so far) + $5 buffer
+ *
+ * Adapts to real usage — grows as the site grows, never undershoots.
+ */
+export function estimatedAiCostCents(
+  thisMonthSpendCents: number,
+  lastMonthSpendCents: number
+): number {
+  return Math.max(thisMonthSpendCents, lastMonthSpendCents) + AI_BUFFER_CENTS;
+}
+
+/**
+ * Total monthly cost = fixed infrastructure + estimated AI spend.
  * This is the real number it costs to keep Govroll online.
  */
-export function totalMonthlyCostCents(aiSpendCents: number): number {
-  return FIXED_TOTAL_CENTS + Math.max(aiSpendCents, AI_FLOOR_CENTS);
+export function totalMonthlyCostCents(
+  thisMonthSpendCents: number,
+  lastMonthSpendCents: number
+): number {
+  return (
+    FIXED_TOTAL_CENTS +
+    estimatedAiCostCents(thisMonthSpendCents, lastMonthSpendCents)
+  );
 }

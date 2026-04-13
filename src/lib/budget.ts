@@ -29,6 +29,20 @@ export function currentPeriod(now: Date = new Date()): string {
   return `${y}-${m}`;
 }
 
+export function previousPeriod(now: Date = new Date()): string {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  return currentPeriod(d);
+}
+
+/** AI spend from the previous month, or 0 if no ledger row exists. */
+export async function previousMonthSpendCents(): Promise<number> {
+  const row = await prisma.budgetLedger.findUnique({
+    where: { period: previousPeriod() },
+    select: { spendCents: true },
+  });
+  return row?.spendCents ?? 0;
+}
+
 /**
  * Read (or bootstrap) the ledger row for the given period. Bootstraps with
  * aiEnabled=true on the assumption that a fresh month starts from zero and

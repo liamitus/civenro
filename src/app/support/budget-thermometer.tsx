@@ -1,6 +1,10 @@
 "use client";
 
-import { FIXED_MONTHLY_COSTS, AI_FLOOR_CENTS, totalMonthlyCostCents } from "@/lib/site-costs";
+import {
+  FIXED_MONTHLY_COSTS,
+  estimatedAiCostCents,
+  totalMonthlyCostCents,
+} from "@/lib/site-costs";
 
 /**
  * Budget thermometer — shows how much of the total monthly running costs
@@ -10,16 +14,18 @@ import { FIXED_MONTHLY_COSTS, AI_FLOOR_CENTS, totalMonthlyCostCents } from "@/li
 export function BudgetThermometer({
   incomeCents,
   spendCents,
+  lastMonthSpendCents,
   aiEnabled,
   period,
 }: {
   incomeCents: number;
   spendCents: number;
+  lastMonthSpendCents: number;
   aiEnabled: boolean;
   period: string;
 }) {
-  const aiCostCents = Math.max(spendCents, AI_FLOOR_CENTS);
-  const totalCostCents = totalMonthlyCostCents(spendCents);
+  const aiCostCents = estimatedAiCostCents(spendCents, lastMonthSpendCents);
+  const totalCostCents = totalMonthlyCostCents(spendCents, lastMonthSpendCents);
   const totalDollars = (totalCostCents / 100).toFixed(0);
   const incomeDollars = (incomeCents / 100).toFixed(0);
   const target = Math.max(totalCostCents, 1);

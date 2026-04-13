@@ -1,4 +1,8 @@
-import { getBudgetSnapshot, getTypicalDonationCents } from "@/lib/budget";
+import {
+  getBudgetSnapshot,
+  getTypicalDonationCents,
+  previousMonthSpendCents,
+} from "@/lib/budget";
 import { totalMonthlyCostCents } from "@/lib/site-costs";
 import { prisma } from "@/lib/prisma";
 import { DonateForm } from "./donate-form";
@@ -15,15 +19,20 @@ export const dynamic = "force-dynamic";
 export const revalidate = 300; // 5 min cache
 
 export default async function SupportPage() {
-  const [snapshot, typicalCents, donorCount] = await Promise.all([
-    getBudgetSnapshot(),
-    getTypicalDonationCents(),
-    prisma.donation.count({
-      where: { moderationStatus: { in: ["APPROVED", "PENDING"] } },
-    }),
-  ]);
+  const [snapshot, typicalCents, donorCount, lastMonthSpend] =
+    await Promise.all([
+      getBudgetSnapshot(),
+      getTypicalDonationCents(),
+      prisma.donation.count({
+        where: { moderationStatus: { in: ["APPROVED", "PENDING"] } },
+      }),
+      previousMonthSpendCents(),
+    ]);
 
-  const totalCostCents = totalMonthlyCostCents(snapshot.spendCents);
+  const totalCostCents = totalMonthlyCostCents(
+    snapshot.spendCents,
+    lastMonthSpend
+  );
   const funded = snapshot.incomeCents >= totalCostCents;
 
   return (
@@ -48,6 +57,7 @@ export default async function SupportPage() {
       <BudgetThermometer
         incomeCents={snapshot.incomeCents}
         spendCents={snapshot.spendCents}
+        lastMonthSpendCents={lastMonthSpend}
         aiEnabled={snapshot.aiEnabled}
         period={snapshot.period}
       />
