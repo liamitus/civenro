@@ -32,6 +32,9 @@ export const FIXED_MONTHLY_COSTS: CostLineItem[] = [
   },
 ];
 
+/** Baseline AI estimate before there's real usage history. */
+export const AI_FLOOR_CENTS = 3000; // $30/mo
+
 /** Buffer added on top of the AI estimate so we don't run dry mid-month. */
 export const AI_BUFFER_CENTS = 500; // $5
 
@@ -51,7 +54,10 @@ export function estimatedAiCostCents(
   thisMonthSpendCents: number,
   lastMonthSpendCents: number
 ): number {
-  return Math.max(thisMonthSpendCents, lastMonthSpendCents) + AI_BUFFER_CENTS;
+  return (
+    Math.max(thisMonthSpendCents, lastMonthSpendCents, AI_FLOOR_CENTS) +
+    AI_BUFFER_CENTS
+  );
 }
 
 /**
