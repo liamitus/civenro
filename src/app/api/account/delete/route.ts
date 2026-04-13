@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/lib/prisma";
+import { reportError } from "@/lib/error-reporting";
 
 export async function DELETE() {
   const supabase = await createSupabaseServerClient();
@@ -64,6 +65,7 @@ export async function DELETE() {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Error deleting account:", err);
+    reportError(err, { route: "DELETE /api/account/delete" });
     return NextResponse.json(
       { error: "Failed to delete account. Contact support." },
       { status: 500 }

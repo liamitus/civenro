@@ -22,7 +22,7 @@ async function geocodeAddress(address: string): Promise<GeocodingResult | null> 
     const encoded = encodeURIComponent(address);
     const url = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encoded}&benchmark=Public_AR_Current&vintage=Current_Current&layers=54&format=json`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return null;
 
     const data = await res.json();

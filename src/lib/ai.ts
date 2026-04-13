@@ -51,7 +51,7 @@ async function callAnthropic(
   maxTokens = 2048,
 ): Promise<ChatResponse> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 30_000 });
 
   const response = await client.messages.create({
     model: ANTHROPIC_MODEL,
@@ -80,7 +80,7 @@ async function callOpenAI(
   maxTokens = 2048,
 ): Promise<ChatResponse> {
   const { default: OpenAI } = await import("openai");
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000 });
 
   const response = await client.chat.completions.create({
     model: OPENAI_MODEL,

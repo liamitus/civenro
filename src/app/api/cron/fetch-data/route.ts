@@ -4,6 +4,7 @@ import { fetchBillTextFunction } from "@/scripts/fetch-bill-text";
 import { fetchBillActionsFunction } from "@/scripts/fetch-bill-actions";
 import { fetchVotesFunction } from "@/scripts/fetch-votes";
 import { fetchRepresentativesFunction } from "@/scripts/fetch-representatives";
+import { reportError } from "@/lib/error-reporting";
 
 /**
  * Single daily cron that keeps all legislative data fresh.
@@ -99,6 +100,14 @@ export async function GET(request: Request) {
 
   const totalMs = Date.now() - start;
   console.log(`[fetch-data] completed in ${totalMs}ms:`, JSON.stringify(results));
+
+  const failures = results.filter((r) => r.status === "error");
+  if (failures.length > 0) {
+    await reportError(
+      new Error(`fetch-data cron: ${failures.map((f) => f.stage).join(", ")} failed`),
+      { stages: results, totalMs }
+    );
+  }
 
   return NextResponse.json({
     ok: results.every((r) => r.status === "ok" || r.status === "skipped"),

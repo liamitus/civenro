@@ -3,7 +3,13 @@ import { getRepresentativesByAddress } from "@/lib/civic-api";
 import { reportError } from "@/lib/error-reporting";
 
 export async function POST(request: NextRequest) {
-  const { address } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { address } = body;
 
   if (!address) {
     return NextResponse.json(

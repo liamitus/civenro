@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ total, page, pageSize: limit, bills });
   } catch (error) {
-    console.error("Error fetching bills:", error);
+    console.error(JSON.stringify({ event: "api_error", route: "GET /api/bills", error: error instanceof Error ? error.message : String(error) }));
     reportError(error, { route: "GET /api/bills", filters, sortBy });
     return NextResponse.json(
       { error: "Failed to fetch bills" },

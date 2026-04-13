@@ -8,6 +8,7 @@ import { assertAiEnabled, AiDisabledError } from "@/lib/ai-gate";
 import { recordSpend } from "@/lib/budget";
 import { assertUserRateLimit, RateLimitError } from "@/lib/rate-limit";
 import { getCachedResponse, setCachedResponse } from "@/lib/ai-cache";
+import { reportError } from "@/lib/error-reporting";
 
 /** Max characters allowed in a single user message. */
 const MAX_MESSAGE_LENGTH = 2000;
@@ -242,7 +243,8 @@ export async function POST(request: NextRequest) {
     if (error instanceof AiDisabledError) {
       return NextResponse.json(error.toJSON(), { status: 503 });
     }
-    console.error("Error in /ai/chat route:", error);
+    console.error(JSON.stringify({ event: "api_error", route: "POST /api/ai/chat", error: error instanceof Error ? error.message : String(error) }));
+    reportError(error, { route: "POST /api/ai/chat" });
     return NextResponse.json(
       { error: "Internal server error." },
       { status: 500 }

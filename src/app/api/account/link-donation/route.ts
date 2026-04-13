@@ -19,7 +19,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Sign in to link a donation." }, { status: 401 });
   }
 
-  const { token } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { token } = body;
   if (!token || typeof token !== "string") {
     return NextResponse.json({ error: "Token is required." }, { status: 400 });
   }

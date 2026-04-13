@@ -3,7 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { getRepresentativesByAddress } from "@/lib/civic-api";
 
 export async function POST(request: NextRequest) {
-  const { address, billId } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { address, billId } = body;
 
   if (!address || !billId) {
     return NextResponse.json(

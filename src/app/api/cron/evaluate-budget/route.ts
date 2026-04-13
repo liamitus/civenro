@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { evaluateAiEnabled } from "@/lib/budget";
 import { invalidateAiGateCache } from "@/lib/ai-gate";
+import { reportError } from "@/lib/error-reporting";
 
 /**
  * Hourly Vercel cron. Recomputes `aiEnabled` for the current period and
@@ -21,17 +22,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const snapshot = await evaluateAiEnabled();
-  invalidateAiGateCache();
+  try {
+    const snapshot = await evaluateAiEnabled();
+    invalidateAiGateCache();
 
-  return NextResponse.json({
-    ok: true,
-    period: snapshot.period,
-    aiEnabled: snapshot.aiEnabled,
-    incomeCents: snapshot.incomeCents,
-    spendCents: snapshot.spendCents,
-    reserveCents: snapshot.reserveCents,
-    availableCents: snapshot.availableCents,
-    evaluatedAt: new Date().toISOString(),
-  });
+    return NextResponse.json({
+      ok: true,
+      period: snapshot.period,
+      aiEnabled: snapshot.aiEnabled,
+      incomeCents: snapshot.incomeCents,
+      spendCents: snapshot.spendCents,
+      reserveCents: snapshot.reserveCents,
+      availableCents: snapshot.availableCents,
+      evaluatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    await reportError(error, { cron: "evaluate-budget" });
+    return NextResponse.json(
+      { ok: false, error: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
 }

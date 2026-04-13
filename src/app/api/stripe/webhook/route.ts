@@ -6,6 +6,7 @@ import { recordIncome } from "@/lib/budget";
 import { invalidateAiGateCache } from "@/lib/ai-gate";
 import { moderateName } from "@/lib/moderation/pipeline";
 import { randomBytes } from "crypto";
+import { reportError } from "@/lib/error-reporting";
 
 /**
  * POST /api/stripe/webhook
@@ -62,7 +63,8 @@ export async function POST(request: NextRequest) {
         break;
     }
   } catch (err) {
-    console.error(`Webhook handler error (${event.type}):`, err);
+    console.error(JSON.stringify({ event: "webhook_error", route: "POST /api/stripe/webhook", eventType: event.type, error: err instanceof Error ? err.message : String(err) }));
+    reportError(err, { route: "POST /api/stripe/webhook", eventType: event.type });
     return NextResponse.json(
       { error: "Webhook handler failed." },
       { status: 500 }

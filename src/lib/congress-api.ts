@@ -6,8 +6,29 @@ import { BillXmlParser, type ParsedChunk } from "./bill-xml-parser";
 const CONGRESS_API_KEY =
   process.env.CONGRESS_DOT_GOV_API_KEY || "DEMO_KEY";
 
+/**
+ * Retry wrapper with linear backoff for transient API failures.
+ * Used by cron pipeline calls — not user-facing requests.
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = 2,
+  delayMs = 1000,
+): Promise<T> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i === retries) throw e;
+      await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+  throw new Error("unreachable");
+}
+
 const congressApiClient = axios.create({
   baseURL: "https://api.congress.gov/v3",
+  timeout: 15_000,
   headers: { "User-Agent": "Govroll/1.0 (civic transparency platform)" },
   // format=json is required — the API defaults to XML when omitted, which silently
   // breaks every JSON-shaped response handler in this file.
@@ -35,8 +56,8 @@ export async function fetchAllTextVersions(
   billNumber: number,
 ): Promise<TextVersionMeta[]> {
   try {
-    const response = await congressApiClient.get(
-      `/bill/${congress}/${apiBillType}/${billNumber}/text`,
+    const response = await withRetry(() =>
+      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/text`),
     );
 
     const versions = response.data?.textVersions as TextVersionMeta[];
@@ -67,8 +88,8 @@ export async function fetchLatestTextVersion(
   billNumber: number
 ): Promise<TextVersion | null> {
   try {
-    const response = await congressApiClient.get(
-      `/bill/${congress}/${apiBillType}/${billNumber}/text`
+    const response = await withRetry(() =>
+      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/text`),
     );
 
     const textVersions = response.data?.textVersions as TextVersion[];
@@ -110,10 +131,10 @@ export async function downloadTextFormats(
   }
 
   try {
-    const { data: rawXml } = await axios.get(xmlFormat.url);
+    const { data: rawXml } = await axios.get(xmlFormat.url, { timeout: 15_000 });
     let rawText: string | null = null;
     if (textFormat?.url) {
-      const { data } = await axios.get(textFormat.url);
+      const { data } = await axios.get(textFormat.url, { timeout: 15_000 });
       rawText = typeof data === "string" ? data : null;
     }
     return {
@@ -146,9 +167,10 @@ export async function fetchBillActions(
   billNumber: number,
 ): Promise<CongressAction[] | null> {
   try {
-    const response = await congressApiClient.get(
-      `/bill/${congress}/${apiBillType}/${billNumber}/actions`,
-      { params: { limit: 250 } },
+    const response = await withRetry(() =>
+      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/actions`, {
+        params: { limit: 250 },
+      }),
     );
 
     const actions = response.data?.actions;
@@ -186,8 +208,8 @@ export async function fetchOfficialBillTitle(
   billNumber: number,
 ): Promise<string | null> {
   try {
-    const response = await congressApiClient.get(
-      `/bill/${congress}/${apiBillType}/${billNumber}`,
+    const response = await withRetry(() =>
+      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
     );
     return response.data?.bill?.title || null;
   } catch (error: unknown) {
@@ -219,12 +241,14 @@ export async function fetchBillMetadata(
 ): Promise<BillMetadata | null> {
   try {
     const [billRes, cosponsorsRes] = await Promise.all([
-      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
-      congressApiClient
-        .get(`/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`, {
+      withRetry(() =>
+        congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
+      ),
+      withRetry(() =>
+        congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`, {
           params: { limit: 250 },
-        })
-        .catch(() => null),
+        }),
+      ).catch(() => null),
     ]);
 
     const bill = billRes.data?.bill;

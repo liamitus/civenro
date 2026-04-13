@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { reportError } from "@/lib/error-reporting";
 
 export async function POST(request: NextRequest) {
   const { userId, username, error } = await getAuthenticatedUser();
   if (error) return error;
 
-  const { billId, content, parentCommentId } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { billId, content, parentCommentId } = body;
 
   if (!billId || !content) {
     return NextResponse.json(
@@ -57,7 +64,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(comment, { status: 201 });
   } catch (err) {
-    console.error("Error submitting comment:", err);
+    console.error(JSON.stringify({ event: "api_error", route: "POST /api/comments", error: err instanceof Error ? err.message : String(err) }));
+    reportError(err, { route: "POST /api/comments" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
