@@ -1,9 +1,10 @@
 "use client";
 
+import { FIXED_MONTHLY_COSTS, AI_FLOOR_CENTS, totalMonthlyCostCents } from "@/lib/site-costs";
+
 /**
- * Budget thermometer — shows how much of the monthly AI budget has been
- * covered by reader contributions. When AI is paused, this section becomes
- * the dominant visual to drive conversion.
+ * Budget thermometer — shows how much of the total monthly running costs
+ * have been covered by citizen contributions.
  */
 
 export function BudgetThermometer({
@@ -17,9 +18,11 @@ export function BudgetThermometer({
   aiEnabled: boolean;
   period: string;
 }) {
+  const aiCostCents = Math.max(spendCents, AI_FLOOR_CENTS);
+  const totalCostCents = totalMonthlyCostCents(spendCents);
+  const totalDollars = (totalCostCents / 100).toFixed(0);
   const incomeDollars = (incomeCents / 100).toFixed(0);
-  const spendDollars = (spendCents / 100).toFixed(0);
-  const target = Math.max(spendCents, 1); // avoid division by zero
+  const target = Math.max(totalCostCents, 1);
   const pct = Math.min(Math.round((incomeCents / target) * 100), 100);
 
   // Format period: "2026-04" → "April 2026"
@@ -32,14 +35,12 @@ export function BudgetThermometer({
   return (
     <div
       className={`rounded-lg border p-5 space-y-3 ${
-        aiEnabled
-          ? "bg-card"
-          : "bg-red-50 border-red-200"
+        aiEnabled ? "bg-card" : "bg-red-50 border-red-200"
       }`}
     >
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">
-          {monthName} {year} AI Budget
+          {monthName} {year} Running Costs
         </span>
         <span
           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
@@ -64,13 +65,59 @@ export function BudgetThermometer({
 
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>${incomeDollars} raised</span>
-        <span>${spendDollars} AI costs</span>
+        <span>${totalDollars} to run this month</span>
       </div>
+
+      {/* Cost breakdown */}
+      <details className="text-xs text-muted-foreground">
+        <summary className="cursor-pointer hover:text-foreground transition-colors">
+          What does this cover?
+        </summary>
+        <ul className="mt-2 space-y-1 pl-4">
+          {FIXED_MONTHLY_COSTS.map((item) => (
+            <li key={item.name} className="flex justify-between">
+              <span>
+                {item.name}{" "}
+                <span className="text-muted-foreground/60">— {item.note}</span>
+              </span>
+              <span className="font-mono">
+                ${(item.monthlyCents / 100).toFixed(0)}
+              </span>
+            </li>
+          ))}
+          <li className="flex justify-between">
+            <span>
+              AI APIs{" "}
+              <span className="text-muted-foreground/60">
+                — summaries, chat, analysis
+              </span>
+            </span>
+            <span className="font-mono">
+              ${(aiCostCents / 100).toFixed(0)}
+            </span>
+          </li>
+          <li className="flex justify-between border-t pt-1 font-medium text-foreground">
+            <span>Total</span>
+            <span className="font-mono">${totalDollars}</span>
+          </li>
+        </ul>
+        <p className="mt-2">
+          <a
+            href="https://github.com/liamitus/govroll/blob/main/src/lib/site-costs.ts"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            See the source code for these numbers
+          </a>
+        </p>
+      </details>
 
       {!aiEnabled && (
         <p className="text-sm text-red-700 font-medium">
-          Govroll&apos;s AI features are paused this month because costs have
-          exceeded reader support. Your contribution brings them back online.
+          AI features are paused this month because costs have exceeded what
+          citizens have chipped in. When more people contribute, they come back
+          online for everyone.
         </p>
       )}
     </div>

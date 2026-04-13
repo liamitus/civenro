@@ -168,7 +168,7 @@ export function DonateForm({
         <div>
           <span className="text-sm font-medium">Support monthly</span>
           <span className="block text-xs text-muted-foreground">
-            Predictable support keeps AI features online. Cancel anytime.
+            Predictable support keeps Govroll running. Cancel anytime.
           </span>
         </div>
       </label>

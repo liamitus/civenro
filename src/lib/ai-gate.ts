@@ -3,7 +3,7 @@ import { getBudgetSnapshot, type BudgetSnapshot } from "@/lib/budget";
 /**
  * Thrown by `assertAiEnabled` when AI features are currently unavailable.
  * API routes should catch this and return a structured 503 so the frontend
- * can render the "supported by readers" degraded state.
+ * can render the paused/degraded state.
  */
 export class AiDisabledError extends Error {
   readonly reason: "budget" | "manual";
@@ -22,7 +22,7 @@ export class AiDisabledError extends Error {
       error: "ai_disabled",
       reason: this.reason,
       message:
-        "Govroll's AI features are funded by readers and are currently paused for this period.",
+        "Govroll's AI features are funded by citizens and are currently paused for this period.",
       donateUrl: this.donateUrl,
       budget: {
         incomeCents: this.snapshot.incomeCents,

@@ -1,13 +1,14 @@
 import { getBudgetSnapshot, getTypicalDonationCents } from "@/lib/budget";
+import { totalMonthlyCostCents } from "@/lib/site-costs";
 import { prisma } from "@/lib/prisma";
 import { DonateForm } from "./donate-form";
 import { BudgetThermometer } from "./budget-thermometer";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Support Govroll — Keep Civic Transparency Running",
+  title: "Support Govroll — Keep Civic Tools Free",
   description:
-    "Govroll is supported by readers, not lobbyists. Your contribution keeps AI-powered bill analysis and civic tools free for everyone.",
+    "Govroll is supported by citizens, not lobbyists. See exactly what it costs to run each month — and chip in if you want to.",
 };
 
 export const dynamic = "force-dynamic";
@@ -22,21 +23,24 @@ export default async function SupportPage() {
     }),
   ]);
 
+  const totalCostCents = totalMonthlyCostCents(snapshot.spendCents);
+  const funded = snapshot.incomeCents >= totalCostCents;
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 space-y-10">
       {/* Hero */}
       <header className="text-center space-y-3">
         <p className="text-civic-gold text-sm tracking-widest uppercase star-accent">
-          Reader-Supported
+          Citizen-Supported
         </p>
         <h1 className="text-3xl font-bold tracking-tight">
-          Govroll is supported by readers,{" "}
+          Govroll is supported by citizens,{" "}
           <span className="text-navy-light">not lobbyists.</span>
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
-          Every AI summary, every vote tracker, and every civic tool on Govroll
-          is funded by people like you. No ads. No corporate sponsors. No
-          paywalls.
+          This site costs real money to run — hosting, database, AI&nbsp;APIs.
+          No ads. No corporate sponsors. No paywalls. Just citizens chipping in
+          to keep it free for everyone.
         </p>
       </header>
 
@@ -47,6 +51,19 @@ export default async function SupportPage() {
         aiEnabled={snapshot.aiEnabled}
         period={snapshot.period}
       />
+
+      {/* Context-sensitive message */}
+      {funded ? (
+        <p className="text-center text-sm text-muted-foreground max-w-md mx-auto">
+          Govroll is funded this month — thank you! Extra contributions help me
+          work on this full-time, but please don&apos;t feel obligated.
+        </p>
+      ) : (
+        <p className="text-center text-sm text-muted-foreground max-w-md mx-auto">
+          Donating is totally optional. When enough citizens chip in, AI
+          features come back online for everyone — including you, for&nbsp;free.
+        </p>
+      )}
 
       {/* Donate form */}
       <DonateForm
