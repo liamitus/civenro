@@ -148,8 +148,14 @@ export function RepresentativesDashboard() {
       )}
 
       {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-          {error}
+        <div className="rounded-lg border border-border/60 bg-muted/30 p-6 text-center space-y-3">
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <button
+            onClick={() => fetchReps(address)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-navy bg-white border border-border/60 rounded-md hover:bg-navy/5 transition-colors"
+          >
+            Try again
+          </button>
         </div>
       )}
 

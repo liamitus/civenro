@@ -146,8 +146,14 @@ export function BillListClient() {
       )}
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          {error}
+        <div className="rounded-lg border border-border/60 bg-muted/30 p-6 text-center space-y-3">
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <button
+            onClick={() => fetchBills(1)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-navy bg-white border border-border/60 rounded-md hover:bg-navy/5 transition-colors"
+          >
+            Try again
+          </button>
         </div>
       )}
 
