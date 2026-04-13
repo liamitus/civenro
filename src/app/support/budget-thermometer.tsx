@@ -74,17 +74,21 @@ export function BudgetThermometer({
           What does this cover?
         </summary>
         <ul className="mt-2 space-y-1 pl-4">
-          {FIXED_MONTHLY_COSTS.map((item) => (
-            <li key={item.name} className="flex justify-between">
-              <span>
-                {item.name}{" "}
-                <span className="text-muted-foreground/60">— {item.note}</span>
-              </span>
-              <span className="font-mono">
-                ${(item.monthlyCents / 100).toFixed(0)}
-              </span>
-            </li>
-          ))}
+          {FIXED_MONTHLY_COSTS.filter((item) => item.monthlyCents > 0).map(
+            (item) => (
+              <li key={item.name} className="flex justify-between">
+                <span>
+                  {item.name}{" "}
+                  <span className="text-muted-foreground/60">
+                    — {item.note}
+                  </span>
+                </span>
+                <span className="font-mono">
+                  ${(item.monthlyCents / 100).toFixed(0)}
+                </span>
+              </li>
+            )
+          )}
           <li className="flex justify-between">
             <span>
               AI APIs{" "}
@@ -93,15 +97,17 @@ export function BudgetThermometer({
               </span>
             </span>
             <span className="font-mono">
-              ${(aiCostCents / 100).toFixed(0)}
+              ~${(aiCostCents / 100).toFixed(0)}
             </span>
           </li>
           <li className="flex justify-between border-t pt-1 font-medium text-foreground">
             <span>Total</span>
-            <span className="font-mono">${totalDollars}</span>
+            <span className="font-mono">~${totalDollars}</span>
           </li>
         </ul>
-        <p className="mt-2">
+        <p className="mt-2 text-muted-foreground/60">
+          Hosting and database are free for now — these costs will grow with
+          traffic.{" "}
           <a
             href="https://github.com/liamitus/govroll/blob/main/src/lib/site-costs.ts"
             target="_blank"

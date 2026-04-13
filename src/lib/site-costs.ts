@@ -16,14 +16,14 @@ export type CostLineItem = {
 
 export const FIXED_MONTHLY_COSTS: CostLineItem[] = [
   {
-    name: "Vercel Pro",
-    monthlyCents: 2000,
-    note: "Hosting, serverless functions, cron jobs",
+    name: "Hosting (Vercel)",
+    monthlyCents: 0,
+    note: "Free tier for now — scales with traffic",
   },
   {
-    name: "Supabase database",
+    name: "Database (Supabase)",
     monthlyCents: 0,
-    note: "PostgreSQL — free tier",
+    note: "Free tier for now — scales with usage",
   },
   {
     name: "Domains",
