@@ -12,13 +12,29 @@ export async function generateMetadata({
   const { bioguideId } = await params;
   const rep = await prisma.representative.findUnique({
     where: { bioguideId },
-    select: { firstName: true, lastName: true },
+    select: { firstName: true, lastName: true, state: true, party: true, chamber: true },
   });
 
+  const name = rep ? `${rep.firstName} ${rep.lastName}` : "Representative";
+  const title = `${name} — Govroll`;
+  const description = rep
+    ? `See how ${rep.firstName} ${rep.lastName} (${rep.party}-${rep.state}) votes in the ${rep.chamber === "senate" ? "Senate" : "House"} and compare with public opinion.`
+    : "See how this representative votes and compare with public opinion.";
+
   return {
-    title: rep
-      ? `${rep.firstName} ${rep.lastName} — Govroll`
-      : "Representative — Govroll",
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      siteName: "Govroll",
+      type: "profile",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 

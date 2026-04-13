@@ -767,11 +767,12 @@ export function buildDynamicJourney(
   textVersions: VersionRecord[],
   effectiveStatus?: string,
 ): JourneyStep[] {
-  if (actions.length === 0) {
-    return getJourneySteps(billType, effectiveStatus ?? currentStatus);
-  }
-
   const status = effectiveStatus ?? getEffectiveStatus(billType, currentStatus, actions, textVersions);
+  const staticJourney = getJourneySteps(billType, status);
+
+  if (actions.length === 0) {
+    return staticJourney;
+  }
 
   // Extract milestones from actions, then attach version details
   const actionMilestones = extractActionMilestones(actions);
@@ -802,5 +803,14 @@ export function buildDynamicJourney(
     ? []
     : getFutureSteps(billType, status, completedLabels);
 
-  return [...completedSteps, ...futureSteps];
+  const dynamicJourney = [...completedSteps, ...futureSteps];
+
+  // If actions are incomplete (e.g. only intro was synced but the bill is
+  // enacted), the dynamic journey will have fewer steps than the static
+  // template and look broken. Fall back to the static journey in that case.
+  if (dynamicJourney.length < staticJourney.length) {
+    return staticJourney;
+  }
+
+  return dynamicJourney;
 }

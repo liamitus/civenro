@@ -19,11 +19,27 @@ export async function generateMetadata({
   const { id } = await params;
   const bill = await prisma.bill.findUnique({
     where: { id: parseInt(id) },
-    select: { title: true },
+    select: { title: true, shortText: true },
   });
 
+  const title = bill ? `${bill.title} — Govroll` : "Bill — Govroll";
+  const description = bill?.shortText
+    ?? "Track this bill, see how your representatives voted, and share your opinion.";
+
   return {
-    title: bill ? `${bill.title} — Govroll` : "Bill — Govroll",
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      siteName: "Govroll",
+      type: "article",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 

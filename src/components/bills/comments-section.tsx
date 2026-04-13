@@ -100,7 +100,7 @@ function Comment({
   );
 }
 
-export function CommentsSection({ billId }: { billId: number }) {
+export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp?: () => void }) {
   const { user } = useAuth();
   const [comments, setComments] = useState<CommentData[]>([]);
   const [total, setTotal] = useState(0);
@@ -186,9 +186,21 @@ export function CommentsSection({ billId }: { billId: number }) {
       {comments.length === 0 ? (
         <div className="text-center py-8 space-y-1">
           <p className="text-sm text-muted-foreground">
-            {user
-              ? "Start the conversation — share your perspective above."
-              : "No comments yet. Sign in to be the first to weigh in."}
+            {user ? (
+              "Start the conversation — share your perspective above."
+            ) : (
+              <>
+                No comments yet.{" "}
+                <button
+                  type="button"
+                  onClick={onSignUp}
+                  className="underline underline-offset-2 hover:text-primary transition-colors font-medium"
+                >
+                  Sign up
+                </button>
+                {" "}to be the first to weigh in.
+              </>
+            )}
           </p>
         </div>
       ) : (

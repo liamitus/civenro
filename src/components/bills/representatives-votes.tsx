@@ -50,14 +50,14 @@ function chamberLabel(chamber: string | null): string {
   return chamber.charAt(0).toUpperCase() + chamber.slice(1);
 }
 
-function RepCard({ rep }: { rep: RepresentativeWithVote }) {
+function RepCard({ rep, muted = false }: { rep: RepresentativeWithVote; muted?: boolean }) {
   const [showHistory, setShowHistory] = useState(false);
   const hasHistory = rep.voteHistory && rep.voteHistory.length > 1;
 
   return (
-    <div className={`rounded-lg bg-card border ${partyBarClass(rep.party)}`}>
+    <div className={`rounded-lg bg-card border ${partyBarClass(rep.party)} ${muted ? "opacity-60" : ""}`}>
       <div className="flex items-center gap-3 p-3">
-        <Avatar className="h-11 w-11 shrink-0">
+        <Avatar className={`shrink-0 ${muted ? "h-9 w-9" : "h-11 w-11"}`}>
           <AvatarImage src={rep.imageUrl || undefined} />
           <AvatarFallback className="text-xs font-semibold">
             {rep.firstName[0]}
@@ -65,7 +65,7 @@ function RepCard({ rep }: { rep: RepresentativeWithVote }) {
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">
+          <p className={`font-semibold truncate ${muted ? "text-xs" : "text-sm"}`}>
             {rep.firstName} {rep.lastName}
           </p>
           <p className={`text-xs ${partyColor(rep.party)}`}>
@@ -75,7 +75,7 @@ function RepCard({ rep }: { rep: RepresentativeWithVote }) {
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${voteColor(rep.vote)}`}
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${muted ? "text-muted-foreground" : voteColor(rep.vote)}`}
           >
             {normalizeVote(rep.vote)}
           </span>
@@ -194,6 +194,17 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
             Look up
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Your address is only used to find your district and is never saved.{" "}
+          <a
+            href="https://github.com/liamitus/govroll/blob/main/src/lib/civic-api.ts"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground transition-colors"
+          >
+            See how it works
+          </a>
+        </p>
       </div>
     );
   }
@@ -238,9 +249,25 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
         </p>
       ) : (
         <div className="space-y-2">
-          {reps.map((rep) => (
-            <RepCard key={rep.bioguideId} rep={rep} />
-          ))}
+          {(() => {
+            const voted = reps.filter((r) => r.vote !== "No vote recorded");
+            const notVoted = reps.filter((r) => r.vote === "No vote recorded");
+            return (
+              <>
+                {voted.map((rep) => (
+                  <RepCard key={rep.bioguideId} rep={rep} />
+                ))}
+                {notVoted.length > 0 && voted.length > 0 && (
+                  <p className="text-xs text-muted-foreground pt-1">
+                    Not yet voted on this bill
+                  </p>
+                )}
+                {notVoted.map((rep) => (
+                  <RepCard key={rep.bioguideId} rep={rep} muted />
+                ))}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>

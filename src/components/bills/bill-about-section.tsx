@@ -89,22 +89,24 @@ export function BillAboutSection({
         )}
       </div>
 
-      {/* Learn more toggle */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
-      >
-        {open ? "Hide details" : "Learn more about this bill"}
-        <svg
-          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
+      {/* Learn more toggle — only shown when collapsed */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          Learn more about this bill
+          <svg
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      )}
 
       {/* Expanded content */}
       {open && (
@@ -132,6 +134,23 @@ export function BillAboutSection({
             </span>{" "}
             {typeDescription}
           </div>
+
+          {/* Hide details — at the bottom of expanded content */}
+          <button
+            onClick={() => setOpen(false)}
+            className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+          >
+            Hide details
+            <svg
+              className="h-3 w-3 rotate-180"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       )}
     </header>

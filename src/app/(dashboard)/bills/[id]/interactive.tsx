@@ -5,6 +5,7 @@ import { VoteOnBill } from "@/components/bills/vote-on-bill";
 import { RepresentativesVotes } from "@/components/bills/representatives-votes";
 import { CommentsSection } from "@/components/bills/comments-section";
 import { AiChatbox } from "@/components/chat/ai-chatbox";
+import { AuthModal } from "@/components/auth/auth-modal";
 import {
   Collapsible,
   CollapsibleContent,
@@ -53,9 +54,37 @@ function CollapsibleCard({
 }
 
 export function BillDetailInteractive({ billId }: { billId: number }) {
+  const [authOpen, setAuthOpen] = useState(false);
+  const openSignUp = () => setAuthOpen(true);
+
   return (
     <div className="space-y-4">
-      {/* Representatives FIRST — the core civic engagement */}
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+      {/* Ask AI FIRST — help users understand the bill before engaging */}
+      <section className="rounded-xl border border-civic-gold/40 bg-civic-cream/30 dark:bg-accent/20 p-6">
+        <h2 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+          <svg
+            className="h-4 w-4 text-civic-gold"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+            />
+          </svg>
+          Ask AI About This Bill
+        </h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Get plain-language answers with direct quotes from the bill text.
+        </p>
+        <AiChatbox billId={billId} onSignUp={openSignUp} />
+      </section>
+
+      {/* Your Representatives */}
       <section className="rounded-xl border bg-card p-6">
         <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
           <svg
@@ -94,31 +123,7 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
           </svg>
           Votes
         </h2>
-        <VoteOnBill billId={billId} />
-      </section>
-
-      {/* Ask AI — engagement, not chrome. Subtle gold accent so it stands out. */}
-      <section className="rounded-xl border border-civic-gold/40 bg-civic-cream/30 dark:bg-accent/20 p-6">
-        <h2 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-          <svg
-            className="h-4 w-4 text-civic-gold"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-          Ask AI About This Bill
-        </h2>
-        <p className="text-xs text-muted-foreground mb-4">
-          Get plain-language answers with direct quotes from the bill text.
-        </p>
-        <AiChatbox billId={billId} />
+        <VoteOnBill billId={billId} onSignUp={openSignUp} />
       </section>
 
       {/* Discussion */}
@@ -141,7 +146,7 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
           </svg>
         }
       >
-        <CommentsSection billId={billId} />
+        <CommentsSection billId={billId} onSignUp={openSignUp} />
       </CollapsibleCard>
     </div>
   );

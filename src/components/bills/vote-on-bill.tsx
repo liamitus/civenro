@@ -124,7 +124,7 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
   );
 }
 
-export function VoteOnBill({ billId }: { billId: number }) {
+export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: () => void }) {
   const { user } = useAuth();
   const [votes, setVotes] = useState<VoteAggregation | null>(null);
   const [userVote, setUserVote] = useState<VoteType | null>(null);
@@ -288,7 +288,14 @@ export function VoteOnBill({ billId }: { billId: number }) {
           {!user && (
             <div className="rounded-lg bg-muted/50 border border-dashed px-4 py-3 text-center">
               <p className="text-sm font-medium text-foreground">
-                Sign in to cast your vote
+                <button
+                  type="button"
+                  onClick={onSignUp}
+                  className="underline underline-offset-2 hover:text-primary transition-colors"
+                >
+                  Sign up
+                </button>
+                {" "}to cast your vote
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Your voice matters — let representatives know where you stand.

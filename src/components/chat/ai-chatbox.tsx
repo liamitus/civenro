@@ -43,7 +43,7 @@ function AiMessageContent({ text }: { text: string }) {
   );
 }
 
-export function AiChatbox({ billId }: { billId: number }) {
+export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () => void }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [input, setInput] = useState("");
@@ -187,7 +187,14 @@ export function AiChatbox({ billId }: { billId: number }) {
   if (!user) {
     return (
       <div className="text-sm text-muted-foreground">
-        Sign in to ask questions about this bill.
+        <button
+          type="button"
+          onClick={onSignUp}
+          className="underline underline-offset-2 hover:text-primary transition-colors font-medium"
+        >
+          Sign up
+        </button>
+        {" "}to ask questions about this bill.
       </div>
     );
   }

@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   title: "Govroll — See What Your Representatives Are Doing",
   description:
     "Track bills, see how your elected officials vote, and make your voice heard in the legislative process.",
+  metadataBase: new URL("https://www.govroll.com"),
+  alternates: { canonical: "/" },
+  openGraph: {
+    siteName: "Govroll",
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
