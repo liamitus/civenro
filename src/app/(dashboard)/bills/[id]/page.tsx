@@ -74,6 +74,11 @@ export default async function BillDetailPage({
   const effectiveStatus = getEffectiveStatus(
     bill.billType, bill.currentStatus, actions, textVersions,
   );
+  // Count substantive versions after the introduced version. The CRS summary
+  // shown on this page describes only the introduced text, so any substantive
+  // amendments mean the summary may no longer reflect current bill content.
+  const substantiveVersionCount = textVersions.filter((v) => v.isSubstantive).length;
+  const amendmentCount = Math.max(0, substantiveVersionCount - 1);
   const journeySteps = actions.length > 0
     ? buildDynamicJourney(bill.billType, bill.currentStatus, actions, textVersions, effectiveStatus)
     : getJourneySteps(bill.billType, effectiveStatus);
@@ -124,6 +129,7 @@ export default async function BillDetailPage({
             : "border-senate text-senate"
         }
         journeySteps={journeySteps}
+        amendmentCount={amendmentCount}
       />
 
       {/* ── Engagement sections (reps, votes, discussion) ── */}

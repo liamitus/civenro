@@ -18,6 +18,9 @@ interface BillAboutProps {
   statusStyle: string;
   chamberStyle: string;
   journeySteps: JourneyStep[];
+  /** Number of substantive bill versions after the introduced version. Used
+   *  to warn readers that the CRS summary may no longer describe current text. */
+  amendmentCount: number;
 }
 
 export function BillAboutSection({
@@ -33,6 +36,7 @@ export function BillAboutSection({
   statusStyle,
   chamberStyle,
   journeySteps,
+  amendmentCount,
 }: BillAboutProps) {
   const [open, setOpen] = useState(false);
 
@@ -53,11 +57,53 @@ export function BillAboutSection({
         {title}
       </h1>
 
-      {/* Plain-language summary — always visible */}
+      {/* Plain-language summary — always visible, with provenance label and
+          amendment warning so readers can judge how current the summary is. */}
       {shortText && (
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {shortText}
-        </p>
+        <div className="space-y-1.5">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Summary · Congressional Research Service (nonpartisan)
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {shortText}
+          </p>
+          {amendmentCount > 0 && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+              <svg
+                className="h-3.5 w-3.5 mt-0.5 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                />
+              </svg>
+              <span className="leading-relaxed">
+                This summary describes the bill as introduced. It has been
+                amended {amendmentCount === 1 ? "once" : `${amendmentCount} times`}{" "}
+                since — the current text may differ.
+                {link && (
+                  <>
+                    {" "}
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium underline underline-offset-2 hover:no-underline"
+                    >
+                      View latest version
+                    </a>
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Meta row — always visible */}
