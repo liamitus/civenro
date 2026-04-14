@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { fetchGovTrackRoles } from "../lib/govtrack";
 import { createStandalonePrisma } from "../lib/prisma-standalone";
+import { nameToSlug } from "../lib/slug";
 
 const prisma = createStandalonePrisma();
 
@@ -34,6 +35,7 @@ export async function fetchRepresentativesFunction() {
         },
         create: {
           bioguideId,
+          slug: nameToSlug(person.firstname, person.lastname),
           firstName: person.firstname,
           lastName: person.lastname,
           state: role.state,

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import type { RepresentativeDetailResponse } from "@/types";
 import { AlignmentScore } from "./alignment-score";
 import { VoteComparisonFeed } from "./vote-comparison-feed";
-import { VotingStats } from "./voting-stats";
+import { RepQuickStats } from "./rep-quick-stats";
+import { RepKeyVotes } from "./rep-key-votes";
 
 interface RepDetailInteractiveProps {
   bioguideId: string;
@@ -35,13 +36,17 @@ export function RepDetailInteractive({
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-40 rounded-xl bg-muted animate-pulse" />
-        <div className="h-24 rounded-xl bg-muted animate-pulse" />
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-20 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
+          ))}
+        </div>
+        <div className="h-40 rounded-xl bg-muted animate-pulse" />
       </div>
     );
   }
@@ -54,20 +59,48 @@ export function RepDetailInteractive({
     );
   }
 
+  const repName = `${data.representative.firstName} ${data.representative.lastName}`;
+
   return (
     <div className="space-y-8">
+      {/* Quick stats — the "report card" at a glance */}
+      <RepQuickStats
+        stats={data.stats}
+        sponsoredBillsCount={data.sponsoredBillsCount}
+      />
+
+      {/* Key votes — what matters most to a casual visitor */}
+      <RepKeyVotes
+        keyVotes={data.keyVotes}
+        repFirstName={data.representative.firstName}
+      />
+
+      {/* Alignment — personalized for logged-in users, CTA for logged-out */}
       <AlignmentScore
         votingRecord={data.votingRecord}
         userVotes={data.userVotes}
-        repName={`${data.representative.firstName} ${data.representative.lastName}`}
+        repName={repName}
       />
 
-      <VotingStats stats={data.stats} rep={data.representative} />
-
+      {/* Full voting record — collapsed by default, expandable */}
       <VoteComparisonFeed
         votingRecord={data.votingRecord}
         userVotes={data.userVotes}
       />
+
+      {/* External links */}
+      {data.representative.link && (
+        <div className="text-center pt-2 pb-4">
+          <a
+            href={data.representative.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground hover:text-navy transition-colors"
+          >
+            View full record on GovTrack &rarr;
+          </a>
+        </div>
+      )}
     </div>
   );
 }

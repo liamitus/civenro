@@ -31,10 +31,19 @@ export async function GET(
             title: true,
             date: true,
             link: true,
+            currentStatus: true,
           },
         },
       },
       orderBy: { bill: { date: "desc" } },
+    });
+
+    // Count bills this rep has sponsored
+    const fullName = `${rep.firstName} ${rep.lastName}`;
+    const sponsoredBillsCount = await prisma.bill.count({
+      where: {
+        sponsor: { contains: fullName },
+      },
     });
 
     // Optionally fetch user's votes on the same bills
@@ -70,7 +79,14 @@ export async function GET(
       date: rv.bill.date.toISOString(),
       repVote: rv.vote,
       link: rv.bill.link,
+      category: rv.category,
+      billStatus: rv.bill.currentStatus,
     }));
+
+    // Key votes: passage votes only, most recent first
+    const keyVotes = votingRecord
+      .filter((v) => v.category === "passage" && (v.repVote === "Yea" || v.repVote === "Nay"))
+      .slice(0, 6);
 
     // Compute stats
     const totalVotes = repVotes.length;
@@ -82,6 +98,7 @@ export async function GET(
       representative: {
         id: rep.id,
         bioguideId: rep.bioguideId,
+        slug: rep.slug,
         firstName: rep.firstName,
         lastName: rep.lastName,
         state: rep.state,
@@ -92,6 +109,8 @@ export async function GET(
         link: rep.link,
       },
       votingRecord,
+      keyVotes,
+      sponsoredBillsCount,
       userVotes,
       stats: {
         totalVotes,

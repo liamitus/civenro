@@ -1,6 +1,7 @@
 import Link from "next/link";
 import dayjs from "dayjs";
 import type { BillSummary } from "@/types";
+import { getTopicForPolicyArea } from "@/lib/topic-mapping";
 
 function statusStyle(status: string): { label: string; className: string } {
   if (status.startsWith("enacted_"))
@@ -28,6 +29,8 @@ function chamberTag(billType: string): { label: string; className: string } | nu
 export function BillCard({ bill }: { bill: BillSummary }) {
   const status = statusStyle(bill.currentStatus);
   const chamber = chamberTag(bill.billType);
+  const topic = getTopicForPolicyArea(bill.policyArea);
+  const displayDate = bill.latestActionDate || bill.introducedDate;
 
   return (
     <Link href={`/bills/${bill.id}`} className="block group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2">
@@ -44,17 +47,33 @@ export function BillCard({ bill }: { bill: BillSummary }) {
             {bill.title}
           </h3>
 
+          {bill.shortText && (
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+              {bill.shortText}
+            </p>
+          )}
+
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
             {chamber && (
               <span className={`text-xs font-bold tracking-wider uppercase ${chamber.className}`}>
                 {chamber.label}
               </span>
             )}
+            {topic && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${topic.color}`}>
+                {topic.label}
+              </span>
+            )}
             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${status.className}`}>
               {status.label}
             </span>
+            {bill.sponsor && (
+              <span className="text-xs text-muted-foreground">
+                {bill.sponsor}
+              </span>
+            )}
             <span className="text-xs text-muted-foreground">
-              {dayjs(bill.introducedDate).format("MMM D, YYYY")}
+              {dayjs(displayDate).format("MMM D, YYYY")}
             </span>
           </div>
         </div>

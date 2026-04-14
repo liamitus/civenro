@@ -4,6 +4,7 @@ import { fetchBillTextFunction } from "@/scripts/fetch-bill-text";
 import { fetchBillActionsFunction } from "@/scripts/fetch-bill-actions";
 import { fetchVotesFunction } from "@/scripts/fetch-votes";
 import { fetchRepresentativesFunction } from "@/scripts/fetch-representatives";
+import { refreshBillMetadataFunction } from "@/scripts/refresh-bill-metadata";
 import { reportError } from "@/lib/error-reporting";
 
 /**
@@ -13,11 +14,12 @@ import { reportError } from "@/lib/error-reporting";
  * within Vercel Hobby's 60-second function timeout. Each pipeline is
  * designed to be incremental — it fills in gaps since the last run:
  *
- *   1. Bills        — fetches new bills since the most recent in DB
- *   2. Bill text    — fetches text for bills that don't have it yet
- *   3. Bill actions — reconciles statuses for active (non-enacted) bills
- *   4. Votes        — fetches representative votes from the last 7 days
- *   5. Reps         — refreshes the member roster (weekly, Mondays only)
+ *   1. Bills          — fetches new bills since the most recent in DB
+ *   2. Bill metadata  — fast metadata-only refresh (sponsor, policyArea, CRS summary)
+ *   3. Bill text      — fetches text for bills that don't have it yet
+ *   4. Bill actions   — reconciles statuses for active (non-enacted) bills
+ *   5. Votes          — fetches representative votes from the last 7 days
+ *   6. Reps           — refreshes the member roster (weekly, Mondays only)
  *
  * Scheduled at 14:00 UTC (10 AM ET) to land after Congress.gov's
  * morning data refresh (~9:45 AM ET).
@@ -74,7 +76,18 @@ export async function GET(request: Request) {
   // 1. New bills — fast: just a few paginated API calls for recent months
   results.push(await runWithBudget("bills", () => fetchBillsFunction(), deadline));
 
-  // 2. Bill text — batch of 5 bills missing text (~3s each w/ rate limiting)
+  // 2. Bill metadata — metadata-only refresh, no text download (~2-3s per bill).
+  // Covers sponsor, policyArea, latestAction, and CRS summary — the fields shown
+  // on the bills listing card. Larger batch than bill-text because it's faster.
+  results.push(
+    await runWithBudget(
+      "bill-metadata",
+      () => refreshBillMetadataFunction(25),
+      deadline,
+    ),
+  );
+
+  // 3. Bill text — batch of 5 bills missing text (~3s each w/ rate limiting)
   results.push(
     await runWithBudget("bill-text", () => fetchBillTextFunction(undefined, 5), deadline),
   );

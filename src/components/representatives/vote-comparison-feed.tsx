@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { RepVoteRecord } from "@/types";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface VoteComparisonFeedProps {
   votingRecord: RepVoteRecord[];
@@ -56,6 +57,7 @@ export function VoteComparisonFeed({
   votingRecord,
   userVotes,
 }: VoteComparisonFeedProps) {
+  const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
 
   const filtered = votingRecord.filter((bill) => {
@@ -73,11 +75,14 @@ export function VoteComparisonFeed({
     (b) => getMatchStatus(b.repVote, userVotes?.[b.billId]) === "mismatch"
   ).length;
 
+  const displayItems = expanded ? filtered : filtered.slice(0, 5);
+  const hasMore = filtered.length > 5;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold tracking-[0.15em] uppercase text-navy/70">
-          Voting Record
+          Full Voting Record
         </h2>
         {userVotes && (
           <div className="flex gap-1">
@@ -110,7 +115,7 @@ export function VoteComparisonFeed({
         </p>
       ) : (
         <div className="space-y-2">
-          {filtered.map((bill) => {
+          {displayItems.map((bill) => {
             const userVote = userVotes?.[bill.billId];
             const status = getMatchStatus(bill.repVote, userVote);
             const rowBg =
@@ -126,7 +131,6 @@ export function VoteComparisonFeed({
                 className={`rounded-lg border p-4 ${rowBg} transition-colors`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  {/* Bill info */}
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/bills/${bill.billId}`}
@@ -143,7 +147,6 @@ export function VoteComparisonFeed({
                     </p>
                   </div>
 
-                  {/* Vote badges */}
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <div className="text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
@@ -171,7 +174,6 @@ export function VoteComparisonFeed({
                           )}
                         </div>
 
-                        {/* Match indicator */}
                         <div className="w-6 text-center">
                           {status === "match" && (
                             <span className="text-vote-yea text-lg">&#10003;</span>
@@ -188,6 +190,23 @@ export function VoteComparisonFeed({
             );
           })}
         </div>
+      )}
+
+      {hasMore && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-1.5 mx-auto text-sm text-navy/70 hover:text-navy transition-colors py-2"
+        >
+          {expanded ? (
+            <>
+              Show less <ChevronUp className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              Show all {filtered.length} votes <ChevronDown className="w-4 h-4" />
+            </>
+          )}
+        </button>
       )}
     </div>
   );

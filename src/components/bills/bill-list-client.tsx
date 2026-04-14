@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { BillCard } from "./bill-card";
+import { TOPICS } from "@/lib/topic-mapping";
 import type { BillSummary } from "@/types";
+
+const SORT_OPTIONS = [
+  { value: "relevant", label: "Trending" },
+  { value: "latest", label: "Latest Activity" },
+  { value: "newest", label: "Newest" },
+] as const;
 
 export function BillListClient() {
   const [bills, setBills] = useState<BillSummary[]>([]);
@@ -13,9 +20,10 @@ export function BillListClient() {
   const [search, setSearch] = useState("");
   const [chamber, setChamber] = useState("both");
   const [status, setStatus] = useState("");
-  const [sortBy] = useState("relevant");
-  const [order] = useState("desc");
+  const [sortBy, setSortBy] = useState("relevant");
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
+  const topicsRef = useRef<HTMLDivElement>(null);
 
   const fetchBills = useCallback(
     async (pageNum: number, append: boolean = false) => {
@@ -24,11 +32,17 @@ export function BillListClient() {
         page: String(pageNum),
         limit: "20",
         sortBy,
-        order,
+        order: "desc",
       });
       if (chamber !== "both") params.set("chamber", chamber);
       if (status) params.set("status", status);
       if (search) params.set("search", search);
+      if (selectedTopic) {
+        const topicInfo = TOPICS.find((t) => t.label === selectedTopic);
+        if (topicInfo) {
+          params.set("topic", topicInfo.policyAreas.join(","));
+        }
+      }
 
       const res = await fetch(`/api/bills?${params}`);
       if (res.ok) {
@@ -41,7 +55,7 @@ export function BillListClient() {
       }
       setLoading(false);
     },
-    [chamber, status, sortBy, order, search]
+    [chamber, status, sortBy, search, selectedTopic]
   );
 
   useEffect(() => {
@@ -85,7 +99,41 @@ export function BillListClient() {
 
   return (
     <div className="space-y-4">
-      {/* Filter bar */}
+      {/* Topic filter chips — primary filter */}
+      <div
+        ref={topicsRef}
+        className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1"
+      >
+        <button
+          onClick={() => setSelectedTopic(null)}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
+            selectedTopic === null
+              ? "bg-navy text-white"
+              : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
+          }`}
+        >
+          All Topics
+        </button>
+        {TOPICS.map((topic) => (
+          <button
+            key={topic.label}
+            onClick={() =>
+              setSelectedTopic(
+                selectedTopic === topic.label ? null : topic.label
+              )
+            }
+            className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
+              selectedTopic === topic.label
+                ? "bg-navy text-white"
+                : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
+            }`}
+          >
+            {topic.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Search + secondary filters */}
       <div className="flex flex-wrap items-center gap-3 pb-4 border-b border-border/50">
         <div className="relative flex-1 min-w-[220px] max-w-sm">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,12 +164,29 @@ export function BillListClient() {
         </div>
       </div>
 
-      {/* Count */}
-      {!loading && total > 0 && (
-        <p className="text-sm text-muted-foreground">
-          {total.toLocaleString()} bill{total !== 1 ? "s" : ""}
-        </p>
-      )}
+      {/* Count + sort toggle */}
+      <div className="flex items-center justify-between">
+        {!loading && total > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {total.toLocaleString()} bill{total !== 1 ? "s" : ""}
+          </p>
+        )}
+        <div className="flex items-center gap-1 ml-auto">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSortBy(opt.value)}
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
+                sortBy === opt.value
+                  ? "bg-navy/10 text-navy"
+                  : "text-muted-foreground hover:text-navy"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Bill list */}
       <div className="space-y-2">

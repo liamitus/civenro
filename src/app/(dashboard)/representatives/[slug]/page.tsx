@@ -1,19 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
 import { RepHero } from "@/components/representatives/rep-hero";
 import { RepDetailInteractive } from "@/components/representatives/rep-detail-interactive";
+
+async function findRep(slug: string) {
+  // Try slug first, fall back to bioguideId for old/shared URLs
+  return (
+    (await prisma.representative.findUnique({ where: { slug } })) ??
+    (await prisma.representative.findUnique({ where: { bioguideId: slug } }))
+  );
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ bioguideId: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { bioguideId } = await params;
-  const rep = await prisma.representative.findUnique({
-    where: { bioguideId },
-    select: { firstName: true, lastName: true, state: true, party: true, chamber: true },
-  });
+  const { slug } = await params;
+  const rep = await findRep(slug);
 
   const name = rep ? `${rep.firstName} ${rep.lastName}` : "Representative";
   const title = `${name} — Govroll`;
@@ -41,20 +45,17 @@ export async function generateMetadata({
 export default async function RepresentativeDetailPage({
   params,
 }: {
-  params: Promise<{ bioguideId: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { bioguideId } = await params;
-  const rep = await prisma.representative.findUnique({
-    where: { bioguideId },
-  });
+  const { slug } = await params;
+  const rep = await findRep(slug);
 
   if (!rep) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-4xl px-6 py-8 space-y-8">
       <RepHero rep={rep} />
-      <Separator className="my-6" />
-      <RepDetailInteractive bioguideId={bioguideId} />
+      <RepDetailInteractive bioguideId={rep.bioguideId} />
     </div>
   );
 }

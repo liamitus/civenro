@@ -12,6 +12,10 @@ export interface BillSummary {
   introducedDate: string;
   link: string;
   shortText: string | null;
+  sponsor: string | null;
+  policyArea: string | null;
+  latestActionText: string | null;
+  latestActionDate: string | null;
 }
 
 export interface BillDetail extends BillSummary {
@@ -28,6 +32,7 @@ export interface BillListResponse {
 export interface RepresentativeInfo {
   id: number;
   bioguideId: string;
+  slug: string | null;
   firstName: string;
   lastName: string;
   state: string;
@@ -116,6 +121,8 @@ export interface RepVoteRecord {
   date: string;
   repVote: string;
   link: string;
+  category?: string | null;
+  billStatus?: string;
 }
 
 export interface RepVotingStats {
@@ -129,6 +136,8 @@ export interface RepVotingStats {
 export interface RepresentativeDetailResponse {
   representative: RepresentativeInfo;
   votingRecord: RepVoteRecord[];
+  keyVotes: RepVoteRecord[];
+  sponsoredBillsCount: number;
   userVotes: Record<number, string> | null;
   stats: RepVotingStats;
 }

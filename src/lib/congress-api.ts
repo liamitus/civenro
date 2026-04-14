@@ -232,6 +232,61 @@ export interface BillMetadata {
   policyArea: string | null;
   latestActionDate: string | null;
   latestActionText: string | null;
+  /** Plain-text CRS summary, most recent version. Null if none published. */
+  shortText: string | null;
+}
+
+/**
+ * Extract plain text from Congress.gov summary HTML.
+ * Summaries come wrapped in `<p>` tags with inline markup; strip it all for
+ * display on the bills listing card.
+ */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Fetch the most recent CRS summary for a bill from Congress.gov.
+ * Summaries are non-partisan plain-language abstracts written by the
+ * Congressional Research Service. Returns null if none published yet
+ * (CRS coverage is incomplete — newly introduced bills often lack summaries).
+ */
+async function fetchBillSummary(
+  congress: number,
+  apiBillType: string,
+  billNumber: number,
+): Promise<string | null> {
+  try {
+    const res = await withRetry(() =>
+      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/summaries`),
+    );
+    const summaries: Array<{ text?: string; updateDate?: string; actionDate?: string }> =
+      res.data?.summaries ?? [];
+    if (summaries.length === 0) return null;
+
+    // Pick the most recent summary by updateDate (falls back to actionDate).
+    const sorted = [...summaries].sort((a, b) => {
+      const aDate = a.updateDate || a.actionDate || "";
+      const bDate = b.updateDate || b.actionDate || "";
+      return bDate.localeCompare(aDate);
+    });
+    const latest = sorted[0];
+    if (!latest.text) return null;
+
+    const plain = stripHtml(latest.text);
+    return plain || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchBillMetadata(
@@ -240,7 +295,7 @@ export async function fetchBillMetadata(
   billNumber: number,
 ): Promise<BillMetadata | null> {
   try {
-    const [billRes, cosponsorsRes] = await Promise.all([
+    const [billRes, cosponsorsRes, summary] = await Promise.all([
       withRetry(() =>
         congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
       ),
@@ -249,6 +304,7 @@ export async function fetchBillMetadata(
           params: { limit: 250 },
         }),
       ).catch(() => null),
+      fetchBillSummary(congress, apiBillType, billNumber),
     ]);
 
     const bill = billRes.data?.bill;
@@ -282,6 +338,7 @@ export async function fetchBillMetadata(
       policyArea: bill.policyArea?.name ?? null,
       latestActionDate: bill.latestAction?.actionDate ?? null,
       latestActionText: bill.latestAction?.text ?? null,
+      shortText: summary,
     };
   } catch (error: unknown) {
     console.error(

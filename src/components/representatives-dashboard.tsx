@@ -10,6 +10,7 @@ interface Rep {
   name: string;
   party: string;
   bioguideId: string;
+  slug: string | null;
   chamber: string;
   state: string;
   district: string | null;
@@ -167,7 +168,7 @@ export function RepresentativesDashboard() {
             return (
               <Link
                 key={rep.bioguideId || i}
-                href={`/representatives/${rep.bioguideId}`}
+                href={`/representatives/${rep.slug || rep.bioguideId}`}
                 className={`block relative rounded-lg bg-white border border-border/60 overflow-hidden ${colors.bar} animate-fade-slide-up hover:shadow-md transition-shadow cursor-pointer`}
                 style={{ animationDelay: `${i * 80}ms` }}
               >

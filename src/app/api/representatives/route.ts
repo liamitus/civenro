@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
 
           return {
             bioguideId: dbRep.bioguideId,
+            slug: dbRep.slug,
             firstName: dbRep.firstName,
             lastName: dbRep.lastName,
             state: dbRep.state,
@@ -147,6 +148,7 @@ export async function POST(request: NextRequest) {
         return {
           name: official.name,
           bioguideId: official.bioguideId || "",
+          slug: null,
           firstName: official.firstName || "",
           lastName: official.lastName || "",
           state: official.state || "",

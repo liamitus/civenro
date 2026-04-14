@@ -1,8 +1,9 @@
 /**
- * Backfill sponsor / cosponsor / latest-action metadata onto existing Bill rows.
+ * Backfill sponsor / cosponsor / latest-action / CRS summary onto existing Bill rows.
  *
- * Run after adding the metadata columns. Idempotent — only touches rows where
- * `sponsor IS NULL` (i.e. never backfilled). Safe to interrupt and resume.
+ * Idempotent — only touches rows missing either `sponsor` OR `shortText`, so it
+ * re-runs safely and fills in summaries for previously-backfilled bills too.
+ * Safe to interrupt and resume.
  *
  * Usage:
  *   npx tsx src/scripts/backfill-bill-metadata.ts                  # all empty rows
@@ -49,6 +50,7 @@ async function backfillOne(billRow: { id: number; billId: string }) {
       latestActionDate: meta.latestActionDate
         ? new Date(meta.latestActionDate)
         : null,
+      shortText: meta.shortText,
     },
   });
   return meta.sponsor || "(no sponsor)";
@@ -57,8 +59,11 @@ async function backfillOne(billRow: { id: number; billId: string }) {
 async function main() {
   const { limit, concurrency } = parseArgs();
 
+  // Re-process bills missing either sponsor OR shortText. This lets the script
+  // fill in CRS summaries for bills that were backfilled before we added the
+  // summary fetch.
   const bills = await prisma.bill.findMany({
-    where: { sponsor: null },
+    where: { OR: [{ sponsor: null }, { shortText: null }] },
     select: { id: true, billId: true },
     orderBy: { introducedDate: "desc" },
     take: limit,

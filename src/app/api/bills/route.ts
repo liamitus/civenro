@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const sortBy = searchParams.get("sortBy") || "relevant";
   const order = searchParams.get("order") || "desc";
   const search = searchParams.get("search");
+  const topic = searchParams.get("topic");
 
   const skip = (page - 1) * limit;
 
@@ -31,6 +32,10 @@ export async function GET(request: NextRequest) {
     filters.title = { contains: search, mode: "insensitive" };
   }
 
+  if (topic) {
+    filters.policyArea = { in: topic.split(",") };
+  }
+
   // Build sort order — "relevant" uses engagement + activity signals,
   // anything else sorts by that field directly
   let orderBy: Record<string, unknown>[] | Record<string, unknown>;
@@ -41,6 +46,10 @@ export async function GET(request: NextRequest) {
       { comments: { _count: "desc" } },
       { currentStatusDate: "desc" },
     ];
+  } else if (sortBy === "latest") {
+    orderBy = [{ latestActionDate: { sort: "desc", nulls: "last" } }];
+  } else if (sortBy === "newest") {
+    orderBy = [{ introducedDate: "desc" }];
   } else {
     orderBy = { [sortBy]: order };
   }
@@ -65,11 +74,23 @@ export async function GET(request: NextRequest) {
           introducedDate: true,
           link: true,
           shortText: true,
+          sponsor: true,
+          policyArea: true,
+          latestActionText: true,
+          latestActionDate: true,
         },
       }),
     ]);
 
-    return NextResponse.json({ total, page, pageSize: limit, bills });
+    // Truncate summaries for the listing — full CRS summaries can be 100KB+.
+    // The card only shows a 2-line teaser; full text is still available on the
+    // bill detail page.
+    const trimmed = bills.map((b) => ({
+      ...b,
+      shortText: b.shortText ? b.shortText.slice(0, 280) : null,
+    }));
+
+    return NextResponse.json({ total, page, pageSize: limit, bills: trimmed });
   } catch (error) {
     console.error(JSON.stringify({ event: "api_error", route: "GET /api/bills", error: error instanceof Error ? error.message : String(error) }));
     reportError(error, { route: "GET /api/bills", filters, sortBy });

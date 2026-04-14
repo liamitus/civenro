@@ -24,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       orderBy: { currentStatusDate: "desc" },
     }),
     prisma.representative.findMany({
-      select: { bioguideId: true },
+      select: { bioguideId: true, slug: true },
     }),
   ]);
 
@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const repRoutes: MetadataRoute.Sitemap = reps.map((rep) => ({
-    url: `${base}/representatives/${rep.bioguideId}`,
+    url: `${base}/representatives/${rep.slug || rep.bioguideId}`,
     changeFrequency: "weekly",
     priority: 0.6,
   }));

@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
             ? bill.latestActionDate.toISOString().slice(0, 10)
             : null,
           latestActionText: bill.latestActionText,
+          shortText: bill.shortText,
         }
       : null;
 
