@@ -1,5 +1,7 @@
 import "dotenv/config";
 import { generateChangeSummary } from "../lib/ai";
+import { recordSpend } from "../lib/budget";
+import { assertAiEnabled, AiDisabledError } from "../lib/ai-gate";
 import { createStandalonePrisma } from "../lib/prisma-standalone";
 
 const prisma = createStandalonePrisma();
@@ -8,11 +10,25 @@ const prisma = createStandalonePrisma();
  * Generate AI-powered change summaries for bill text versions that don't have one yet.
  * Compares each version to its predecessor and stores a plain-language summary.
  */
-export async function generateChangeSummariesFunction(targetBillId?: number) {
+export async function generateChangeSummariesFunction(
+  targetBillId?: number,
+  limit = 100,
+) {
   console.log(
     "Generating change summaries for:",
-    targetBillId ? `bill ${targetBillId}` : "all bills with missing summaries",
+    targetBillId ? `bill ${targetBillId}` : `up to ${limit} bills with missing summaries`,
   );
+
+  // Gate on budget — AI features can be paused when funding runs low.
+  try {
+    await assertAiEnabled("bill_summary");
+  } catch (e) {
+    if (e instanceof AiDisabledError) {
+      console.log("[change-summaries] AI disabled, skipping:", e.reason);
+      return;
+    }
+    throw e;
+  }
 
   try {
     // Find bills that have versions without summaries
@@ -40,11 +56,13 @@ export async function generateChangeSummariesFunction(targetBillId?: number) {
           },
         },
       },
+      take: targetBillId ? undefined : limit,
     });
 
     console.log(`Found ${bills.length} bills with missing summaries.`);
 
     let generated = 0;
+    let totalCostCents = 0;
 
     for (const bill of bills) {
       console.log(`\n${bill.title.slice(0, 60)}...`);
@@ -97,6 +115,19 @@ export async function generateChangeSummariesFunction(targetBillId?: number) {
             data: { changeSummary: summaryResult.content },
           });
 
+          // Record spend against the monthly AI budget so this run is visible
+          // on the funding page and the evaluate-budget cron disables AI if
+          // we're about to run out.
+          for (const u of summaryResult.usage) {
+            const costCents = await recordSpend({
+              feature: "bill_summary",
+              model: u.model,
+              inputTokens: u.inputTokens,
+              outputTokens: u.outputTokens,
+            });
+            totalCostCents += costCents;
+          }
+
           console.log(`    "${summaryResult.content.slice(0, 100)}..."`);
           generated++;
         } catch (error: unknown) {
@@ -111,7 +142,9 @@ export async function generateChangeSummariesFunction(targetBillId?: number) {
       }
     }
 
-    console.log(`\nDone. Generated ${generated} change summaries.`);
+    console.log(
+      `\nDone. Generated ${generated} change summaries ($${(totalCostCents / 100).toFixed(2)} spend).`,
+    );
   } catch (error: unknown) {
     console.error(
       "Error in generateChangeSummaries:",

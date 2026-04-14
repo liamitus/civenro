@@ -5,6 +5,7 @@ import { fetchBillActionsFunction } from "@/scripts/fetch-bill-actions";
 import { fetchVotesFunction } from "@/scripts/fetch-votes";
 import { fetchRepresentativesFunction } from "@/scripts/fetch-representatives";
 import { refreshBillMetadataFunction } from "@/scripts/refresh-bill-metadata";
+import { generateChangeSummariesFunction } from "@/scripts/generate-change-summaries";
 import { reportError } from "@/lib/error-reporting";
 
 /**
@@ -92,7 +93,19 @@ export async function GET(request: Request) {
     await runWithBudget("bill-text", () => fetchBillTextFunction(undefined, 5), deadline),
   );
 
-  // 3. Bill actions — batch of 15 active bills (~1s each w/ rate limiting)
+  // 4. Change summaries — AI-generated narratives of what changed between bill
+  // versions. Only runs when AI is enabled in the budget ledger; gates itself
+  // internally. Uses Claude Haiku for cost (~$0.02 per summary). Small batch
+  // because each call costs money and takes a few seconds.
+  results.push(
+    await runWithBudget(
+      "change-summaries",
+      () => generateChangeSummariesFunction(undefined, 3),
+      deadline,
+    ),
+  );
+
+  // 5. Bill actions — batch of 15 active bills (~1s each w/ rate limiting)
   results.push(
     await runWithBudget("bill-actions", () => fetchBillActionsFunction(undefined, 15), deadline),
   );

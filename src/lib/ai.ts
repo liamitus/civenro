@@ -32,7 +32,11 @@ export interface AiChatResult {
 type Provider = "anthropic" | "openai";
 
 const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+/** Cheaper model for bounded, structured tasks like diff summarization
+ *  where the input is already constrained and hallucination risk is low. */
+const ANTHROPIC_HAIKU_MODEL = "claude-haiku-4-5-20251001";
 const OPENAI_MODEL = "gpt-4o";
+const OPENAI_CHEAP_MODEL = "gpt-4o-mini";
 
 /** Threshold (chars) above which we use two-step section filtering. */
 const LARGE_BILL_THRESHOLD = 100_000;
@@ -49,12 +53,13 @@ async function callAnthropic(
   systemPrompt: string,
   messages: ChatMessage[],
   maxTokens = 2048,
+  model: string = ANTHROPIC_MODEL,
 ): Promise<ChatResponse> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 30_000 });
 
   const response = await client.messages.create({
-    model: ANTHROPIC_MODEL,
+    model,
     max_tokens: maxTokens,
     system: systemPrompt,
     messages: messages.map((m) => ({
@@ -67,7 +72,7 @@ async function callAnthropic(
   return {
     content: textBlock?.text || "",
     usage: {
-      model: ANTHROPIC_MODEL,
+      model,
       inputTokens: response.usage?.input_tokens ?? 0,
       outputTokens: response.usage?.output_tokens ?? 0,
     },
@@ -78,12 +83,13 @@ async function callOpenAI(
   systemPrompt: string,
   messages: ChatMessage[],
   maxTokens = 2048,
+  model: string = OPENAI_MODEL,
 ): Promise<ChatResponse> {
   const { default: OpenAI } = await import("openai");
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000 });
 
   const response = await client.chat.completions.create({
-    model: OPENAI_MODEL,
+    model,
     max_tokens: maxTokens,
     messages: [
       { role: "system", content: systemPrompt },
@@ -97,22 +103,30 @@ async function callOpenAI(
   return {
     content: response.choices[0]?.message?.content || "",
     usage: {
-      model: OPENAI_MODEL,
+      model,
       inputTokens: response.usage?.prompt_tokens ?? 0,
       outputTokens: response.usage?.completion_tokens ?? 0,
     },
   };
 }
 
+/** Tier selection for callProvider. "cheap" uses Haiku/4o-mini for bounded
+ *  tasks where hallucination risk is low; "quality" uses Sonnet/4o. */
+type ModelTier = "cheap" | "quality";
+
 async function callProvider(
   provider: Provider,
   systemPrompt: string,
   messages: ChatMessage[],
   maxTokens?: number,
+  tier: ModelTier = "quality",
 ): Promise<ChatResponse> {
-  return provider === "anthropic"
-    ? callAnthropic(systemPrompt, messages, maxTokens)
-    : callOpenAI(systemPrompt, messages, maxTokens);
+  if (provider === "anthropic") {
+    const model = tier === "cheap" ? ANTHROPIC_HAIKU_MODEL : ANTHROPIC_MODEL;
+    return callAnthropic(systemPrompt, messages, maxTokens, model);
+  }
+  const model = tier === "cheap" ? OPENAI_CHEAP_MODEL : OPENAI_MODEL;
+  return callOpenAI(systemPrompt, messages, maxTokens, model);
 }
 
 // ── Bill chat ──────────────────────────────────────────────────────
@@ -314,6 +328,9 @@ Summarize the substantive changes between these two versions.`;
 
   const messages: ChatMessage[] = [{ role: "user", content: userPrompt }];
 
-  const response = await callProvider(provider, systemPrompt, messages, 1024);
+  // "cheap" tier — this is a bounded diff summarization task. Research shows
+  // hallucination risk drops sharply when the model describes a structured
+  // delta vs. generating a summary from scratch, so Haiku is sufficient.
+  const response = await callProvider(provider, systemPrompt, messages, 1024, "cheap");
   return { content: response.content, usage: [response.usage] };
 }
