@@ -240,9 +240,19 @@ export interface BillMetadata {
  * Extract plain text from Congress.gov summary HTML.
  * Summaries come wrapped in `<p>` tags with inline markup; strip it all for
  * display on the bills listing card.
+ *
+ * Congress.gov summaries conventionally start with the bill's popular name
+ * wrapped as `<p><strong>Popular Bill Name</strong></p>` before the actual
+ * summary body. On the bill detail page the displayed title is often the
+ * same text, causing a visible duplicate. Strip that leading header if
+ * present so the summary begins with the body ("This bill...").
  */
 function stripHtml(html: string): string {
-  return html
+  const withoutLeadingHeader = html.replace(
+    /^\s*<p>\s*<(?:strong|b)>[^<]+<\/(?:strong|b)>\s*<\/p>\s*/i,
+    "",
+  );
+  return withoutLeadingHeader
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
