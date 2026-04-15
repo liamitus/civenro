@@ -6,6 +6,7 @@ import { fetchVotesFunction } from "@/scripts/fetch-votes";
 import { fetchRepresentativesFunction } from "@/scripts/fetch-representatives";
 import { refreshBillMetadataFunction } from "@/scripts/refresh-bill-metadata";
 import { generateChangeSummariesFunction } from "@/scripts/generate-change-summaries";
+import { computeMomentumFunction } from "@/scripts/compute-momentum";
 import { reportError } from "@/lib/error-reporting";
 
 /**
@@ -110,14 +111,25 @@ export async function GET(request: Request) {
     await runWithBudget("bill-actions", () => fetchBillActionsFunction(undefined, 15), deadline),
   );
 
-  // 4. Votes — last 7 days of representative votes
+  // 6. Momentum — recomputes the alive/dormant/dead signal for every bill whose
+  // data just changed (plus a slice of the stale pile). Cheap: no external API,
+  // ~2000 bills/run processed from Postgres directly.
+  results.push(
+    await runWithBudget(
+      "momentum",
+      () => computeMomentumFunction(2000).then(() => undefined),
+      deadline,
+    ),
+  );
+
+  // 7. Votes — last 7 days of representative votes
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   results.push(
     await runWithBudget("votes", () => fetchVotesFunction(sevenDaysAgo), deadline),
   );
 
-  // 5. Representatives — weekly refresh (Mondays only)
+  // 8. Representatives — weekly refresh (Mondays only)
   if (isMonday) {
     results.push(
       await runWithBudget("representatives", () => fetchRepresentativesFunction(), deadline),

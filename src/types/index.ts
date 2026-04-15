@@ -1,5 +1,19 @@
 // Shared types used across client and server
 
+export type MomentumTier =
+  | "DEAD"
+  | "DORMANT"
+  | "STALLED"
+  | "ACTIVE"
+  | "ADVANCING"
+  | "ENACTED";
+
+export type DeathReason =
+  | "CONGRESS_ENDED"
+  | "FAILED_VOTE"
+  | "VETOED"
+  | "LONG_SILENCE";
+
 export interface BillSummary {
   id: number;
   billId: string;
@@ -16,6 +30,10 @@ export interface BillSummary {
   policyArea: string | null;
   latestActionText: string | null;
   latestActionDate: string | null;
+  momentumTier: MomentumTier | null;
+  momentumScore: number | null;
+  daysSinceLastAction: number | null;
+  deathReason: DeathReason | null;
 }
 
 export interface BillDetail extends BillSummary {
@@ -27,6 +45,7 @@ export interface BillListResponse {
   page: number;
   pageSize: number;
   bills: BillSummary[];
+  hiddenByMomentum: number;
 }
 
 export interface RepresentativeInfo {

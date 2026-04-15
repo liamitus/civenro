@@ -134,6 +134,15 @@ function getStatusPosition(
   if (currentStatus === "passed_bill" || currentStatus.startsWith("conference_"))
     return { stepIndex: 3, isFailed: false };
 
+  // Concurrent resolution cleared both chambers — it doesn't go to the
+  // President, so all of its steps are complete.
+  if (currentStatus === "passed_concurrentres")
+    return { stepIndex: Infinity, isFailed: false };
+
+  // Simple resolution cleared its origin — it's done, one chamber only.
+  if (currentStatus === "passed_simpleres")
+    return { stepIndex: Infinity, isFailed: false };
+
   // Passed one chamber
   if (currentStatus === "pass_over_house")
     return { stepIndex: originIsHouse ? 1 : 2, isFailed: false };

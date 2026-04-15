@@ -10,6 +10,7 @@ import {
 } from "@/lib/bill-helpers";
 import { BillAboutSection } from "@/components/bills/bill-about-section";
 import { BillDetailInteractive } from "./interactive";
+import type { MomentumTier, DeathReason } from "@/types";
 
 export async function generateMetadata({
   params,
@@ -130,6 +131,9 @@ export default async function BillDetailPage({
         }
         journeySteps={journeySteps}
         amendmentCount={amendmentCount}
+        momentumTier={bill.momentumTier as MomentumTier | null}
+        daysSinceLastAction={bill.daysSinceLastAction}
+        deathReason={bill.deathReason as DeathReason | null}
       />
 
       {/* ── Engagement sections (reps, votes, discussion) ── */}
