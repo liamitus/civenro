@@ -139,11 +139,40 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ? `US-${session.customer_details.address.state}`
     : null;
 
+  // Ensure a Profile exists for the FK target. Authenticated donors may not
+  // have touched any other authenticated endpoint yet, so the lazy upsert in
+  // getAuthenticatedUser() hasn't run for them. Bootstrap the row here with
+  // the email Stripe captured. If the userId is garbage, skip the association
+  // rather than fail the whole webhook.
+  let safeUserId: string | null = null;
+  if (userId) {
+    try {
+      await prisma.profile.upsert({
+        where: { id: userId },
+        update: { email: session.customer_details?.email ?? undefined },
+        create: {
+          id: userId,
+          username: "Anonymous",
+          email: session.customer_details?.email ?? null,
+        },
+      });
+      safeUserId = userId;
+    } catch (err) {
+      console.warn(
+        JSON.stringify({
+          event: "profile_upsert_failed",
+          userId,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    }
+  }
+
   const donation = await prisma.donation.create({
     data: {
       stripePaymentId,
       stripeCustomerId: (session.customer as string) ?? null,
-      userId: userId || null,
+      userId: safeUserId,
       amountCents,
       currency: session.currency ?? "usd",
       isRecurring,
