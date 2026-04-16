@@ -20,8 +20,10 @@ export type BudgetSnapshot = {
   lastEvaluated: Date;
 };
 
-/** Default reserve held back before AI is considered "affordable." */
-const DEFAULT_RESERVE_CENTS = 2000; // $20/mo buffer
+/** Default reserve held back before AI is considered "affordable."
+ *  $0 means the first dollar donated activates AI immediately. Set higher
+ *  if you want a safety buffer before AI runs. */
+const DEFAULT_RESERVE_CENTS = 0;
 
 export function currentPeriod(now: Date = new Date()): string {
   const y = now.getUTCFullYear();
