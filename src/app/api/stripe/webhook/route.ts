@@ -63,10 +63,14 @@ export async function POST(request: NextRequest) {
         break;
     }
   } catch (err) {
-    console.error(JSON.stringify({ event: "webhook_error", route: "POST /api/stripe/webhook", eventType: event.type, error: err instanceof Error ? err.message : String(err) }));
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error(JSON.stringify({ event: "webhook_error", route: "POST /api/stripe/webhook", eventType: event.type, error: msg, stack }));
     reportError(err, { route: "POST /api/stripe/webhook", eventType: event.type });
+    // Expose the message to Stripe so it shows up in the Dashboard's response
+    // body. This endpoint is only reachable with a valid Stripe signature.
     return NextResponse.json(
-      { error: "Webhook handler failed." },
+      { error: "Webhook handler failed.", detail: msg },
       { status: 500 }
     );
   }

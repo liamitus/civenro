@@ -120,13 +120,28 @@ export default async function MadePossibleByPage() {
         <p className="text-civic-gold text-sm tracking-widest uppercase star-accent">
           Made Possible By
         </p>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {totalCount.toLocaleString()} citizens keep Govroll running.
-        </h1>
-        <p className="text-muted-foreground max-w-lg mx-auto">
-          No ads. No corporate sponsors. Just people who believe civic
-          transparency matters.
-        </p>
+        {totalCount === 0 ? (
+          <>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Be the first.
+            </h1>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Govroll is just getting started. No ads, no corporate sponsors —
+              every citizen who chips in shows up here.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {totalCount.toLocaleString()}{" "}
+              {totalCount === 1 ? "citizen keeps" : "citizens keep"} Govroll running.
+            </h1>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              No ads. No corporate sponsors. Just people who believe civic
+              transparency matters.
+            </p>
+          </>
+        )}
       </header>
 
       {/* Live feed — recent donations in last 24h */}

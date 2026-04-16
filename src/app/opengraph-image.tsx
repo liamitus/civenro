@@ -54,36 +54,36 @@ export default async function OgImage() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "20px",
-            marginTop: 48,
+            gap: "32px",
+            marginTop: 52,
             color: "#B8860B",
           }}
         >
           <div
             style={{
-              width: 90,
-              height: 2,
+              width: 120,
+              height: 3,
               backgroundColor: "#B8860B",
-              opacity: 0.5,
+              opacity: 0.55,
             }}
           />
           <span
             style={{
-              fontSize: 24,
+              fontSize: 52,
               fontFamily: "EBGaramond",
               fontWeight: 700,
-              letterSpacing: "0.35em",
-              opacity: 0.7,
+              letterSpacing: "0.3em",
+              opacity: 0.8,
             }}
           >
             E PLURIBUS UNUM
           </span>
           <div
             style={{
-              width: 90,
-              height: 2,
+              width: 120,
+              height: 3,
               backgroundColor: "#B8860B",
-              opacity: 0.5,
+              opacity: 0.55,
             }}
           />
         </div>

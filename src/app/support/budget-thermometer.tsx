@@ -132,11 +132,18 @@ export function BudgetThermometer({
         </p>
       </details>
 
-      {!aiEnabled && (
+      {!aiEnabled && incomeCents === 0 && (
         <p className="text-base text-red-700 font-medium">
-          AI features are paused this month because costs have exceeded what
-          citizens have chipped in. When more people contribute, they come back
-          online for everyone.
+          AI features are paused until a few citizens chip in. ${totalDollars}{" "}
+          covers a full month — be the first to unlock them for everyone.
+        </p>
+      )}
+
+      {!aiEnabled && incomeCents > 0 && (
+        <p className="text-base text-red-700 font-medium">
+          AI features are paused — contributions so far haven&apos;t quite
+          covered the month. About ${Math.max(1, Math.ceil((totalCostCents - incomeCents) / 100))}{" "}
+          more to bring them back online.
         </p>
       )}
 

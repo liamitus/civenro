@@ -133,9 +133,17 @@ export function computeMomentum(
 
   // --- Hard overrides ---
 
-  // Enacted: the only terminal success.
+  // Enacted: the only terminal success. Score decays from 100 over ~45 day
+  // half-life to a floor of 25 so fresh enactments top the feed but don't
+  // squat there forever — a year-old enactment sits around 25, just above
+  // dormant bills. Tier stays "ENACTED" regardless; it's a factual label.
   if (inputs.currentStatus.startsWith("enacted_")) {
-    return { score: 100, tier: "ENACTED", daysSinceLastAction, deathReason: null };
+    const floor = 25;
+    const halfLife = 45;
+    const score = Math.round(
+      floor + (100 - floor) * Math.pow(0.5, daysSinceLastAction / halfLife),
+    );
+    return { score, tier: "ENACTED", daysSinceLastAction, deathReason: null };
   }
 
   // Prior Congress: constitutionally dead, bills do not carry over.
