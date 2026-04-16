@@ -49,33 +49,43 @@ export default async function OgImage() {
           <Star size={60} />
         </div>
 
-        {/* Divider */}
-        <div
-          style={{
-            width: 180,
-            height: 4,
-            backgroundColor: "#B8860B",
-            marginTop: 44,
-            marginBottom: 44,
-          }}
-        />
-
-        {/* Tagline */}
+        {/* Decorative flourish */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            color: "#FAFAF5",
-            fontSize: 56,
-            fontFamily: "EBGaramond",
-            fontWeight: 700,
-            opacity: 0.88,
-            lineHeight: 1.15,
+            gap: "20px",
+            marginTop: 48,
+            color: "#B8860B",
           }}
         >
-          <span>See What Your</span>
-          <span>Representatives Are Doing</span>
+          <div
+            style={{
+              width: 90,
+              height: 2,
+              backgroundColor: "#B8860B",
+              opacity: 0.5,
+            }}
+          />
+          <span
+            style={{
+              fontSize: 24,
+              fontFamily: "EBGaramond",
+              fontWeight: 700,
+              letterSpacing: "0.35em",
+              opacity: 0.7,
+            }}
+          >
+            E PLURIBUS UNUM
+          </span>
+          <div
+            style={{
+              width: 90,
+              height: 2,
+              backgroundColor: "#B8860B",
+              opacity: 0.5,
+            }}
+          />
         </div>
       </div>
     ),
