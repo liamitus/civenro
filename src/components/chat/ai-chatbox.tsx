@@ -53,6 +53,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
     incomeCents: number;
     spendCents: number;
   } | null>(null);
+  const [textTier, setTextTier] = useState<"full" | "summary" | "title-only" | null>(null);
   const [open, setOpen] = useState(false);
   const [width, setWidth] = useState<number>(() => {
     if (typeof window === "undefined") return DEFAULT_WIDTH;
@@ -81,6 +82,22 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
       cancelled = true;
     };
   }, [billId, user]);
+
+  // Probe what AI context is actually available for this bill so we can
+  // warn the user upfront if we only have a summary (or just the title).
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/bills/${billId}/ai-context`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d?.tier) return;
+        setTextTier(d.tier);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [billId]);
 
   // Auto-scroll to bottom on new message
   useEffect(() => {
@@ -287,7 +304,11 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
               Ask AI About This Bill
             </SheetTitle>
             <SheetDescription>
-              Plain-language answers with direct quotes from the bill text.
+              {textTier === "title-only"
+                ? "Answers based on title and metadata only — full bill text isn't yet in our system."
+                : textTier === "summary"
+                  ? "Answers based on the nonpartisan CRS summary — full bill text isn't yet in our system."
+                  : "Plain-language answers with direct quotes from the bill text."}
             </SheetDescription>
           </SheetHeader>
 

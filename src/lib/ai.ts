@@ -149,6 +149,14 @@ function formatMetadataForPrompt(meta: BillMetadata | null): string {
   if (meta.latestActionDate && meta.latestActionText) {
     lines.push(`Latest action (${meta.latestActionDate}): ${meta.latestActionText}`);
   }
+  // Include the CRS (Congressional Research Service) plain-language summary
+  // when we have it. When fullText is unavailable, this is the AI's only
+  // substantive source and should drive the answer.
+  if (meta.shortText && meta.shortText.trim().length > 0) {
+    lines.push("");
+    lines.push("Nonpartisan summary (Congressional Research Service):");
+    lines.push(meta.shortText.trim());
+  }
   return lines.length > 0 ? lines.join("\n") : "";
 }
 
@@ -192,15 +200,34 @@ export async function generateBillChatResponse(
   const metadataBlock = formatMetadataForPrompt(metadata);
   const usage: AiUsageRecord[] = [];
 
-  // No sections available — answer from title/metadata only
+  // No sections available — answer from title / summary / metadata only.
+  // When a CRS summary is present it's substantive enough to answer most
+  // questions; when only title + metadata, be upfront about the limits.
   if (!billSections || billSections.length === 0) {
-    const systemPrompt = `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
+    const hasSummary =
+      metadata?.shortText != null && metadata.shortText.trim().length > 0;
+
+    const systemPrompt = hasSummary
+      ? `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
+
+The bill is titled "${billTitle}".
+
+${metadataBlock ? `${metadataBlock}\n\n` : ""}Your primary source is the nonpartisan Congressional Research Service summary above, which describes the bill as introduced. Answer questions directly from this summary — it is substantive and authoritative. Quote from it using markdown blockquotes when helpful:
+
+> "exact quote from the summary"
+>
+> — CRS summary
+
+Only say something is not covered if the summary genuinely does not address it. Do not claim you cannot see the bill — you have its official nonpartisan summary. The full bill text may have been amended since introduction; if a user asks about specific provisions, note that the summary describes the introduced version.
+
+Stay factual and neutral.`
+      : `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
 
 The bill is titled "${billTitle}".${
       metadataBlock ? `\n\nBill information:\n${metadataBlock}` : ""
     }
 
-Full bill text is not available. Answer based on the title and any metadata above. Be upfront that you cannot provide direct quotes from the bill text.
+Full bill text is not yet available in our system. Explain this once at the start of your answer — briefly, one sentence — then answer what you can from the title and metadata above. Do not repeat this caveat in every section; one upfront mention is enough. Suggest the user check congress.gov for the full text if they need specifics.
 
 Stay factual and neutral.`;
 
