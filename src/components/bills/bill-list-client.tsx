@@ -25,8 +25,11 @@ export function BillListClient() {
   const [momentum, setMomentum] = useState("live");
   const [sortBy, setSortBy] = useState("relevant");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
-  const topicsRef = useRef<HTMLDivElement>(null);
+
+  const activeFilterCount =
+    (chamber !== "both" ? 1 : 0) + (status !== "" ? 1 : 0);
 
   const fetchBills = useCallback(
     async (pageNum: number, append: boolean = false) => {
@@ -99,10 +102,10 @@ export function BillListClient() {
     <button
       key={value}
       onClick={() => setter(current === value ? "" : value)}
-      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
+      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
         current === value
           ? "bg-navy text-white"
-          : "bg-transparent text-muted-foreground hover:text-navy hover:bg-navy/5"
+          : "text-muted-foreground hover:text-navy hover:bg-navy/5"
       }`}
     >
       {label}
@@ -110,84 +113,134 @@ export function BillListClient() {
   );
 
   return (
-    <div className="space-y-4">
-      {/* Topic filter chips — primary filter */}
-      <div
-        ref={topicsRef}
-        className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1"
-      >
-        <button
-          onClick={() => setSelectedTopic(null)}
-          className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
-            selectedTopic === null
-              ? "bg-navy text-white"
-              : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
-          }`}
-        >
-          All Topics
-        </button>
-        {TOPICS.map((topic) => (
-          <button
-            key={topic.label}
-            onClick={() =>
-              setSelectedTopic(
-                selectedTopic === topic.label ? null : topic.label
-              )
-            }
-            className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
-              selectedTopic === topic.label
-                ? "bg-navy text-white"
-                : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
-            }`}
+    <div className="space-y-3">
+      {/* Row 1 — Search + Sort */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            {topic.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Search + secondary filters */}
-      <div className="flex flex-wrap items-center gap-3 pb-4 border-b border-border/50">
-        <div className="relative flex-1 min-w-[220px] max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" strokeWidth="2"/>
-            <path d="m21 21-4.35-4.35" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="11" cy="11" r="8" strokeWidth="2" />
+            <path
+              d="m21 21-4.35-4.35"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </svg>
           <input
             placeholder="Search bills..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-3 rounded-md border border-border/60 bg-white text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy/20"
+            className="w-full h-10 pl-9 pr-3 rounded-lg border border-border/60 bg-white text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/20"
           />
         </div>
-
-        <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
-          {filterPill("Live", "live", momentum, setMomentum)}
-          {filterPill("All", "all", momentum, setMomentum)}
-          {filterPill("Graveyard", "graveyard", momentum, setMomentum)}
-        </div>
-
-        <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
-          {filterPill("All", "both", chamber, setChamber)}
-          {filterPill("House", "house", chamber, setChamber)}
-          {filterPill("Senate", "senate", chamber, setChamber)}
-        </div>
-
-        <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
-          {filterPill("Any", "", status, setStatus)}
-          {filterPill("Introduced", "introduced", status, setStatus)}
-          {filterPill("In Progress", "in_progress", status, setStatus)}
-          {filterPill("Passed", "passed", status, setStatus)}
-          {filterPill("Enacted", "enacted", status, setStatus)}
-          {filterPill("Failed", "failed", status, setStatus)}
+        <div className="flex items-center gap-0.5 shrink-0">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSortBy(opt.value)}
+              className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                sortBy === opt.value
+                  ? "bg-navy/10 text-navy"
+                  : "text-muted-foreground hover:text-navy"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Count + sort toggle */}
-      <div className="flex items-center justify-between min-h-[28px]">
-        <p className="text-sm text-muted-foreground flex items-center gap-2">
+      {/* Row 2 — Topics + Filters toggle */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide -mx-1 px-1">
+          <button
+            onClick={() => setSelectedTopic(null)}
+            className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+              selectedTopic === null
+                ? "bg-navy text-white"
+                : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
+            }`}
+          >
+            All Topics
+          </button>
+          {TOPICS.map((topic) => (
+            <button
+              key={topic.label}
+              onClick={() =>
+                setSelectedTopic(
+                  selectedTopic === topic.label ? null : topic.label
+                )
+              }
+              className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                selectedTopic === topic.label
+                  ? "bg-navy text-white"
+                  : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
+              }`}
+            >
+              {topic.label}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
+            showFilters || activeFilterCount > 0
+              ? "border-navy/20 bg-navy/5 text-navy"
+              : "border-border/50 text-muted-foreground hover:text-navy hover:border-navy/20"
+          }`}
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              d="M3 6h18M7 12h10M10 18h4"
+            />
+          </svg>
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="w-4 h-4 rounded-full bg-navy text-white text-[10px] flex items-center justify-center leading-none">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Expandable filter row */}
+      {showFilters && (
+        <div className="flex flex-wrap items-center gap-3 pb-2 animate-fade-slide-up">
+          <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
+            {filterPill("All", "both", chamber, setChamber)}
+            {filterPill("House", "house", chamber, setChamber)}
+            {filterPill("Senate", "senate", chamber, setChamber)}
+          </div>
+
+          <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
+            {filterPill("Any", "", status, setStatus)}
+            {filterPill("Introduced", "introduced", status, setStatus)}
+            {filterPill("In Progress", "in_progress", status, setStatus)}
+            {filterPill("Passed", "passed", status, setStatus)}
+            {filterPill("Enacted", "enacted", status, setStatus)}
+            {filterPill("Failed", "failed", status, setStatus)}
+          </div>
+        </div>
+      )}
+
+      {/* Count + hidden bills link */}
+      <div className="flex items-center justify-between min-h-[24px]">
+        <p className="text-xs text-muted-foreground flex items-center gap-2">
           {loading && (
             <span className="inline-flex items-center gap-1.5 text-navy/70">
-              <span className="w-3.5 h-3.5 rounded-full border-2 border-navy/15 border-t-navy/70 animate-spin" />
+              <span className="w-3 h-3 rounded-full border-2 border-navy/15 border-t-navy/70 animate-spin" />
               Updating…
             </span>
           )}
@@ -204,28 +257,20 @@ export function BillListClient() {
                   ({hiddenByMomentum.toLocaleString()} dormant or dead hidden)
                 </button>
               )}
+              {momentum === "all" && (
+                <button
+                  onClick={() => setMomentum("live")}
+                  className="text-muted-foreground/70 hover:text-navy underline decoration-dotted underline-offset-2 transition-colors"
+                >
+                  (show active only)
+                </button>
+              )}
             </>
           )}
         </p>
-        <div className="flex items-center gap-1 ml-auto">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSortBy(opt.value)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 ${
-                sortBy === opt.value
-                  ? "bg-navy/10 text-navy"
-                  : "text-muted-foreground hover:text-navy"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Bill list. When refreshing with existing results, dim + disable
-          interaction so the user sees a clear state change during filter swaps. */}
+      {/* Bill list */}
       <div
         className={`space-y-2 transition-opacity duration-150 ${
           loading && bills.length > 0 ? "opacity-40 pointer-events-none" : ""
@@ -243,7 +288,6 @@ export function BillListClient() {
         ))}
       </div>
 
-      {/* Initial-load skeleton (first fetch, nothing to dim yet). */}
       {loading && bills.length === 0 && (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -255,7 +299,6 @@ export function BillListClient() {
         </div>
       )}
 
-      {/* Infinite-scroll loader (appended pages). */}
       {loadingMore && (
         <div className="flex justify-center py-6">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
