@@ -20,7 +20,7 @@ interface BillAboutProps {
   chamberStyle: string;
   journeySteps: JourneyStep[];
   /** Number of substantive bill versions after the introduced version. Used
-   *  to warn readers that the CRS summary may no longer describe current text. */
+   *  to warn users that the CRS summary may no longer describe current text. */
   amendmentCount: number;
   momentumTier: MomentumTier | null;
   daysSinceLastAction: number | null;
@@ -190,7 +190,7 @@ export function BillAboutSection({
       </h1>
 
       {/* Momentum banner — the highest-priority signal on this page when a
-          bill is inactive. Tells the reader what to actually believe about
+          bill is inactive. Tells the user what to actually believe about
           this bill's chances, regardless of structural status. */}
       {banner && (banner.tone === "dead" || banner.tone === "dormant" || banner.tone === "stalled") && (
         <div className={`rounded-lg border px-4 py-3 ${BANNER_STYLES[banner.tone]}`}>
@@ -200,7 +200,7 @@ export function BillAboutSection({
       )}
 
       {/* Plain-language summary — always visible, with provenance label and
-          amendment warning so readers can judge how current the summary is. */}
+          amendment warning so users can judge how current the summary is. */}
       {shortText && (
         <div className="space-y-1.5">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
