@@ -18,15 +18,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/made-possible-by`, changeFrequency: "weekly", priority: 0.4 },
   ];
 
-  const [bills, reps] = await Promise.all([
-    prisma.bill.findMany({
-      select: { id: true, currentStatusDate: true },
-      orderBy: { currentStatusDate: "desc" },
-    }),
-    prisma.representative.findMany({
-      select: { bioguideId: true, slug: true },
-    }),
-  ]);
+  // Build-time DB unavailability shouldn't fail the whole deploy. If Prisma
+  // can't reach the DB (e.g. Vercel build network can't hit the direct-connect
+  // port, or DATABASE_URL isn't set in preview env), emit the static-only
+  // sitemap and let the next revalidate fill in bill/rep URLs.
+  let bills: { id: string; currentStatusDate: Date }[] = [];
+  let reps: { bioguideId: string; slug: string | null }[] = [];
+  try {
+    [bills, reps] = await Promise.all([
+      prisma.bill.findMany({
+        select: { id: true, currentStatusDate: true },
+        orderBy: { currentStatusDate: "desc" },
+      }),
+      prisma.representative.findMany({
+        select: { bioguideId: true, slug: true },
+      }),
+    ]);
+  } catch (err) {
+    console.warn(
+      "[sitemap] DB unreachable, emitting static routes only:",
+      err instanceof Error ? err.message : err,
+    );
+  }
 
   const billRoutes: MetadataRoute.Sitemap = bills.map((bill) => ({
     url: `${base}/bills/${bill.id}`,
