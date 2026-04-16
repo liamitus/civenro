@@ -43,69 +43,78 @@ export interface GovInfoTextResult {
   url: string;
 }
 
+const UA = "Govroll/1.0 (civic transparency; +https://govroll.com)";
+
+/** HEAD probe returning priority-index on hit, -1 on miss. */
+async function probeExists(
+  url: string,
+  priorityIndex: number,
+): Promise<number> {
+  try {
+    const head = await axios.head(url, {
+      timeout: 5_000,
+      validateStatus: () => true,
+      maxRedirects: 5,
+      headers: { "User-Agent": UA },
+    });
+    if (head.status !== 200) return -1;
+    const contentType = String(head.headers["content-type"] ?? "").toLowerCase();
+    // Real bill XML → application/xml. Error page → text/html.
+    if (!contentType.includes("xml")) return -1;
+    return priorityIndex;
+  } catch {
+    return -1;
+  }
+}
+
 /**
- * Try GovInfo for a bill. Iterates version codes in priority order, returning
- * the first hit. Each probe uses HEAD first to avoid downloading the HTML
- * error page; only GETs when Content-Type is XML.
+ * Try GovInfo for a bill. Probes all version codes in parallel (HEAD requests)
+ * to find which packages exist, then downloads the highest-priority match.
+ * Parallel probing keeps per-bill cost to roughly one round-trip instead of
+ * serial 13×; total time ~1s rather than ~2-4s, which keeps the per-function
+ * budget within Vercel's 60s cap.
  */
 export async function fetchBillTextFromGovInfo(
   congress: number,
   apiBillType: string, // must be GovInfo-style: "hr", "s", "hjres", etc.
   billNumber: number,
 ): Promise<GovInfoTextResult | null> {
-  for (const version of VERSION_CODES) {
-    const pkg = `BILLS-${congress}${apiBillType}${billNumber}${version}`;
-    const url = `https://www.govinfo.gov/content/pkg/${pkg}/xml/${pkg}.xml`;
+  const urls = VERSION_CODES.map((v, idx) => {
+    const pkg = `BILLS-${congress}${apiBillType}${billNumber}${v}`;
+    return {
+      version: v,
+      idx,
+      url: `https://www.govinfo.gov/content/pkg/${pkg}/xml/${pkg}.xml`,
+    };
+  });
 
-    try {
-      // HEAD first — fast check for Content-Type. GovInfo 302-redirects to the
-      // real file; axios follows by default. If the destination is HTML it's
-      // the error page. If XML, this package exists.
-      const head = await axios.head(url, {
-        timeout: 8_000,
-        validateStatus: () => true, // Don't throw on 4xx/5xx, we check manually
-        maxRedirects: 5,
-        headers: {
-          "User-Agent": "Govroll/1.0 (civic transparency; +https://govroll.com)",
-        },
-      });
+  // Fire all HEADs in parallel. Each returns its priority index on hit.
+  const hits = await Promise.all(
+    urls.map((u) => probeExists(u.url, u.idx)),
+  );
 
-      if (head.status !== 200) continue;
+  // Pick the highest-priority hit (lowest index).
+  let bestIdx = Number.POSITIVE_INFINITY;
+  for (const h of hits) if (h >= 0 && h < bestIdx) bestIdx = h;
+  if (!Number.isFinite(bestIdx)) return null;
 
-      const contentType = String(head.headers["content-type"] ?? "").toLowerCase();
-      // Real bill XML comes as application/xml or text/xml. The "content not
-      // found" HTML page comes as text/html.
-      if (!contentType.includes("xml")) continue;
+  const target = urls[bestIdx];
 
-      // Package exists — download the XML.
-      const res = await axios.get<string>(url, {
-        timeout: 15_000,
-        responseType: "text",
-        maxRedirects: 5,
-        headers: {
-          "User-Agent": "Govroll/1.0 (civic transparency; +https://govroll.com)",
-        },
-        // Keep string, don't parse as JSON
-        transformResponse: [(data) => data],
-      });
-
-      if (typeof res.data !== "string" || res.data.length < 200) continue;
-
-      // Sanity check: starts with <?xml or <bill
-      const head100 = res.data.slice(0, 200);
-      if (!/<\?xml|<bill|<resolution/i.test(head100)) continue;
-
-      return { xml: res.data, versionCode: version, url };
-    } catch {
-      // Network error on this version — try the next one
-      continue;
-    }
-
-    // Small spacing between probes to be polite to GovInfo
-    await new Promise((r) => setTimeout(r, 150));
+  try {
+    const res = await axios.get<string>(target.url, {
+      timeout: 15_000,
+      responseType: "text",
+      maxRedirects: 5,
+      headers: { "User-Agent": UA },
+      transformResponse: [(data) => data],
+    });
+    if (typeof res.data !== "string" || res.data.length < 200) return null;
+    const head200 = res.data.slice(0, 200);
+    if (!/<\?xml|<bill|<resolution/i.test(head200)) return null;
+    return { xml: res.data, versionCode: target.version, url: target.url };
+  } catch {
+    return null;
   }
-
-  return null;
 }
 
 /** Exported for logging/testing — which codes we try, in order. */
