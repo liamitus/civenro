@@ -19,7 +19,9 @@ import { reportError } from "@/lib/error-reporting";
  * at ~3s per bill we comfortably fit 50 bills per invocation.
  */
 
-export const maxDuration = 300;
+// Hobby plan cap is 60s. We budget 55s and bail early if approaching.
+export const maxDuration = 60;
+const TIMEOUT_MS = 55_000;
 
 export async function GET(request: Request) {
   const expected = process.env.CRON_SECRET;
@@ -32,13 +34,16 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const limit = Math.min(100, parseInt(url.searchParams.get("limit") ?? "50", 10));
+  // Batch is intentionally sized to finish within the 55s budget. At ~3s
+  // per bill (API + parse + DB), 15 is the safe sweet spot.
+  const limit = Math.min(25, parseInt(url.searchParams.get("limit") ?? "15", 10));
   const tiers = (url.searchParams.get("tiers") ?? "ACTIVE,ADVANCING,ENACTED")
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
 
   const started = Date.now();
+  const deadline = started + TIMEOUT_MS;
   const batch = await prisma.bill.findMany({
     where: {
       momentumTier: { in: tiers },
@@ -56,7 +61,12 @@ export async function GET(request: Request) {
   let processed = 0;
   const errors: Array<{ billId: string; error: string }> = [];
 
+  let timedOut = false;
   for (const b of batch) {
+    if (Date.now() >= deadline) {
+      timedOut = true;
+      break;
+    }
     try {
       await fetchBillTextFunction(b.billId, 1);
       processed++;
@@ -89,6 +99,7 @@ export async function GET(request: Request) {
     errorCount: errors.length,
     errors: errors.slice(0, 5),
     remaining,
+    timedOut,
     elapsedMs,
     elapsedSec: Math.round(elapsedMs / 1000),
   });
