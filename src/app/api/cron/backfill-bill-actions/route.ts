@@ -88,29 +88,37 @@ export async function GET(request: Request) {
         processed++;
         continue;
       }
-      // Batch-upsert all actions for this bill concurrently
+      // Dedupe on (actionDate, text) — congress.gov occasionally returns
+      // identical action rows, which would race the (billId, actionDate,
+      // text) unique constraint when upserted in parallel.
+      const seen = new Set<string>();
+      const uniqueActions = actions.filter((a) => {
+        if (!a.actionDate || !a.text) return false;
+        const key = `${a.actionDate}::${a.text}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
       await Promise.all(
-        actions
-          .filter((a) => a.actionDate && a.text)
-          .map((a) =>
-            prisma.billAction.upsert({
-              where: {
-                billId_actionDate_text: {
-                  billId: b.id,
-                  actionDate: new Date(a.actionDate),
-                  text: a.text,
-                },
-              },
-              update: {},
-              create: {
+        uniqueActions.map((a) =>
+          prisma.billAction.upsert({
+            where: {
+              billId_actionDate_text: {
                 billId: b.id,
                 actionDate: new Date(a.actionDate),
-                chamber: a.chamber,
                 text: a.text,
-                actionType: a.type,
               },
-            }),
-          ),
+            },
+            update: {},
+            create: {
+              billId: b.id,
+              actionDate: new Date(a.actionDate),
+              chamber: a.chamber,
+              text: a.text,
+              actionType: a.type,
+            },
+          }),
+        ),
       );
       processed++;
     } catch (err) {
