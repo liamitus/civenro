@@ -10,6 +10,7 @@ import type { TextVersionMeta } from "../lib/congress-api";
 import { extractVersionCode, isSubstantiveVersion } from "../lib/version-helpers";
 import { parseBillId } from "../lib/parse-bill-id";
 import { createStandalonePrisma } from "../lib/prisma-standalone";
+import { fetchBillTextFromGovInfo } from "../lib/govinfo";
 
 const prisma = createStandalonePrisma();
 
@@ -103,7 +104,73 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
 
         const allVersions = await fetchAllTextVersions(congress, apiBillType, billNumber);
         if (allVersions.length === 0) {
-          console.warn(`No text versions found for ${bill.billId}.`);
+          // Fallback: try GovInfo bulk data directly. The congress.gov API's
+          // /text endpoint is inconsistent — many published bills return an
+          // empty textVersions array even though the XML is available at
+          // https://www.govinfo.gov/content/pkg/BILLS-*/xml/*.xml.
+          const gi = await fetchBillTextFromGovInfo(
+            congress,
+            apiBillType,
+            billNumber,
+          );
+          if (!gi) {
+            console.warn(
+              `No text versions found for ${bill.billId} on Congress.gov or GovInfo.`,
+            );
+            continue;
+          }
+
+          // Parse the GovInfo XML through our existing section parser and
+          // persist as a BillTextVersion row so subsequent runs skip the
+          // expensive fetch.
+          let fullText = "";
+          try {
+            const sections = await parseXmlIntoSections(gi.xml);
+            if (sections.length > 0) {
+              fullText = sections
+                .map((s) => {
+                  const heading =
+                    s.path.length > 0 ? s.path.join(" > ") + "\n" : "";
+                  return heading + s.content;
+                })
+                .join("\n\n");
+            }
+          } catch {
+            // Fall back to raw xml — the AI can still work with it even
+            // unstructured.
+            fullText = gi.xml;
+          }
+
+          if (!fullText) {
+            console.warn(`GovInfo XML parsed empty for ${bill.billId}.`);
+            continue;
+          }
+
+          await prisma.billTextVersion.upsert({
+            where: {
+              billId_versionCode: { billId: bill.id, versionCode: gi.versionCode },
+            },
+            update: {
+              fullText,
+              versionType: gi.versionCode,
+              versionDate: new Date(),
+            },
+            create: {
+              billId: bill.id,
+              versionCode: gi.versionCode,
+              versionType: gi.versionCode,
+              versionDate: new Date(),
+              fullText,
+              isSubstantive: isSubstantiveVersion(gi.versionCode),
+            },
+          });
+          await prisma.bill.update({
+            where: { id: bill.id },
+            data: { fullText },
+          });
+          console.log(
+            `${bill.billId}: recovered via GovInfo (${gi.versionCode.toUpperCase()}, ${fullText.length} chars).`,
+          );
           continue;
         }
 
