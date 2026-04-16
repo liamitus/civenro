@@ -184,13 +184,29 @@ export function RepresentativesDashboard() {
 
       {error && (
         <div className="rounded-lg border border-border/60 bg-muted/30 p-6 text-center space-y-3">
-          <p className="text-sm text-muted-foreground">{error}</p>
-          <button
-            onClick={() => fetchReps(address)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-navy bg-white border border-border/60 rounded-md hover:bg-navy/5 transition-colors"
-          >
-            Try again
-          </button>
+          <p className="text-sm text-muted-foreground">
+            {error}
+          </p>
+          <p className="text-xs text-muted-foreground/80 max-w-sm mx-auto">
+            We look up districts through the U.S. Census Bureau&apos;s
+            geocoder. It occasionally rejects addresses it doesn&apos;t
+            recognize — try adding the ZIP code or removing an apartment
+            number.
+          </p>
+          <div className="flex justify-center gap-2 flex-wrap">
+            <button
+              onClick={() => fetchReps(address)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-navy bg-white border border-border/60 rounded-md hover:bg-navy/5 transition-colors"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => { setInputAddr(""); setUserAddress(""); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-navy transition-colors"
+            >
+              Enter a different address
+            </button>
+          </div>
         </div>
       )}
 

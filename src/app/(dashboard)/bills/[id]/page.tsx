@@ -99,7 +99,7 @@ export default async function BillDetailPage({
     effectiveStatus.startsWith("prov_kill_");
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 space-y-5">
+    <div className="mx-auto max-w-3xl px-6 py-8 space-y-5">
       {/* ── Title + expandable about section (title, journey, explainer, AI chat) ── */}
       <BillAboutSection
         title={bill.title}

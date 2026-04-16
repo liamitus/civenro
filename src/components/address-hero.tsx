@@ -53,7 +53,8 @@ export function AddressHero() {
             are doing
           </h1>
           <p className="text-base text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            Track legislation, see how your elected officials vote, and make your voice count.
+            Plain-language bill summaries. See how your reps actually voted.
+            Call them with one tap.
           </p>
         </div>
 

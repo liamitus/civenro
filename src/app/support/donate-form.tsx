@@ -102,6 +102,17 @@ export function DonateForm({
     }
   };
 
+  // Impact copy — rough ratios, not promises. Tells the donor what their
+  // money actually does so the ask feels tangible.
+  const impactLine = (() => {
+    const a = effectiveAmount;
+    if (!a || a < 100) return null;
+    if (a <= 500) return "Roughly a week of AI features for everyone.";
+    if (a <= 1500) return "About 3 weeks of AI features for everyone.";
+    if (a <= 5000) return "More than a full month of running costs.";
+    return "Multiple months of running costs covered.";
+  })();
+
   return (
     <Card className="p-6 space-y-6">
       {/* Amount presets */}
@@ -142,6 +153,9 @@ export function DonateForm({
             />
           </div>
         </div>
+        {impactLine && (
+          <p className="text-xs text-muted-foreground pt-1">{impactLine}</p>
+        )}
 
         {typicalDonationCents && (
           <p className="text-xs text-muted-foreground">

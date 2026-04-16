@@ -351,10 +351,25 @@ export function BillListClient() {
       {loading && bills.length === 0 && (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
+            // Shape-matching skeleton: chamber bar + title rows + badge row.
+            // Respects prefers-reduced-motion automatically via motion-safe:.
             <div
               key={i}
-              className="h-[92px] rounded-lg border border-border/40 bg-muted/30 animate-pulse"
-            />
+              className="relative rounded-lg border border-border/50 bg-white px-5 py-4 overflow-hidden"
+              aria-hidden
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-muted" />
+              <div className="pl-3 space-y-2.5">
+                <div className="h-4 bg-muted/60 rounded motion-safe:animate-pulse" style={{ width: `${70 - i * 3}%` }} />
+                <div className="h-3 bg-muted/40 rounded motion-safe:animate-pulse" style={{ width: `${55 - i * 2}%` }} />
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="h-3 w-10 bg-muted/50 rounded motion-safe:animate-pulse" />
+                  <div className="h-4 w-16 bg-muted/40 rounded motion-safe:animate-pulse" />
+                  <div className="h-4 w-14 bg-muted/40 rounded motion-safe:animate-pulse" />
+                  <div className="h-3 w-20 bg-muted/30 rounded motion-safe:animate-pulse" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

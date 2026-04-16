@@ -36,18 +36,43 @@ export function Footer() {
           </p>
         </div>
 
-        <p className="mt-4 text-center text-[10px] text-muted-foreground/50 leading-relaxed">
-          Legislative data sourced from{" "}
-          <a
-            href="https://congress.gov"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-muted-foreground/70"
-          >
-            congress.gov
-          </a>
-          . Govroll is not affiliated with or endorsed by the U.S. government.
-        </p>
+        <div className="mt-4 space-y-1.5 text-center text-[10px] text-muted-foreground/60 leading-relaxed">
+          <p>
+            Independent, non-partisan, and reader-supported. Govroll is not
+            affiliated with or endorsed by the U.S. government.
+          </p>
+          <p>
+            Legislative data from{" "}
+            <a
+              href="https://congress.gov"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-muted-foreground"
+            >
+              congress.gov
+            </a>
+            {" · "}
+            Representative data from{" "}
+            <a
+              href="https://github.com/unitedstates/congress-legislators"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-muted-foreground"
+            >
+              unitedstates/congress-legislators
+            </a>
+            {" · "}
+            Geocoding via{" "}
+            <a
+              href="https://geocoding.geo.census.gov/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-muted-foreground"
+            >
+              U.S. Census Bureau
+            </a>
+          </p>
+        </div>
       </div>
     </footer>
   );

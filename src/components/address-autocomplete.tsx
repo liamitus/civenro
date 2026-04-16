@@ -19,7 +19,7 @@ export function AddressAutocomplete({
   value,
   onChange,
   onSelect,
-  placeholder = "Enter your US street address",
+  placeholder = "Your home address, US",
   className = "",
   autoFocus = false,
 }: AddressAutocompleteProps) {
