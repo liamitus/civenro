@@ -44,16 +44,16 @@ export async function GET(request: Request) {
 
   const started = Date.now();
   const deadline = started + TIMEOUT_MS;
+  // Oldest-first — bills introduced weeks/months ago are much more likely to
+  // have published text available (both congress.gov and GovInfo). Very
+  // recent bills go to the back where the daily cron can pick them up later.
   const batch = await prisma.bill.findMany({
     where: {
       momentumTier: { in: tiers },
       fullText: null,
       textVersions: { none: { fullText: { not: null } } },
     },
-    orderBy: [
-      { momentumScore: { sort: "desc", nulls: "last" } },
-      { latestActionDate: { sort: "desc", nulls: "last" } },
-    ],
+    orderBy: [{ introducedDate: "asc" }],
     select: { billId: true },
     take: limit,
   });
