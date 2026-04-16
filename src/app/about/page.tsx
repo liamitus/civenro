@@ -110,6 +110,27 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Open source</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Govroll is open source on{" "}
+          <a
+            href="https://github.com/liamitus/govroll"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-2"
+          >
+            GitHub
+          </a>
+          . This instance is focused on the U.S. Congress, but the code
+          isn&apos;t tied to any one country. If you&apos;d like to bring the
+          same kind of civic transparency to your own parliament, legislature,
+          or government, clone the repo and tailor it to your data sources and
+          institutions. Pull requests, forks, and country-specific
+          deployments are all welcome.
+        </p>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-lg font-semibold">Get in touch</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Have feedback, found a bug, or have a question?{" "}

@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Made Possible By — Govroll",
-  description: "Govroll is funded by readers. Meet the citizens keeping civic transparency alive.",
+  description: "Govroll is funded by supporters. Meet the people keeping civic transparency alive.",
 };
 
 export const dynamic = "force-dynamic";

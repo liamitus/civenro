@@ -21,9 +21,9 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold">About your contribution</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Govroll is an independent civic transparency project supported
-          entirely by readers. Your contribution helps cover the
-          infrastructure, data, and AI costs that keep the platform running
-          and free to use.
+          entirely by reader contributions. Your contribution helps cover
+          the infrastructure, data, and AI costs that keep the platform
+          running and free to use.
         </p>
       </section>
 
