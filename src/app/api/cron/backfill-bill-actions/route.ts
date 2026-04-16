@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { fetchBillActionsFunction } from "@/scripts/fetch-bill-actions";
+import { fetchBillActions } from "@/lib/congress-api";
+import { parseBillId } from "@/lib/parse-bill-id";
 import { reportError } from "@/lib/error-reporting";
 
 /**
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
       actions: { none: {} },
     },
     orderBy: [{ currentStatusDate: "asc" }],
-    select: { billId: true },
+    select: { id: true, billId: true },
     take: limit,
   });
 
@@ -61,13 +62,56 @@ export async function GET(request: Request) {
   let timedOut = false;
   const errors: Array<{ billId: string; error: string }> = [];
 
+  // Call the lib directly (avoids the script wrapper's extra Prisma query
+  // and the 1s-per-bill sleep, which burns half our budget on nothing).
   for (const b of batch) {
     if (Date.now() >= deadline) {
       timedOut = true;
       break;
     }
     try {
-      await fetchBillActionsFunction([b.billId]);
+      const parsed = parseBillId(b.billId);
+      if (!parsed.congress || !parsed.apiBillType || !parsed.billNumber) {
+        errors.push({ billId: b.billId, error: "invalid bill id" });
+        continue;
+      }
+      const actions = await fetchBillActions(
+        parsed.congress,
+        parsed.apiBillType,
+        parsed.billNumber,
+      );
+      if (!actions || actions.length === 0) {
+        // No actions yet — still count as processed so we don't loop on the
+        // same bills. Mark the absence of actions doesn't happen via a flag;
+        // instead the WHERE `actions: { none: {} }` keeps it in the pool
+        // until the daily cron re-tries when actions appear.
+        processed++;
+        continue;
+      }
+      // Batch-upsert all actions for this bill concurrently
+      await Promise.all(
+        actions
+          .filter((a) => a.actionDate && a.text)
+          .map((a) =>
+            prisma.billAction.upsert({
+              where: {
+                billId_actionDate_text: {
+                  billId: b.id,
+                  actionDate: new Date(a.actionDate),
+                  text: a.text,
+                },
+              },
+              update: {},
+              create: {
+                billId: b.id,
+                actionDate: new Date(a.actionDate),
+                chamber: a.chamber,
+                text: a.text,
+                actionType: a.type,
+              },
+            }),
+          ),
+      );
       processed++;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
