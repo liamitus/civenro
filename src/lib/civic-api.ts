@@ -106,6 +106,7 @@ export async function getRepresentativesByAddress(address: string) {
       lastName: s.lastName,
       imageUrl: s.imageUrl,
       link: s.link,
+      phone: s.phone,
       id: s.id,
     })),
     ...(houseReps.length > 0 ? houseReps : allReps.length <= 3 ? allReps : []).map((r) => ({
@@ -121,6 +122,7 @@ export async function getRepresentativesByAddress(address: string) {
       lastName: r.lastName,
       imageUrl: r.imageUrl,
       link: r.link,
+      phone: r.phone,
       id: r.id,
     })),
   ];

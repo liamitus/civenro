@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAddress } from "@/hooks/use-address";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { RepresentativeWithVote } from "@/types";
+import { partyColor as partyColors } from "@/lib/representative-utils";
 
 /** Normalize congressional vote jargon to plain English */
 function normalizeVote(vote: string): string {
@@ -23,26 +24,6 @@ function voteColor(vote: string) {
   return "text-muted-foreground bg-muted";
 }
 
-function partyBarClass(party: string) {
-  const p = party.toLowerCase();
-  if (p.includes("democrat")) return "party-bar-democrat";
-  if (p.includes("republican")) return "party-bar-republican";
-  if (p.includes("independent")) return "party-bar-independent";
-  if (p.includes("libertarian")) return "party-bar-libertarian";
-  if (p.includes("green")) return "party-bar-green";
-  return "party-bar-unknown";
-}
-
-function partyColor(party: string) {
-  const p = party.toLowerCase();
-  if (p.includes("democrat")) return "text-dem";
-  if (p.includes("republican")) return "text-rep";
-  if (p.includes("independent")) return "text-ind";
-  if (p.includes("libertarian")) return "text-lib";
-  if (p.includes("green")) return "text-green";
-  return "text-muted-foreground";
-}
-
 function chamberLabel(chamber: string | null): string {
   if (!chamber) return "";
   if (chamber === "house") return "House";
@@ -55,24 +36,41 @@ function RepCard({ rep, muted = false }: { rep: RepresentativeWithVote; muted?: 
   const hasHistory = rep.voteHistory && rep.voteHistory.length > 1;
 
   return (
-    <div className={`rounded-lg bg-card border ${partyBarClass(rep.party)} ${muted ? "opacity-60" : ""}`}>
+    <div className={`rounded-lg bg-card border ${partyColors(rep.party).bar} ${muted ? "opacity-60" : ""}`}>
       <div className="flex items-center gap-3 p-3">
-        <Avatar className={`shrink-0 ${muted ? "h-9 w-9" : "h-11 w-11"}`}>
-          <AvatarImage src={rep.imageUrl || undefined} />
-          <AvatarFallback className="text-xs font-semibold">
-            {rep.firstName[0]}
-            {rep.lastName[0]}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className={`font-semibold truncate ${muted ? "text-xs" : "text-sm"}`}>
-            {rep.firstName} {rep.lastName}
-          </p>
-          <p className={`text-xs ${partyColor(rep.party)}`}>
-            {rep.party} — {rep.state}
-            {rep.district ? `, District ${rep.district}` : ""}
-          </p>
-        </div>
+        <Link
+          href={`/representatives/${rep.slug || rep.bioguideId}`}
+          className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+        >
+          <div className={`relative ${muted ? "w-9 h-11" : "w-11 h-14"} rounded-md overflow-hidden bg-muted flex-shrink-0`}>
+            {rep.bioguideId ? (
+              <img
+                src={`/api/photos/${rep.bioguideId}`}
+                alt={`${rep.firstName} ${rep.lastName}`}
+                className="w-full h-full object-cover object-[center_20%] select-none pointer-events-none"
+                draggable={false}
+                loading="lazy"
+                onError={(e) => {
+                  const el = e.currentTarget;
+                  el.style.display = "none";
+                  el.parentElement!.querySelector("[data-fallback]")!.removeAttribute("hidden");
+                }}
+              />
+            ) : null}
+            <div data-fallback hidden={!!rep.bioguideId} className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-semibold">
+              {rep.firstName[0]}{rep.lastName[0]}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`font-semibold truncate ${muted ? "text-xs" : "text-sm"}`}>
+              {rep.firstName} {rep.lastName}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {rep.party.replace("Democratic", "Democrat")} · {rep.state}
+              {rep.district ? `-${rep.district}` : ""}
+            </p>
+          </div>
+        </Link>
         <div className="flex items-center gap-2">
           <span
             className={`text-xs font-semibold px-2.5 py-1 rounded-full ${muted ? "text-muted-foreground" : voteColor(rep.vote)}`}

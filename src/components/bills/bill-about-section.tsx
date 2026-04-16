@@ -39,6 +39,8 @@ export function BillAboutSection({
   amendmentCount,
 }: BillAboutProps) {
   const [open, setOpen] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const longSummary = (shortText?.length ?? 0) > 400;
 
   return (
     <header className="space-y-3">
@@ -64,9 +66,37 @@ export function BillAboutSection({
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             Summary · Congressional Research Service (nonpartisan)
           </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {shortText}
-          </p>
+          {longSummary ? (
+            summaryExpanded ? (
+              <div className="relative">
+                <div className="max-h-80 overflow-y-auto rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground leading-relaxed scroll-smooth">
+                  {shortText}
+                </div>
+                <button
+                  onClick={() => setSummaryExpanded(false)}
+                  className="mt-1.5 text-xs font-medium text-navy/70 hover:text-navy transition-colors"
+                >
+                  Show less
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
+                  {shortText}
+                </p>
+                <button
+                  onClick={() => setSummaryExpanded(true)}
+                  className="mt-1.5 text-xs font-medium text-navy/70 hover:text-navy transition-colors"
+                >
+                  Show full summary
+                </button>
+              </div>
+            )
+          ) : (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {shortText}
+            </p>
+          )}
           {amendmentCount > 0 && (
             <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
               <svg

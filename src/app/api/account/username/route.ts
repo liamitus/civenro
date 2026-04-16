@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { checkNameL1 } from "@/lib/moderation/layer1";
+import { checkNameL2 } from "@/lib/moderation/layer2";
+
+function clientIp(request: NextRequest): string | undefined {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+}
 
 export async function PATCH(request: NextRequest) {
   const { userId, error } = await getAuthenticatedUser();
@@ -23,7 +29,24 @@ export async function PATCH(request: NextRequest) {
 
   const trimmed = username.trim();
 
-  // Update Profile first (source of truth), then sync to denormalized comment field
+  // Layer 1 — deterministic checks (length, charset, slurs, public figures, spam).
+  const l1 = checkNameL1(trimmed);
+  if (!l1.ok) {
+    return NextResponse.json(
+      { error: l1.reason ?? "Username is not allowed." },
+      { status: 400 }
+    );
+  }
+
+  // Layer 2 — OpenAI moderation. Fails open; we don't leak category labels.
+  const l2 = await checkNameL2(trimmed, clientIp(request));
+  if (l2.flagged) {
+    return NextResponse.json(
+      { error: "That username cannot be used. Please choose another." },
+      { status: 400 }
+    );
+  }
+
   await Promise.all([
     prisma.profile.update({
       where: { id: userId },

@@ -48,7 +48,7 @@ export function BillCard({ bill }: { bill: BillSummary }) {
           </h3>
 
           {bill.shortText && (
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-1">
               {bill.shortText}
             </p>
           )}

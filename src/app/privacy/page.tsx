@@ -9,246 +9,485 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Privacy Policy</h1>
+    <article className="mx-auto max-w-3xl px-6 py-12 sm:py-16">
+      <header className="space-y-3 pb-10 border-b border-border/40">
+        <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-navy/70">
+          Legal
+        </p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy">
+          Privacy Policy
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Last updated: April 11, 2026
+          Last updated: April 15, 2026
         </p>
       </header>
 
-      <p className="text-sm text-muted-foreground leading-relaxed">
-        Govroll (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;)
-        operates the website at govroll.com. This Privacy Policy explains what
-        information we collect, how we use it, who we share it with, and your
-        rights regarding your data.
-      </p>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">1. Information we collect</h2>
-
-        <h3 className="text-sm font-semibold mt-4">
-          Information you provide directly
-        </h3>
-        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
-          <li>
-            <strong className="text-foreground">Account information:</strong>{" "}
-            email address and password when you create an account, or profile
-            information from Google or GitHub if you use social sign-in.
-          </li>
-          <li>
-            <strong className="text-foreground">Display name:</strong> an
-            optional username you choose for comments and discussions.
-          </li>
-          <li>
-            <strong className="text-foreground">Comments:</strong> content you
-            post in bill discussions.
-          </li>
-          <li>
-            <strong className="text-foreground">Payment information:</strong>{" "}
-            if you make a contribution, payment details are collected and
-            processed by Stripe. We do not store your full card number.
-          </li>
-          <li>
-            <strong className="text-foreground">Correspondence:</strong> emails
-            you send to us at support@govroll.com or related addresses.
-          </li>
-        </ul>
-
-        <h3 className="text-sm font-semibold mt-4">
-          Information stored on your device only
-        </h3>
-        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
-          <li>
-            <strong className="text-foreground">Your address:</strong> when you
-            enter your address to find your representatives, it is stored in
-            your browser&apos;s local storage. It is never sent to or stored on
-            our servers. You can clear it at any time from your browser settings.
-          </li>
-        </ul>
-
-        <h3 className="text-sm font-semibold mt-4">
-          Information collected automatically
-        </h3>
-        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
-          <li>
-            <strong className="text-foreground">Authentication cookies:</strong>{" "}
-            we use essential cookies to keep you signed in. These are strictly
-            necessary for the service to function and cannot be disabled.
-          </li>
-          <li>
-            <strong className="text-foreground">Server logs:</strong> our
-            hosting provider may collect standard log data (IP address, browser
-            type, pages visited) for security and operational purposes.
-          </li>
-        </ul>
-
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We do not use analytics trackers, advertising cookies, or third-party
-          tracking pixels.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">2. How we use your information</h2>
-        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
-          <li>To provide and maintain the service (account access, comments, bill tracking).</li>
-          <li>To process contributions and send receipts via Stripe.</li>
-          <li>To moderate user-generated content (comments are reviewed by a combination of automated AI moderation and human review).</li>
-          <li>To respond to support requests and correspondence.</li>
-          <li>To protect against fraud, abuse, and unauthorized access.</li>
-        </ul>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We do not sell, rent, or share your personal information for
-          advertising or marketing purposes.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">3. Third-party services</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We use the following third-party services that may process your data:
-        </p>
-        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
-          <li>
-            <strong className="text-foreground">Supabase</strong> — authentication and database hosting.
-          </li>
-          <li>
-            <strong className="text-foreground">Stripe</strong> — payment processing for contributions. Stripe&apos;s privacy policy governs payment data they collect.
-          </li>
-          <li>
-            <strong className="text-foreground">Vercel</strong> — website hosting and infrastructure.
-          </li>
-          <li>
-            <strong className="text-foreground">Anthropic and OpenAI</strong> — AI services used to generate bill summaries and moderate content. Comment text may be sent to these services for moderation purposes.
-          </li>
-          <li>
-            <strong className="text-foreground">Google Civic Information API</strong> — used to look up representatives by address. When you enter your address, it is sent directly from your browser to Google&apos;s API to identify your representatives. We do not receive or store your address.
-          </li>
-        </ul>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Each of these services has its own privacy policy governing how they
-          handle data. We select services with strong privacy practices, but we
-          encourage you to review their policies.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">4. Artificial intelligence</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We use AI to generate plain-language bill summaries and to assist with
-          content moderation. AI-generated summaries are for informational
-          purposes only and may contain inaccuracies. When comments are
-          submitted, their text may be processed by AI services to detect
-          content that violates our community guidelines. We do not use your
-          personal information to train AI models.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">5. Data retention and deletion</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We retain your account data for as long as your account is active.
-          You can delete your account at any time from your{" "}
-          <Link href="/account" className="text-primary underline underline-offset-2">
-            account settings
-          </Link>
-          , which permanently removes your account information and associated
-          data, subject to any legal record-keeping obligations (for example,
-          financial records related to contributions may be retained as required
-          by law).
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">6. Children&apos;s privacy</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Govroll is not directed to children under the age of 13. We do not
-          knowingly collect personal information from children under 13. If you
-          believe a child has provided us with personal information, please{" "}
-          <Link href="/contact" className="text-primary underline underline-offset-2">
-            contact us
-          </Link>{" "}
-          and we will promptly delete it.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">7. Your rights</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Depending on your location, you may have the right to:
-        </p>
-        <ul className="text-sm text-muted-foreground leading-relaxed list-disc pl-5 space-y-1">
-          <li>Access the personal information we hold about you.</li>
-          <li>Request correction of inaccurate information.</li>
-          <li>Request deletion of your personal information.</li>
-          <li>Object to or restrict processing of your information.</li>
-          <li>Request portability of your data.</li>
-        </ul>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          To exercise any of these rights, email{" "}
+      <div className="pt-10 space-y-14 text-[15px] leading-7 text-muted-foreground">
+        <p>
+          Govroll (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) operates
+          the website at{" "}
           <a
-            href="mailto:privacy@govroll.com"
-            className="text-primary underline underline-offset-2"
+            href="https://govroll.com"
+            className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
           >
-            privacy@govroll.com
+            govroll.com
           </a>
-          . We will respond within 30 days.
+          . This policy explains what information we collect, how we use it,
+          who we share it with, and the rights you have. We take a
+          privacy-first approach: we collect the minimum we need to run the
+          service, we do not sell data, and we do not run advertising or
+          tracking.
         </p>
 
-        <h3 className="text-sm font-semibold mt-4">
-          California residents (CCPA)
-        </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          If you are a California resident, you have the right to know what
-          personal information we collect, request its deletion, and opt out of
-          the &ldquo;sale&rdquo; of personal information. We do not sell your
-          personal information. To make a request, contact{" "}
-          <a
-            href="mailto:privacy@govroll.com"
-            className="text-primary underline underline-offset-2"
-          >
-            privacy@govroll.com
-          </a>
-          .
-        </p>
-      </section>
+        <Section number="1" title="Information we collect">
+          <Sub title="Information you provide directly">
+            <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+              <Item label="Account information">
+                email address and password when you create an account, or
+                basic profile information (name, email, avatar) from Google or
+                GitHub if you use social sign-in.
+              </Item>
+              <Item label="Display name">
+                an optional username you choose for comments and discussions.
+              </Item>
+              <Item label="Comments">
+                text and reactions you post in bill discussions.
+              </Item>
+              <Item label="AI chat questions">
+                when you use the Ask-an-AI feature on a bill, the question
+                you type and the conversation thread are saved to your
+                account so you can return to it. The question text is also
+                sent to our AI provider to generate the response (see
+                section 4).
+              </Item>
+              <Item label="Donor name (optional)">
+                if you make a contribution, you may choose to be listed
+                publicly on our supporters page. Donations default to
+                anonymous.
+              </Item>
+              <Item label="Payment information">
+                payment details are collected and processed by Stripe. We do
+                not receive or store full card numbers, CVVs, or bank
+                credentials.
+              </Item>
+              <Item label="Correspondence">
+                emails you send to{" "}
+                <a
+                  href="mailto:support@govroll.com"
+                  className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+                >
+                  support@govroll.com
+                </a>{" "}
+                or related addresses.
+              </Item>
+            </ul>
+          </Sub>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">8. Security</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We use industry-standard security measures to protect your data,
-          including encrypted connections (HTTPS), secure authentication via
-          Supabase, and PCI-compliant payment processing via Stripe. However, no
-          method of transmission or storage is 100% secure, and we cannot
-          guarantee absolute security.
-        </p>
-      </section>
+          <Sub title="Information stored on your device only">
+            <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+              <Item label="Your address">
+                when you enter your address to find your representatives, it
+                is stored in your browser&apos;s local storage. It is not
+                saved to any Govroll account or database. You can clear it at
+                any time by changing your address or clearing your browser
+                storage.
+              </Item>
+            </ul>
+            <p className="pt-2">
+              Looking up your representatives is a stateless server-side
+              proxy. We would prefer to geocode directly in your browser,
+              but the{" "}
+              <a
+                href="https://geocoding.geo.census.gov/"
+                className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                U.S. Census Bureau geocoder
+              </a>{" "}
+              — the public dataset that maps an address to a congressional
+              district — does not accept direct browser calls. So we relay
+              the request: your address is POSTed to our server, forwarded
+              to the Census geocoder to resolve a state and district, and
+              discarded when the request ends. It is held only in the memory
+              of a single request and is not written to our database,
+              application logs, analytics, or error alerts. Your browser
+              keeps the one canonical copy. If a public geocoder ever
+              supports direct browser calls, we will move this step fully
+              client-side.
+            </p>
+          </Sub>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">9. Changes to this policy</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          We may update this Privacy Policy from time to time. If we make
-          material changes, we will notify you by updating the date at the top
-          of this page. Your continued use of Govroll after changes are posted
-          constitutes acceptance of the updated policy.
-        </p>
-      </section>
+          <Sub title="Information collected automatically">
+            <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+              <Item label="Authentication cookies">
+                if you sign in, we set essential cookies to keep your session
+                active. These are strictly necessary and cannot be disabled
+                without signing out.
+              </Item>
+              <Item label="Server logs">
+                our hosting provider (Vercel) records standard request
+                metadata — IP address, user agent, URL, timestamp, response
+                code — for security, abuse prevention, and operational
+                purposes. These logs are retained for up to 30 days.
+              </Item>
+            </ul>
+            <p className="pt-2">
+              We do not use analytics trackers, advertising cookies, session
+              replay tools, or third-party tracking pixels. Fonts are
+              self-hosted, so no font-provider tracking occurs.
+            </p>
+          </Sub>
+        </Section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">10. Contact</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          If you have questions about this Privacy Policy or our data practices,
-          contact us at{" "}
-          <a
-            href="mailto:privacy@govroll.com"
-            className="text-primary underline underline-offset-2"
-          >
-            privacy@govroll.com
-          </a>
-          .
-        </p>
-      </section>
+        <Section number="2" title="How we use your information">
+          <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+            <li>To provide and maintain the service — account access, bill tracking, comments, and supporter attribution.</li>
+            <li>To process contributions and send receipts through Stripe.</li>
+            <li>To moderate public donor display names (see section 4).</li>
+            <li>To respond to support requests and correspondence.</li>
+            <li>To protect against fraud, abuse, rate-limit violations, and unauthorized access.</li>
+            <li>To comply with legal obligations, subpoenas, or lawful process.</li>
+          </ul>
+          <p>
+            We do not sell, rent, or share your personal information for
+            advertising, marketing, or cross-context behavioral advertising
+            purposes.
+          </p>
+        </Section>
+
+        <Section number="3" title="Service providers">
+          <p>
+            We use the following third-party providers to operate Govroll.
+            Each has its own privacy policy governing how it handles data.
+          </p>
+          <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+            <Item label="Vercel">
+              website hosting, function execution, CDN, and request logging.
+            </Item>
+            <Item label="Supabase">
+              managed Postgres database and authentication (including the
+              Google and GitHub OAuth flows).
+            </Item>
+            <Item label="Stripe">
+              payment processing for contributions. Governed by Stripe&apos;s
+              privacy policy.
+            </Item>
+            <Item label="U.S. Census Bureau geocoding API">
+              converts an address you provide into a state and congressional
+              district. Governed by the Census Bureau&apos;s privacy notice.
+            </Item>
+            <Item label="Anthropic">
+              primary AI provider. Generates plain-language bill summaries
+              from publicly available bill text, and answers questions
+              asked through the Ask-an-AI feature. For chat, the bill
+              content, the question you typed, and the recent turns in
+              that conversation are sent; your email, account ID, address,
+              and other profile data are not.
+            </Item>
+            <Item label="OpenAI">
+              used for two purposes: (1) screening user-submitted text —
+              donor display names, usernames, and comments — via the free
+              /moderations endpoint; and (2) as a secondary chat provider
+              when Anthropic is unavailable. Only the specific text being
+              moderated or the chat inputs described above are sent; no
+              account identifier is attached.
+            </Item>
+            <Item label="Resend">
+              sends transactional email — receipts, contact replies, and
+              redacted operational error alerts to site staff. Error alerts
+              do not include addresses, comment text, or account
+              credentials.
+            </Item>
+          </ul>
+          <p>
+            We select providers with strong privacy practices and review
+            this list periodically. If we add or remove a material provider,
+            this page will be updated.
+          </p>
+        </Section>
+
+        <Section number="4" title="Artificial intelligence">
+          <p>
+            We use AI for three narrow, server-side purposes:
+          </p>
+          <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+            <li>
+              <strong className="text-foreground font-semibold">
+                Bill summaries:
+              </strong>{" "}
+              generating plain-language summaries of public bill text
+              retrieved from congress.gov. No personal information is sent,
+              and summaries are cached so the same bill is not reprocessed.
+            </li>
+            <li>
+              <strong className="text-foreground font-semibold">
+                Ask-an-AI (bill chat):
+              </strong>{" "}
+              an authenticated feature that lets you ask questions about a
+              specific bill. When you send a message, we transmit the bill
+              text, your question, and up to the most recent ten turns of
+              that conversation to the AI provider. We do not send your
+              email, your account ID, your address, or any data from other
+              bills. The conversation is saved to your account so you can
+              return to it, and is permanently deleted when you delete your
+              account. To cut cost and latency, we cache responses to
+              first-turn questions keyed by a hash of the question and the
+              bill; a matching cached response may be served to another
+              user who asks the same question on the same bill. The cache
+              entry contains the question text (not who asked it) and
+              expires after 24 hours.
+            </li>
+            <li>
+              <strong className="text-foreground font-semibold">
+                Content safety:
+              </strong>{" "}
+              screening user-submitted text — donor display names,
+              usernames, and comments — for slurs, harassment, sexual
+              content, violence, and other policy violations before
+              publishing. Submissions that are flagged are rejected with a
+              generic message and are not stored. A deterministic
+              pre-filter (no AI) runs first to catch obvious issues
+              instantly.
+            </li>
+          </ul>
+          <p>
+            AI-generated bill summaries are for informational purposes only
+            and may contain inaccuracies — always consult the original bill
+            text for authoritative content. We do not allow our providers to
+            use your information to train their models, and we send only
+            the specific piece of text needed for each task — nothing from
+            your profile or from unrelated activity on the site.
+          </p>
+          <p>
+            If the moderation service is temporarily unavailable, the
+            deterministic deny-list still applies and the content may be
+            posted pending review. Comments determined to violate our
+            guidelines after the fact will be removed.
+          </p>
+        </Section>
+
+        <Section number="5" title="Data retention and deletion">
+          <p>
+            Account data is retained while your account is active. You can
+            delete your account at any time from your{" "}
+            <Link
+              href="/account"
+              className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+            >
+              account settings
+            </Link>
+            . Deletion permanently removes your profile, display name,
+            comment authorship, and your AI chat conversations. Comments
+            may be retained in anonymized form (author attribution
+            removed) so that surrounding discussion remains coherent; you
+            can request full content removal by contacting us.
+          </p>
+          <p>
+            Financial records related to contributions — including donor
+            identity on attributed donations — are retained for the period
+            required by U.S. tax and record-keeping law, typically seven
+            years. Server logs are retained for up to 30 days. Cached AI
+            chat responses expire after 24 hours. Your locally-stored
+            address is cleared from your device whenever you clear it or
+            your browser storage.
+          </p>
+        </Section>
+
+        <Section number="6" title="Children's privacy">
+          <p>
+            Govroll is not directed to children under 13 and we do not
+            knowingly collect personal information from children under 13.
+            If you believe a child has provided us with personal
+            information, please{" "}
+            <Link
+              href="/contact"
+              className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+            >
+              contact us
+            </Link>{" "}
+            and we will promptly delete it.
+          </p>
+        </Section>
+
+        <Section number="7" title="Your rights">
+          <p>Depending on where you live, you may have the right to:</p>
+          <ul className="list-disc pl-5 marker:text-navy/30 space-y-2">
+            <li>Access the personal information we hold about you.</li>
+            <li>Request correction of inaccurate information.</li>
+            <li>Request deletion of your personal information.</li>
+            <li>Object to or restrict processing of your information.</li>
+            <li>Request portability of your data in a machine-readable format.</li>
+            <li>Withdraw consent previously granted, where we rely on consent.</li>
+          </ul>
+          <p>
+            To exercise any of these rights, email{" "}
+            <a
+              href="mailto:privacy@govroll.com"
+              className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+            >
+              privacy@govroll.com
+            </a>
+            . We will respond within 30 days. We will not retaliate against
+            you for exercising any of these rights.
+          </p>
+
+          <Sub title="California residents (CCPA / CPRA)">
+            <p>
+              If you are a California resident, you have additional rights
+              under the California Consumer Privacy Act, as amended by the
+              California Privacy Rights Act:
+            </p>
+            <ul className="list-disc pl-5 marker:text-navy/30 space-y-2 mt-3">
+              <li>
+                The right to know what categories and specific pieces of
+                personal information we collect, use, and disclose.
+              </li>
+              <li>
+                The right to delete personal information we have collected
+                from you.
+              </li>
+              <li>
+                The right to correct inaccurate personal information.
+              </li>
+              <li>
+                The right to opt out of the sale or sharing of your personal
+                information. <strong className="text-foreground">
+                  We do not sell or share personal information
+                </strong>{" "}
+                as those terms are defined under California law.
+              </li>
+              <li>
+                The right to limit use of sensitive personal information. We
+                do not collect sensitive personal information beyond what is
+                strictly necessary to run your account.
+              </li>
+              <li>
+                The right to non-discrimination for exercising these rights.
+              </li>
+            </ul>
+            <p className="mt-3">
+              The categories of personal information we collect are:
+              identifiers (email, account ID), commercial information (donation
+              history), internet activity (request logs), and user-generated
+              content (comments, display name). We honor the Global Privacy
+              Control (GPC) signal as a valid opt-out preference signal.
+            </p>
+          </Sub>
+        </Section>
+
+        <Section number="8" title="Security">
+          <p>
+            We use industry-standard safeguards to protect your data:
+            encrypted connections (HTTPS/TLS) everywhere, managed
+            authentication via Supabase, PCI-compliant payment processing
+            via Stripe, access controls on administrative tooling, and
+            least-privilege service credentials. No system is perfectly
+            secure and we cannot guarantee absolute security. If we become
+            aware of a breach affecting your personal information, we will
+            notify you as required by applicable law.
+          </p>
+        </Section>
+
+        <Section number="9" title="Legal disclosures">
+          <p>
+            We may disclose information when we believe, in good faith, that
+            disclosure is required to (a) comply with applicable law, a
+            subpoena, court order, or other lawful process; (b) protect the
+            rights, property, or safety of Govroll, our users, or the
+            public; or (c) investigate, prevent, or respond to suspected
+            fraud, security incidents, or abuse. Where legally permitted, we
+            will attempt to notify affected users before responding to a
+            government request.
+          </p>
+        </Section>
+
+        <Section number="10" title="Changes to this policy">
+          <p>
+            We may update this Privacy Policy from time to time. If we make
+            material changes, we will update the date at the top of this
+            page and, when practical, provide a more prominent notice (such
+            as an in-product notification or an email to account holders).
+            Your continued use of Govroll after changes are posted
+            constitutes acceptance of the updated policy.
+          </p>
+        </Section>
+
+        <Section number="11" title="Contact">
+          <p>
+            Questions about this Privacy Policy or our data practices?
+            Email{" "}
+            <a
+              href="mailto:privacy@govroll.com"
+              className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+            >
+              privacy@govroll.com
+            </a>
+            , or reach us through the{" "}
+            <Link
+              href="/contact"
+              className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+            >
+              contact page
+            </Link>
+            .
+          </p>
+        </Section>
+      </div>
+    </article>
+  );
+}
+
+function Section({
+  number,
+  title,
+  children,
+}: {
+  number: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-4 scroll-mt-24">
+      <h2 className="flex items-baseline gap-3 text-xl font-semibold tracking-tight text-navy">
+        <span className="text-[11px] font-semibold tracking-[0.2em] text-navy/40 tabular-nums">
+          {number.padStart(2, "0")}
+        </span>
+        <span>{title}</span>
+      </h2>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function Sub({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-3 pt-2">
+      <h3 className="text-[13px] font-semibold uppercase tracking-[0.15em] text-navy/80">
+        {title}
+      </h3>
+      <div className="space-y-3">{children}</div>
     </div>
+  );
+}
+
+function Item({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li>
+      <strong className="text-foreground font-semibold">{label}:</strong>{" "}
+      {children}
+    </li>
   );
 }

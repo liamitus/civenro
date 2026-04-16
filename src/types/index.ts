@@ -41,6 +41,7 @@ export interface RepresentativeInfo {
   chamber: string;
   imageUrl: string | null;
   link: string | null;
+  phone: string | null;
 }
 
 export interface RepVoteHistoryEntry {

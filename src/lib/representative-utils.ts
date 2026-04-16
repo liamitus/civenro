@@ -18,20 +18,19 @@ export function chamberLabel(chamber: string) {
 
 export function nextElection(chamber: string): string {
   const now = new Date();
-  const year = now.getFullYear();
-
-  // House: every even year. Senate: approximate next even year + 4 (staggered).
-  let electionYear: number;
-  if (chamber === "representative") {
-    electionYear = year % 2 === 0 ? year : year + 1;
-  } else {
-    const next = year % 2 === 0 ? year : year + 1;
-    electionYear = next + 4;
-  }
-
-  // Election day is first Tuesday after first Monday in November
-  const electionDate = getElectionDay(electionYear);
+  const electionDate = getElectionDay(nextElectionYear(chamber));
   return timeUntil(now, electionDate);
+}
+
+/** Returns the year of the next election for this chamber. */
+export function nextElectionYear(chamber: string): number {
+  const year = new Date().getFullYear();
+  if (chamber === "representative") {
+    return year % 2 === 0 ? year : year + 1;
+  }
+  // Senate: approximate next even year + 4 (staggered)
+  const next = year % 2 === 0 ? year : year + 1;
+  return next + 4;
 }
 
 function getElectionDay(year: number): Date {
@@ -43,23 +42,24 @@ function getElectionDay(year: number): Date {
   return new Date(year, 10, firstMonday + 1);
 }
 
+/** Returns a self-contained phrase like "in about 5 years" or "tomorrow". */
 function timeUntil(from: Date, to: Date): string {
   const diffMs = to.getTime() - from.getTime();
 
-  if (diffMs < 0) return "Election passed";
+  if (diffMs < 0) return "passed";
 
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return "Election day";
-  if (days === 1) return "Tomorrow";
-  if (days < 14) return `${days} days`;
-  if (days < 30) return `${Math.ceil(days / 7)} weeks`;
-  if (days < 60) return "about a month";
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days < 14) return `in ${days} days`;
+  if (days < 30) return `in ${Math.ceil(days / 7)} weeks`;
+  if (days < 60) return "in about a month";
 
   const months = Math.round(days / 30.44);
-  if (months < 12) return `${months} months`;
-  if (months < 18) return "about a year";
+  if (months < 12) return `in ${months} months`;
+  if (months < 18) return "in about a year";
 
   const years = Math.round(days / 365.25);
-  return `about ${years} years`;
+  return `in about ${years} years`;
 }

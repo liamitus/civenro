@@ -43,7 +43,16 @@ model Bill {
   policyArea          String?
   latestActionText    String?
   latestActionDate    DateTime?
+  congressNumber      Int?
+  momentumScore       Float?
+  momentumTier        String?
+  daysSinceLastAction Int?
+  deathReason         String?
+  momentumComputedAt  DateTime?
   votes             RepresentativeVote[]
+
+  @@index([congressNumber])
+  @@index([momentumTier, momentumScore])
   publicVotes       Vote[]
   comments          Comment[]
   conversations     Conversation[]
@@ -78,6 +87,7 @@ model Representative {
   chamber   String
   imageUrl  String?
   link      String?
+  phone     String?
   votes     RepresentativeVote[]
 }
 

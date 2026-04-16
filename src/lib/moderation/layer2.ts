@@ -1,8 +1,14 @@
 /**
- * Layer 2 — AI-powered name moderation via OpenAI's free /moderations endpoint.
+ * Layer 2 — AI moderation via OpenAI's free /moderations endpoint.
  *
- * Only called on names that pass Layer 1. Rate-limited per IP to prevent
- * abuse, with a DB-backed daily cap for safety (though the endpoint is free).
+ * Used for:
+ *  - Donor display names  (checkNameL2)
+ *  - Usernames            (checkNameL2)
+ *  - Comment content      (checkContentL2)
+ *
+ * The endpoint is free; we rate-limit by IP + a DB-backed daily cap purely
+ * as defense-in-depth against burst abuse. Moderation always fails open on
+ * network / quota errors — Layer 1 is the deterministic backstop.
  *
  * Server-only — never import this on the client.
  */
@@ -21,22 +27,25 @@ export type L2Result = {
   error?: string;
 };
 
-const MAX_CHECKS_PER_IP_PER_HOUR = 10;
-const MAX_DAILY_CALLS = 500;
+interface L2Options {
+  /** Shared limit bucket name — used for both the DB daily counter and the AI-spend feature label. */
+  limitKey: string;
+  /** Per-IP cap per hour. Pass 0 to skip the per-IP guard. */
+  maxPerIpPerHour: number;
+  /** Global daily cap. */
+  maxDaily: number;
+}
 
-/**
- * Call OpenAI's free /moderations endpoint to check a name.
- * Falls back to "pass" on network errors so a moderation outage
- * never blocks a donation.
- */
-export async function checkNameL2(
-  name: string,
-  ip?: string
+async function callModerationApi(
+  input: string,
+  ip: string | undefined,
+  opts: L2Options,
 ): Promise<L2Result> {
-  // Rate limiting — IP check is in-memory (fast reject), daily is DB-backed.
   try {
-    if (ip) assertIpRateLimit(ip, MAX_CHECKS_PER_IP_PER_HOUR);
-    await assertGlobalDailyLimit("moderation", MAX_DAILY_CALLS);
+    if (ip && opts.maxPerIpPerHour > 0) {
+      assertIpRateLimit(ip, opts.maxPerIpPerHour);
+    }
+    await assertGlobalDailyLimit(opts.limitKey, opts.maxDaily);
   } catch (err) {
     if (err instanceof RateLimitError) {
       return { ok: true, flagged: false, error: "rate_limited" };
@@ -46,7 +55,6 @@ export async function checkNameL2(
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    // No key configured — pass through (Layer 1 already checked)
     return { ok: true, flagged: false, error: "no_api_key" };
   }
 
@@ -57,9 +65,7 @@ export async function checkNameL2(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        input: name,
-      }),
+      body: JSON.stringify({ input }),
     });
 
     if (!res.ok) {
@@ -74,10 +80,9 @@ export async function checkNameL2(
       return { ok: true, flagged: false, error: "no_result" };
     }
 
-    // Log as zero-cost usage event for tracking purposes
     try {
       await recordSpend({
-        feature: "moderation",
+        feature: opts.limitKey,
         model: "openai-moderation",
         inputTokens: 0,
         outputTokens: 0,
@@ -104,4 +109,40 @@ export async function checkNameL2(
     // Fail open — Layer 1 already passed, and Layer 3 (human) is the backstop
     return { ok: true, flagged: false, error: "network_error" };
   }
+}
+
+/**
+ * Moderate a short display-name-like string (donor names, usernames).
+ *
+ * Caps are defense-in-depth, not a billing concern — OpenAI's /moderations
+ * endpoint is free. The daily cap bounds abuse-burn; the per-IP cap bounds
+ * a single source hammering the system.
+ */
+export async function checkNameL2(
+  name: string,
+  ip?: string,
+): Promise<L2Result> {
+  return callModerationApi(name, ip, {
+    limitKey: "moderation",
+    maxPerIpPerHour: 15,
+    maxDaily: 2000,
+  });
+}
+
+/**
+ * Moderate free-form content (comments, messages).
+ *
+ * Caller should also enforce an authenticated per-user cap
+ * (assertUserRateLimit) — the per-IP cap here is a fast-reject only and
+ * doesn't survive across serverless instances.
+ */
+export async function checkContentL2(
+  content: string,
+  ip?: string,
+): Promise<L2Result> {
+  return callModerationApi(content, ip, {
+    limitKey: "moderation_content",
+    maxPerIpPerHour: 60,
+    maxDaily: 20_000,
+  });
 }

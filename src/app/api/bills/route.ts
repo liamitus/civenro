@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { statusMapping } from "@/lib/status-mapping";
 import { reportError } from "@/lib/error-reporting";
 
+// Momentum filter buckets:
+//   live      — ACTIVE + ADVANCING + ENACTED (default feed)
+//   graveyard — DEAD only
+//   all       — no momentum filter applied
+const LIVE_TIERS = ["ACTIVE", "ADVANCING", "ENACTED"];
+const GRAVEYARD_TIERS = ["DEAD"];
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 
@@ -10,6 +17,7 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
   const chamber = searchParams.get("chamber");
   const status = searchParams.get("status");
+  const momentum = searchParams.get("momentum") || "live";
   const sortBy = searchParams.get("sortBy") || "relevant";
   const order = searchParams.get("order") || "desc";
   const search = searchParams.get("search");
@@ -17,7 +25,6 @@ export async function GET(request: NextRequest) {
 
   const skip = (page - 1) * limit;
 
-  // Build filters
   const filters: Record<string, unknown> = {};
 
   if (chamber && chamber !== "both") {
@@ -35,6 +42,14 @@ export async function GET(request: NextRequest) {
   if (topic) {
     filters.policyArea = { in: topic.split(",") };
   }
+
+  // Momentum: default to "live" to hide dead/dormant bills
+  if (momentum === "live") {
+    filters.momentumTier = { in: LIVE_TIERS };
+  } else if (momentum === "graveyard") {
+    filters.momentumTier = { in: GRAVEYARD_TIERS };
+  }
+  // momentum === "all" applies no filter
 
   // Build sort order — "relevant" uses engagement + activity signals,
   // anything else sorts by that field directly

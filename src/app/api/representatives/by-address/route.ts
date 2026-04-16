@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching representatives by address:", error);
-    reportError(error, { route: "POST /api/representatives/by-address", address });
+    reportError(error, {
+      route: "POST /api/representatives/by-address",
+      addressLength: typeof address === "string" ? address.length : 0,
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to look up representatives" },
       { status: 500 }
