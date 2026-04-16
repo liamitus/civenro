@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { BillCard } from "./bill-card";
 import { TOPICS } from "@/lib/topic-mapping";
+import { useAuth } from "@/hooks/use-auth";
 import type { BillSummary } from "@/types";
 
 const SORT_OPTIONS = [
@@ -26,10 +27,38 @@ export function BillListClient() {
   const [sortBy, setSortBy] = useState("relevant");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [votedBillIds, setVotedBillIds] = useState<Set<number>>(new Set());
+  const [hideVoted, setHideVoted] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   const activeFilterCount =
-    (chamber !== "both" ? 1 : 0) + (status !== "" ? 1 : 0);
+    (chamber !== "both" ? 1 : 0) +
+    (status !== "" ? 1 : 0) +
+    (hideVoted ? 1 : 0);
+
+  const visibleBills = useMemo(
+    () => (hideVoted ? bills.filter((b) => !votedBillIds.has(b.id)) : bills),
+    [bills, hideVoted, votedBillIds],
+  );
+  const hiddenByVoteCount = hideVoted ? bills.length - visibleBills.length : 0;
+
+  // Load the set of bills the current user has voted on.
+  useEffect(() => {
+    if (!user) {
+      setVotedBillIds(new Set());
+      setHideVoted(false);
+      return;
+    }
+    fetch("/api/user/voted-bills", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (Array.isArray(d?.billIds)) {
+          setVotedBillIds(new Set<number>(d.billIds));
+        }
+      })
+      .catch(() => {});
+  }, [user]);
 
   const fetchBills = useCallback(
     async (pageNum: number, append: boolean = false) => {
@@ -232,6 +261,32 @@ export function BillListClient() {
             {filterPill("Enacted", "enacted", status, setStatus)}
             {filterPill("Failed", "failed", status, setStatus)}
           </div>
+
+          {user && votedBillIds.size > 0 && (
+            <button
+              onClick={() => setHideVoted(!hideVoted)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
+                hideVoted
+                  ? "bg-navy text-white border-navy"
+                  : "border-border/50 text-muted-foreground hover:text-navy hover:border-navy/20"
+              }`}
+            >
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {hideVoted ? (
+                  <>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </>
+                )}
+              </svg>
+              {hideVoted ? "Voted hidden" : "Hide voted"}
+            </button>
+          )}
         </div>
       )}
 
@@ -265,6 +320,11 @@ export function BillListClient() {
                   (show active only)
                 </button>
               )}
+              {hiddenByVoteCount > 0 && (
+                <span className="text-muted-foreground/70">
+                  · {hiddenByVoteCount} already voted on
+                </span>
+              )}
             </>
           )}
         </p>
@@ -277,13 +337,13 @@ export function BillListClient() {
         }`}
         aria-busy={loading}
       >
-        {bills.map((bill, i) => (
+        {visibleBills.map((bill, i) => (
           <div
             key={bill.id}
             className="animate-fade-slide-up"
             style={{ animationDelay: `${Math.min(i, 10) * 30}ms` }}
           >
-            <BillCard bill={bill} />
+            <BillCard bill={bill} voted={votedBillIds.has(bill.id)} />
           </div>
         ))}
       </div>

@@ -129,7 +129,13 @@ function tierTreatment(
   }
 }
 
-export function BillCard({ bill }: { bill: BillSummary }) {
+export function BillCard({
+  bill,
+  voted = false,
+}: {
+  bill: BillSummary;
+  voted?: boolean;
+}) {
   const status = statusStyle(bill.currentStatus);
   const chamber = chamberTag(bill.billType);
   const topic = getTopicForPolicyArea(bill.policyArea);
@@ -152,9 +158,22 @@ export function BillCard({ bill }: { bill: BillSummary }) {
         />
 
         <div className="pl-3">
-          <h3 className="text-sm font-medium leading-snug text-navy line-clamp-2 group-hover:text-navy-light transition-colors">
-            {bill.title}
-          </h3>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-medium leading-snug text-navy line-clamp-2 group-hover:text-navy-light transition-colors flex-1">
+              {bill.title}
+            </h3>
+            {voted && (
+              <span
+                className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-navy/8 text-navy/80 border border-navy/10"
+                title="You've voted on this bill"
+              >
+                <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Voted
+              </span>
+            )}
+          </div>
 
           {bill.shortText && (
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-1">
