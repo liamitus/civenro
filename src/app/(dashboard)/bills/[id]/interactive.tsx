@@ -16,18 +16,20 @@ function CollapsibleCard({
   title,
   icon,
   defaultOpen = false,
+  anchorId,
   children,
 }: {
   title: string;
   icon: React.ReactNode;
   defaultOpen?: boolean;
+  anchorId?: string;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="rounded-xl border bg-card">
+      <div className="rounded-xl border bg-card" id={anchorId}>
         <CollapsibleTrigger className="flex w-full items-center gap-2 px-6 py-4 text-sm font-semibold text-foreground hover:bg-accent/50 transition-colors rounded-xl">
           {icon}
           {title}
@@ -130,6 +132,7 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
       <CollapsibleCard
         title="Discussion"
         defaultOpen
+        anchorId="discussion"
         icon={
           <svg
             className="h-4 w-4 text-muted-foreground"

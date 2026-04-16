@@ -34,6 +34,8 @@ export interface BillSummary {
   momentumScore: number | null;
   daysSinceLastAction: number | null;
   deathReason: DeathReason | null;
+  publicVoteCount?: number;
+  commentCount?: number;
 }
 
 export interface BillDetail extends BillSummary {

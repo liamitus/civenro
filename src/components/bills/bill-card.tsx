@@ -216,6 +216,51 @@ export function BillCard({
               </span>
             )}
           </div>
+
+          {/* Engagement signals — shown only when there's actual activity */}
+          {(bill.commentCount != null && bill.commentCount > 0) ||
+          (bill.publicVoteCount != null && bill.publicVoteCount > 0) ? (
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              {bill.publicVoteCount != null && bill.publicVoteCount > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 10v12" />
+                    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H7a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L15 2a3.13 3.13 0 0 1 3 3.88Z" />
+                  </svg>
+                  {bill.publicVoteCount.toLocaleString()}{" "}
+                  {bill.publicVoteCount === 1 ? "vote" : "votes"}
+                </span>
+              )}
+              {bill.commentCount != null && bill.commentCount > 0 && (
+                // Span with role=button so React doesn't error on nested <a>.
+                // Native click bubbles up to the outer Link; we intercept to
+                // navigate to #discussion instead.
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = `/bills/${bill.id}#discussion`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.location.href = `/bills/${bill.id}#discussion`;
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 hover:text-navy transition-colors cursor-pointer underline-offset-2 hover:underline"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  {bill.commentCount.toLocaleString()}{" "}
+                  {bill.commentCount === 1 ? "comment" : "comments"}
+                </span>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </Link>

@@ -113,6 +113,12 @@ export async function GET(request: NextRequest) {
           momentumScore: true,
           daysSinceLastAction: true,
           deathReason: true,
+          _count: {
+            select: {
+              publicVotes: true,
+              comments: true,
+            },
+          },
         },
       }),
     ]);
@@ -123,10 +129,15 @@ export async function GET(request: NextRequest) {
     // Truncate summaries for the listing — full CRS summaries can be 100KB+.
     // The card only shows a 2-line teaser; full text is still available on the
     // bill detail page.
-    const trimmed = bills.map((b) => ({
-      ...b,
-      shortText: b.shortText ? b.shortText.slice(0, 280) : null,
-    }));
+    const trimmed = bills.map((b) => {
+      const { _count, ...rest } = b;
+      return {
+        ...rest,
+        shortText: b.shortText ? b.shortText.slice(0, 280) : null,
+        publicVoteCount: _count.publicVotes,
+        commentCount: _count.comments,
+      };
+    });
 
     return NextResponse.json({
       total,
