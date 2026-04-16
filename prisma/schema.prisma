@@ -43,22 +43,25 @@ model Bill {
   policyArea          String?
   latestActionText    String?
   latestActionDate    DateTime?
+  // Momentum signal — computed daily by compute-momentum.
+  // Tier: DEAD | DORMANT | STALLED | ACTIVE | ADVANCING | ENACTED
+  // deathReason: CONGRESS_ENDED | FAILED_VOTE | VETOED | LONG_SILENCE | null
   congressNumber      Int?
-  momentumScore       Float?
+  momentumScore       Int?
   momentumTier        String?
   daysSinceLastAction Int?
   deathReason         String?
   momentumComputedAt  DateTime?
   votes             RepresentativeVote[]
-
-  @@index([congressNumber])
-  @@index([momentumTier, momentumScore])
   publicVotes       Vote[]
   comments          Comment[]
   conversations     Conversation[]
   actions           BillAction[]
   textVersions      BillTextVersion[]
   voteHistory       VoteHistory[]
+
+  @@index([momentumTier, momentumScore(sort: Desc)])
+  @@index([congressNumber])
 }
 
 model BillAction {

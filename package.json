@@ -12,7 +12,9 @@
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "compute-momentum": "npx tsx src/scripts/compute-momentum.ts",
+    "compute-momentum:full": "npx tsx src/scripts/compute-momentum.ts full 20000"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",

@@ -14,12 +14,15 @@ const SORT_OPTIONS = [
 export function BillListClient() {
   const [bills, setBills] = useState<BillSummary[]>([]);
   const [total, setTotal] = useState(0);
+  const [hiddenByMomentum, setHiddenByMomentum] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [chamber, setChamber] = useState("both");
   const [status, setStatus] = useState("");
+  const [momentum, setMomentum] = useState("live");
   const [sortBy, setSortBy] = useState("relevant");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
@@ -27,12 +30,14 @@ export function BillListClient() {
 
   const fetchBills = useCallback(
     async (pageNum: number, append: boolean = false) => {
-      setLoading(true);
+      if (append) setLoadingMore(true);
+      else setLoading(true);
       const params = new URLSearchParams({
         page: String(pageNum),
         limit: "20",
         sortBy,
         order: "desc",
+        momentum,
       });
       if (chamber !== "both") params.set("chamber", chamber);
       if (status) params.set("status", status);
@@ -49,13 +54,15 @@ export function BillListClient() {
         const data = await res.json();
         setBills((prev) => (append ? [...prev, ...data.bills] : data.bills));
         setTotal(data.total);
+        setHiddenByMomentum(data.hiddenByMomentum ?? 0);
         setError(null);
       } else {
         setError("Something went wrong loading bills. Please try again.");
       }
       setLoading(false);
+      setLoadingMore(false);
     },
-    [chamber, status, sortBy, search, selectedTopic]
+    [chamber, status, momentum, sortBy, search, selectedTopic]
   );
 
   useEffect(() => {
@@ -66,7 +73,12 @@ export function BillListClient() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && bills.length < total) {
+        if (
+          entries[0].isIntersecting &&
+          !loading &&
+          !loadingMore &&
+          bills.length < total
+        ) {
           const nextPage = page + 1;
           setPage(nextPage);
           fetchBills(nextPage, true);
@@ -76,7 +88,7 @@ export function BillListClient() {
     );
     if (observerRef.current) observer.observe(observerRef.current);
     return () => observer.disconnect();
-  }, [loading, bills.length, total, page, fetchBills]);
+  }, [loading, loadingMore, bills.length, total, page, fetchBills]);
 
   const filterPill = (
     label: string,
@@ -149,6 +161,12 @@ export function BillListClient() {
         </div>
 
         <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
+          {filterPill("Live", "live", momentum, setMomentum)}
+          {filterPill("All", "all", momentum, setMomentum)}
+          {filterPill("Graveyard", "graveyard", momentum, setMomentum)}
+        </div>
+
+        <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
           {filterPill("All", "both", chamber, setChamber)}
           {filterPill("House", "house", chamber, setChamber)}
           {filterPill("Senate", "senate", chamber, setChamber)}
@@ -165,12 +183,30 @@ export function BillListClient() {
       </div>
 
       {/* Count + sort toggle */}
-      <div className="flex items-center justify-between">
-        {!loading && total > 0 && (
-          <p className="text-sm text-muted-foreground">
-            {total.toLocaleString()} bill{total !== 1 ? "s" : ""}
-          </p>
-        )}
+      <div className="flex items-center justify-between min-h-[28px]">
+        <p className="text-sm text-muted-foreground flex items-center gap-2">
+          {loading && (
+            <span className="inline-flex items-center gap-1.5 text-navy/70">
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-navy/15 border-t-navy/70 animate-spin" />
+              Updating…
+            </span>
+          )}
+          {!loading && total > 0 && (
+            <>
+              <span>
+                {total.toLocaleString()} bill{total !== 1 ? "s" : ""}
+              </span>
+              {momentum === "live" && hiddenByMomentum > 0 && (
+                <button
+                  onClick={() => setMomentum("all")}
+                  className="text-muted-foreground/70 hover:text-navy underline decoration-dotted underline-offset-2 transition-colors"
+                >
+                  ({hiddenByMomentum.toLocaleString()} dormant or dead hidden)
+                </button>
+              )}
+            </>
+          )}
+        </p>
         <div className="flex items-center gap-1 ml-auto">
           {SORT_OPTIONS.map((opt) => (
             <button
@@ -188,8 +224,14 @@ export function BillListClient() {
         </div>
       </div>
 
-      {/* Bill list */}
-      <div className="space-y-2">
+      {/* Bill list. When refreshing with existing results, dim + disable
+          interaction so the user sees a clear state change during filter swaps. */}
+      <div
+        className={`space-y-2 transition-opacity duration-150 ${
+          loading && bills.length > 0 ? "opacity-40 pointer-events-none" : ""
+        }`}
+        aria-busy={loading}
+      >
         {bills.map((bill, i) => (
           <div
             key={bill.id}
@@ -201,11 +243,24 @@ export function BillListClient() {
         ))}
       </div>
 
-      {loading && (
-        <div className="flex justify-center py-8">
+      {/* Initial-load skeleton (first fetch, nothing to dim yet). */}
+      {loading && bills.length === 0 && (
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[92px] rounded-lg border border-border/40 bg-muted/30 animate-pulse"
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Infinite-scroll loader (appended pages). */}
+      {loadingMore && (
+        <div className="flex justify-center py-6">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <div className="w-4 h-4 rounded-full border-2 border-navy/15 border-t-navy/60 animate-spin" />
-            Loading bills...
+            Loading more…
           </div>
         </div>
       )}
