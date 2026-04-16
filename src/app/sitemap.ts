@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // can't reach the DB (e.g. Vercel build network can't hit the direct-connect
   // port, or DATABASE_URL isn't set in preview env), emit the static-only
   // sitemap and let the next revalidate fill in bill/rep URLs.
-  let bills: { id: string; currentStatusDate: Date }[] = [];
+  let bills: { id: number; currentStatusDate: Date }[] = [];
   let reps: { bioguideId: string; slug: string | null }[] = [];
   try {
     [bills, reps] = await Promise.all([
