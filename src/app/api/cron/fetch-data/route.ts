@@ -7,6 +7,7 @@ import { fetchRepresentativesFunction } from "@/scripts/fetch-representatives";
 import { refreshBillMetadataFunction } from "@/scripts/refresh-bill-metadata";
 import { generateChangeSummariesFunction } from "@/scripts/generate-change-summaries";
 import { computeMomentumFunction } from "@/scripts/compute-momentum";
+import { backfillCosponsors } from "@/scripts/backfill-cosponsors";
 import { reportError } from "@/lib/error-reporting";
 
 /**
@@ -92,6 +93,19 @@ export async function GET(request: Request) {
   // 3. Bill text — batch of 5 bills missing text (~3s each w/ rate limiting)
   results.push(
     await runWithBudget("bill-text", () => fetchBillTextFunction(undefined, 5), deadline),
+  );
+
+  // 3b. Cosponsors — batch of 10 live bills whose individual cosponsor rows
+  // haven't been captured yet. One /cosponsors API call per bill (~1s).
+  // The BillCosponsor table powers the "your rep cosponsored this" signal
+  // on bill pages — critical for the ~98% of bills that never get a roll
+  // call. backfillCosponsors() is idempotent and skips already-done bills.
+  results.push(
+    await runWithBudget(
+      "cosponsors",
+      () => backfillCosponsors(undefined, { limit: 10 }),
+      deadline,
+    ),
   );
 
   // 4. Change summaries — AI-generated narratives of what changed between bill
