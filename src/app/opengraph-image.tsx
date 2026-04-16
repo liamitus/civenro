@@ -33,45 +33,50 @@ export default async function OgImage() {
         }}
       >
         {/* Stars + Brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <Star size={36} />
+        <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+          <Star size={60} />
           <span
             style={{
               color: "#FFFFFF",
-              fontSize: 84,
+              fontSize: 160,
               fontFamily: "EBGaramond",
               fontWeight: 700,
-              letterSpacing: "0.12em",
+              letterSpacing: "0.1em",
             }}
           >
             GOVROLL
           </span>
-          <Star size={36} />
+          <Star size={60} />
         </div>
 
         {/* Divider */}
         <div
           style={{
-            width: 100,
-            height: 3,
+            width: 180,
+            height: 4,
             backgroundColor: "#B8860B",
-            marginTop: 32,
-            marginBottom: 32,
+            marginTop: 44,
+            marginBottom: 44,
           }}
         />
 
         {/* Tagline */}
-        <span
+        <div
           style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
             color: "#FAFAF5",
-            fontSize: 30,
+            fontSize: 56,
             fontFamily: "EBGaramond",
             fontWeight: 700,
-            opacity: 0.8,
+            opacity: 0.88,
+            lineHeight: 1.15,
           }}
         >
-          See What Your Representatives Are Doing
-        </span>
+          <span>See What Your</span>
+          <span>Representatives Are Doing</span>
+        </div>
       </div>
     ),
     {
