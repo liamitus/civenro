@@ -72,10 +72,36 @@ export interface RepVoteHistoryEntry {
   votedAt: string | null;
 }
 
+export interface RepCosponsorship {
+  sponsoredAt: string | null;
+  isOriginal: boolean;
+  withdrawnAt: string | null;
+}
+
 export interface RepresentativeWithVote extends RepresentativeInfo {
   name: string;
   vote: string;
+  /** Raw GovTrack vote category: "passage", "passage_suspension",
+   * "veto_override", "amendment", "procedural", "cloture", "nomination",
+   * or null. Used by the UI to label non-passage votes with context. */
+  voteCategory: string | null;
+  voteDate: string | null;
   voteHistory: RepVoteHistoryEntry[] | null;
+  cosponsorship: RepCosponsorship | null;
+}
+
+export type ChamberName = "house" | "senate";
+
+export type ChamberPassageStatus =
+  | "passed_with_rollcall"
+  | "passed_without_rollcall"
+  | "pending";
+
+export interface ChamberPassageInfo {
+  chamber: ChamberName;
+  status: ChamberPassageStatus;
+  passageRollCallCount: number;
+  proceduralRollCallCount: number;
 }
 
 export interface VersionInfo {
