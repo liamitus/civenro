@@ -59,9 +59,26 @@ model Bill {
   actions           BillAction[]
   textVersions      BillTextVersion[]
   voteHistory       VoteHistory[]
+  cosponsors        BillCosponsor[]
 
   @@index([momentumTier, momentumScore(sort: Desc)])
   @@index([congressNumber])
+}
+
+model BillCosponsor {
+  id               Int       @id @default(autoincrement())
+  billId           Int
+  representativeId Int
+  sponsoredAt      DateTime?
+  isOriginal       Boolean   @default(false)
+  withdrawnAt      DateTime?
+
+  bill           Bill           @relation(fields: [billId], references: [id], onDelete: Cascade)
+  representative Representative @relation(fields: [representativeId], references: [id])
+
+  @@unique([billId, representativeId])
+  @@index([billId])
+  @@index([representativeId])
 }
 
 model BillAction {
@@ -92,6 +109,7 @@ model Representative {
   link      String?
   phone     String?
   votes     RepresentativeVote[]
+  cosponsorships BillCosponsor[]
 }
 
 model RepresentativeVote {

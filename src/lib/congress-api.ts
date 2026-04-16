@@ -237,6 +237,73 @@ export interface BillMetadata {
 }
 
 /**
+ * Individual cosponsor record from Congress.gov, keyed by bioguideId for
+ * joining to our Representative table. Includes the signals we care about
+ * beyond the count: when they signed on, whether they were original
+ * cosponsors (signed at introduction), and whether they later withdrew.
+ */
+export interface BillCosponsorRecord {
+  bioguideId: string;
+  firstName: string | null;
+  lastName: string | null;
+  party: string | null;
+  state: string | null;
+  district: number | null;
+  sponsorshipDate: string | null;
+  sponsorshipWithdrawnDate: string | null;
+  isOriginalCosponsor: boolean;
+}
+
+/**
+ * Fetch the individual cosponsors for a bill from Congress.gov. Returns an
+ * empty array on error — this is a supplementary signal, not core metadata.
+ * Paginates up to 250 per page, which covers all but a handful of bills
+ * (Congress.gov caps at 250 per request).
+ */
+export async function fetchBillCosponsors(
+  congress: number,
+  apiBillType: string,
+  billNumber: number,
+): Promise<BillCosponsorRecord[]> {
+  try {
+    const res = await withRetry(() =>
+      congressApiClient.get(
+        `/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`,
+        { params: { limit: 250 } },
+      ),
+    );
+    const raw: Array<Record<string, unknown>> = res.data?.cosponsors ?? [];
+    return raw
+      .map((c) => {
+        const bioguideId = typeof c.bioguideId === "string" ? c.bioguideId : null;
+        if (!bioguideId) return null;
+        return {
+          bioguideId,
+          firstName: typeof c.firstName === "string" ? c.firstName : null,
+          lastName: typeof c.lastName === "string" ? c.lastName : null,
+          party: typeof c.party === "string" ? c.party : null,
+          state: typeof c.state === "string" ? c.state : null,
+          district: typeof c.district === "number" ? c.district : null,
+          sponsorshipDate:
+            typeof c.sponsorshipDate === "string" ? c.sponsorshipDate : null,
+          sponsorshipWithdrawnDate:
+            typeof c.sponsorshipWithdrawnDate === "string"
+              ? c.sponsorshipWithdrawnDate
+              : null,
+          isOriginalCosponsor: c.isOriginalCosponsor === true,
+        } satisfies BillCosponsorRecord;
+      })
+      .filter((c): c is BillCosponsorRecord => c !== null);
+  } catch (error: unknown) {
+    console.error(
+      "Failed to fetch bill cosponsors:",
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
+}
+
+/**
  * Extract plain text from Congress.gov summary HTML.
  * Summaries come wrapped in `<p>` tags with inline markup; strip it all for
  * display on the bills listing card.

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getRepresentativesByAddress } from "@/lib/civic-api";
+import {
+  summarizeChamberPassage,
+  type ChamberPassage,
+} from "@/lib/passage-summary";
 
 export async function POST(request: NextRequest) {
   let body;
@@ -30,29 +34,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 });
     }
 
-    // Determine relevant chambers based on bill type and status
-    const relevantChambers: string[] = [];
+    // Count roll calls per chamber for this bill, split into passage
+    // votes vs procedural votes. Only passage votes prove the chamber
+    // recorded individual names on final disposition — a motion to
+    // suspend or recommit gets a recorded vote even when the bill
+    // itself passes by voice afterward.
+    const rollCallsByChamberAndCategory =
+      await prisma.representativeVote.groupBy({
+        by: ["chamber", "category"],
+        where: { billId: parseInt(billId) },
+        _count: { rollCallNumber: true },
+      });
 
-    // Enacted bills passed both chambers — show all representatives
-    const bothChambers = bill.currentStatus.startsWith("enacted_")
-      || bill.currentStatus.startsWith("vetoed")
-      || bill.currentStatus.startsWith("prov_kill_veto")
-      || bill.currentStatus === "passed_bill"
-      || bill.currentStatus.startsWith("conference_")
-      || bill.currentStatus === "pass_back_house"
-      || bill.currentStatus === "pass_back_senate";
-    if (bothChambers) {
-      relevantChambers.push("representative", "senator");
-    } else {
-      // Origin chamber is always relevant
-      if (bill.billType.startsWith("house_")) relevantChambers.push("representative");
-      else if (bill.billType.startsWith("senate_")) relevantChambers.push("senator");
-      // If it crossed to the other chamber, add that too
-      if (bill.currentStatus === "passed_house" || bill.currentStatus === "pass_over_house")
-        relevantChambers.push("senator");
-      else if (bill.currentStatus === "passed_senate" || bill.currentStatus === "pass_over_senate")
-        relevantChambers.push("representative");
+    const passageCategorySet = new Set([
+      "passage",
+      "passage_suspension",
+      "veto_override",
+    ]);
+    const rollCallCounts = {
+      house: { passage: 0, procedural: 0 },
+      senate: { passage: 0, procedural: 0 },
+    };
+    for (const row of rollCallsByChamberAndCategory) {
+      const chamberKey = (row.chamber || "").toLowerCase() as
+        | "house"
+        | "senate"
+        | "";
+      if (chamberKey !== "house" && chamberKey !== "senate") continue;
+      const bucket = passageCategorySet.has(row.category || "")
+        ? "passage"
+        : "procedural";
+      rollCallCounts[chamberKey][bucket] += row._count.rollCallNumber;
     }
+
+    const chamberPassage: ChamberPassage[] = summarizeChamberPassage(
+      { billType: bill.billType, currentStatus: bill.currentStatus },
+      rollCallCounts,
+    );
+
+    // Derived legacy chamber filter used below when matching reps
+    const relevantChambers: string[] = [];
+    if (chamberPassage.some((c) => c.chamber === "house"))
+      relevantChambers.push("representative");
+    if (chamberPassage.some((c) => c.chamber === "senate"))
+      relevantChambers.push("senator");
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const repsWithVotes = await Promise.all(
@@ -76,21 +101,38 @@ export async function POST(request: NextRequest) {
         }
 
         if (dbRep) {
-          // Get all votes for this rep on this bill
-          const allVotes = await prisma.representativeVote.findMany({
-            where: {
-              representativeId: dbRep.id,
-              billId: parseInt(billId),
-            },
-            orderBy: { votedAt: "desc" },
-            select: {
-              vote: true,
-              rollCallNumber: true,
-              chamber: true,
-              votedAt: true,
-              category: true,
-            },
-          });
+          // Get all votes for this rep on this bill, plus their cosponsorship
+          // status. Cosponsorship is a strong support signal — especially
+          // valuable for bills that passed without a recorded roll call.
+          const [allVotes, cosponsorRow] = await Promise.all([
+            prisma.representativeVote.findMany({
+              where: {
+                representativeId: dbRep.id,
+                billId: parseInt(billId),
+              },
+              orderBy: { votedAt: "desc" },
+              select: {
+                vote: true,
+                rollCallNumber: true,
+                chamber: true,
+                votedAt: true,
+                category: true,
+              },
+            }),
+            prisma.billCosponsor.findUnique({
+              where: {
+                billId_representativeId: {
+                  billId: parseInt(billId),
+                  representativeId: dbRep.id,
+                },
+              },
+              select: {
+                sponsoredAt: true,
+                isOriginal: true,
+                withdrawnAt: true,
+              },
+            }),
+          ]);
 
           // Pick the best vote: passage categories first, then
           // uncategorized (likely passage with missing metadata),
@@ -134,6 +176,8 @@ export async function POST(request: NextRequest) {
             id: dbRep.id,
             name: official.name,
             vote: latestVote?.vote || "No vote recorded",
+            voteCategory: latestVote?.category || null,
+            voteDate: latestVote?.votedAt?.toISOString() || null,
             voteHistory: allVotes.length > 1
               ? allVotes.map((v: any) => ({
                   vote: v.vote,
@@ -141,6 +185,13 @@ export async function POST(request: NextRequest) {
                   chamber: v.chamber,
                   votedAt: v.votedAt?.toISOString() || null,
                 }))
+              : null,
+            cosponsorship: cosponsorRow
+              ? {
+                  sponsoredAt: cosponsorRow.sponsoredAt?.toISOString() || null,
+                  isOriginal: cosponsorRow.isOriginal,
+                  withdrawnAt: cosponsorRow.withdrawnAt?.toISOString() || null,
+                }
               : null,
           };
         }
@@ -159,7 +210,10 @@ export async function POST(request: NextRequest) {
           link: null,
           id: 0,
           vote: "Representative not found in database",
+          voteCategory: null,
+          voteDate: null,
           voteHistory: null,
+          cosponsorship: null,
         };
       })
     );
@@ -169,7 +223,10 @@ export async function POST(request: NextRequest) {
       relevantChambers.includes(rep.chamber)
     );
 
-    return NextResponse.json({ representatives: filteredReps });
+    return NextResponse.json({
+      representatives: filteredReps,
+      chamberPassage,
+    });
   } catch (error) {
     console.error("Error fetching representatives:", error);
     return NextResponse.json(
