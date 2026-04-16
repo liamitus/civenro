@@ -9,7 +9,9 @@ import {
   buildDynamicJourney,
 } from "@/lib/bill-helpers";
 import { BillAboutSection } from "@/components/bills/bill-about-section";
+import { SponsorCard } from "@/components/bills/sponsor-card";
 import { BillDetailInteractive } from "./interactive";
+import { parseSponsorString, partyCodeToNames } from "@/lib/sponsor";
 import type { MomentumTier, DeathReason } from "@/types";
 
 export async function generateMetadata({
@@ -70,6 +72,24 @@ export default async function BillDetailPage({
   ]);
 
   if (!bill) notFound();
+
+  // Resolve the sponsor to a Representative row so the card can show a
+  // real photo + link to the rep's profile. Best-effort — we fall back
+  // to a photoless card if the join fails (prior-Congress sponsor, data
+  // drift, etc.). Keyed on lastName + state, then narrowed by firstName
+  // + party. No `sponsorBioguideId` column yet; this is the v1 parser.
+  const parsedSponsor = parseSponsorString(bill.sponsor);
+  const sponsorRep = parsedSponsor
+    ? await prisma.representative.findFirst({
+        where: {
+          lastName: parsedSponsor.lastName,
+          state: parsedSponsor.state,
+          party: { in: partyCodeToNames(parsedSponsor.party) },
+          firstName: { startsWith: parsedSponsor.firstName, mode: "insensitive" },
+        },
+        select: { bioguideId: true, slug: true, firstName: true, lastName: true },
+      })
+    : null;
 
   const typeInfo = getBillTypeInfo(bill.billType);
   const effectiveStatus = getEffectiveStatus(
@@ -135,6 +155,21 @@ export default async function BillDetailPage({
         daysSinceLastAction={bill.daysSinceLastAction}
         deathReason={bill.deathReason as DeathReason | null}
       />
+
+      {/* ── Who's behind this bill ── */}
+      {parsedSponsor && (
+        <section aria-label="Bill sponsor" className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+            Who introduced this
+          </h2>
+          <SponsorCard
+            sponsor={bill.sponsor}
+            rep={sponsorRep}
+            cosponsorCount={bill.cosponsorCount}
+            cosponsorPartySplit={bill.cosponsorPartySplit}
+          />
+        </section>
+      )}
 
       {/* ── Engagement sections (reps, votes, discussion) ── */}
       <BillDetailInteractive billId={bill.id} />
