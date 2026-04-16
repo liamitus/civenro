@@ -107,6 +107,13 @@ export async function POST(request: NextRequest) {
       govrollUserId: userId ?? "",
     };
 
+    const customText = {
+      submit: {
+        message:
+          "Your contribution keeps Govroll free for every American. Secure payment via Stripe.",
+      },
+    } as const;
+
     if (isRecurring) {
       // Recurring: create a price on the fly and use subscription mode
       const session = await stripe.checkout.sessions.create({
@@ -129,6 +136,7 @@ export async function POST(request: NextRequest) {
         ],
         subscription_data: { metadata },
         metadata,
+        custom_text: customText,
         success_url: successUrl,
         cancel_url: cancelUrl,
       });
@@ -136,9 +144,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: session.url });
     }
 
-    // One-time payment
+    // One-time payment — `submit_type: "donate"` reframes the button as
+    // "Donate" instead of "Pay" and signals to Stripe this is a contribution,
+    // not a purchase.
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      submit_type: "donate",
       payment_method_types: ["card"],
       customer_email: email || undefined,
       line_items: [
@@ -156,6 +167,7 @@ export async function POST(request: NextRequest) {
       ],
       payment_intent_data: { metadata },
       metadata,
+      custom_text: customText,
       success_url: successUrl,
       cancel_url: cancelUrl,
     });
