@@ -86,7 +86,8 @@ function coalitionLine(
   if (minority >= 3) return `Bipartisan — ${count} ${noun} (${split})`;
 
   if (demCount > 0 && repCount > 0) {
-    const leaning = demCount > repCount ? "mostly Democrats" : "mostly Republicans";
+    const leaning =
+      demCount > repCount ? "mostly Democrats" : "mostly Republicans";
     return `${count} ${noun} — ${leaning}`;
   }
 
@@ -295,7 +296,7 @@ export function SponsorCard({
 
   return (
     <div
-      className={`bg-white border-border/60 overflow-hidden rounded-lg border ${colors.bar}`}
+      className={`border-border/60 overflow-hidden rounded-lg border bg-white ${colors.bar}`}
     >
       {sponsorSection}
 
