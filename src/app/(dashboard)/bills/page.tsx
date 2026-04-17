@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BillListClient } from "@/components/bills/bill-list-client";
 import { RepresentativesDashboard } from "@/components/representatives-dashboard";
 
@@ -21,8 +22,11 @@ export default function BillsPage() {
         <div className="h-px flex-1 bg-border/50" />
       </div>
 
-      {/* Bills feed */}
-      <BillListClient />
+      {/* Bills feed — Suspense boundary is required because BillListClient
+          reads search params via nuqs; Next.js needs a fallback to prerender. */}
+      <Suspense fallback={null}>
+        <BillListClient />
+      </Suspense>
     </div>
   );
 }
