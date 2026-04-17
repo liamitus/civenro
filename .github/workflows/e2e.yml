@@ -1,15 +1,10 @@
 # End-to-end smoke tests against a fresh Postgres + local Next dev server.
-#
-# Kept as a separate, manually-triggered workflow until we're comfortable with
-# the seed data + env-shim needed for a green run. When stable, flip this to
-# `on: pull_request` against main so Playwright gates merges like the other
-# checks do.
 name: E2E
 
 on:
   workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
+  pull_request:
+    branches: [main]
 
 env:
   DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
