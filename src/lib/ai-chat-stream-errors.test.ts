@@ -16,7 +16,9 @@ describe("formatStreamErrorForClient", () => {
 
   it("flags upstream auth failures", () => {
     const err = new Error("401 Unauthorized — invalid API key");
-    expect(formatStreamErrorForClient(err)).toMatch(/authentication|credentials/i);
+    expect(formatStreamErrorForClient(err)).toMatch(
+      /authentication|credentials/i,
+    );
   });
 
   it("flags upstream timeouts", () => {
