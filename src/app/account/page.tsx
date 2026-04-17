@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,14 +17,15 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DonationHistory } from "@/components/account/donation-history";
 import { resolveUsername } from "@/lib/citizen-id";
 import Link from "next/link";
-import type { CommentData } from "@/types";
+import {
+  fetchUserCommentsPage,
+  userCommentsQueryKey,
+  type UserCommentsPage,
+} from "@/lib/queries/account-client";
 
 export default function AccountPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [comments, setComments] = useState<CommentData[]>([]);
-  const [totalComments, setTotalComments] = useState(0);
-  const [page, setPage] = useState(1);
 
   // Settings state
   const [newUsername, setNewUsername] = useState("");
@@ -49,27 +51,32 @@ export default function AccountPage() {
     }
   };
 
-  const fetchComments = useCallback(async () => {
-    if (!user) return;
-    const res = await fetch(`/api/comments/user/${user.id}?page=${page}`);
-    if (res.ok) {
-      const data = await res.json();
-      setComments((prev) =>
-        page === 1 ? data.comments : [...prev, ...data.comments],
-      );
-      setTotalComments(data.total);
-    }
-  }, [user, page]);
+  const {
+    data: commentsData,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery<UserCommentsPage>({
+    queryKey: userCommentsQueryKey(user?.id ?? ""),
+    queryFn: ({ pageParam, signal }) =>
+      fetchUserCommentsPage(user!.id, pageParam as number, signal),
+    initialPageParam: 1,
+    getNextPageParam: (last) => {
+      const seen = last.page * last.pageSize;
+      return seen < last.total ? last.page + 1 : undefined;
+    },
+    enabled: !!user,
+  });
+  const comments = useMemo(
+    () => commentsData?.pages.flatMap((p) => p.comments) ?? [],
+    [commentsData],
+  );
+  const totalComments = commentsData?.pages[0]?.total ?? 0;
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/");
     }
   }, [user, authLoading, router]);
-
-  useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
 
   if (authLoading || !user) return null;
 
@@ -256,11 +263,11 @@ export default function AccountPage() {
           </Card>
         ))}
 
-        {totalComments > comments.length && (
+        {hasNextPage && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setPage((p) => p + 1)}
+            onClick={() => fetchNextPage()}
             className="w-full"
           >
             Load more

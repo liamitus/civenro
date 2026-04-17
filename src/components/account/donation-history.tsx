@@ -1,60 +1,66 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import {
+  donationsQueryKey,
+  fetchDonations,
+  mutateDonation,
+  type DonationRow,
+} from "@/lib/queries/account-client";
 
-type DonationRow = {
-  id: string;
-  amountCents: number;
-  currency: string;
-  isRecurring: boolean;
-  recurringStatus: string | null;
-  displayMode: string;
-  displayName: string | null;
-  tributeName: string | null;
-  createdAt: string;
-  hiddenAt: string | null;
-};
+export function DonationHistory({ userId }: { userId: string }) {
+  const queryClient = useQueryClient();
+  const queryKey = donationsQueryKey(userId);
 
-export function DonationHistory({ userId: _userId }: { userId: string }) {
-  const [donations, setDonations] = useState<DonationRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey,
+    queryFn: ({ signal }) => fetchDonations(signal),
+    staleTime: 60_000,
+  });
 
-  const fetchDonations = useCallback(async () => {
-    const res = await fetch(`/api/account/donations`);
-    if (res.ok) {
-      const data = await res.json();
-      setDonations(data.donations);
-    }
-    setLoading(false);
-  }, []);
+  // Optimistic mutation — flip the donation's displayMode / hiddenAt in
+  // the cache immediately, roll back on server failure. Matches the
+  // prior UX where the row changed before the fetch completed.
+  const mutation = useMutation({
+    mutationFn: ({
+      donationId,
+      action,
+    }: {
+      donationId: string;
+      action: "anonymize" | "hide";
+    }) => mutateDonation(donationId, action),
+    onMutate: async ({ donationId, action }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ donations: DonationRow[] }>(
+        queryKey,
+      );
+      queryClient.setQueryData<{ donations: DonationRow[] }>(queryKey, (old) =>
+        old
+          ? {
+              donations: old.donations.map((d) => {
+                if (d.id !== donationId) return d;
+                if (action === "anonymize")
+                  return { ...d, displayMode: "ANONYMOUS" };
+                return { ...d, hiddenAt: new Date().toISOString() };
+              }),
+            }
+          : old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(queryKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  });
 
-  useEffect(() => {
-    fetchDonations();
-  }, [fetchDonations]);
-
-  const handleMakeAnonymous = async (donationId: string) => {
-    const res = await fetch(`/api/account/donations`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ donationId, action: "anonymize" }),
-    });
-    if (res.ok) fetchDonations();
-  };
-
-  const handleHide = async (donationId: string) => {
-    const res = await fetch(`/api/account/donations`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ donationId, action: "hide" }),
-    });
-    if (res.ok) fetchDonations();
-  };
-
-  if (loading) return null;
+  const donations = data?.donations ?? [];
+  if (isLoading) return null;
   if (donations.length === 0) return null;
 
   return (
@@ -106,7 +112,12 @@ export function DonationHistory({ userId: _userId }: { userId: string }) {
                     variant="ghost"
                     size="sm"
                     className="h-6 px-2 text-xs"
-                    onClick={() => handleMakeAnonymous(d.id)}
+                    onClick={() =>
+                      mutation.mutate({
+                        donationId: d.id,
+                        action: "anonymize",
+                      })
+                    }
                   >
                     Make anonymous
                   </Button>
@@ -114,7 +125,9 @@ export function DonationHistory({ userId: _userId }: { userId: string }) {
                     variant="ghost"
                     size="sm"
                     className="text-muted-foreground h-6 px-2 text-xs"
-                    onClick={() => handleHide(d.id)}
+                    onClick={() =>
+                      mutation.mutate({ donationId: d.id, action: "hide" })
+                    }
                   >
                     Hide
                   </Button>
@@ -127,3 +140,7 @@ export function DonationHistory({ userId: _userId }: { userId: string }) {
     </div>
   );
 }
+
+// userId prop is still required by the parent for queryKey scoping.
+// The component itself doesn't read it directly because DonationRow
+// includes the userId's own donations via the session-scoped API.
