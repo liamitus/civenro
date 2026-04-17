@@ -44,14 +44,17 @@ export async function GET(request: Request) {
   const deadline = started + TIMEOUT_MS;
 
   // Select live bills that have aggregate cosponsors but no individual rows yet.
-  // Oldest-first — newer bills flow through the daily cron.
+  // Newest-first: current-congress bills are what users actually look at. A
+  // long tail of old bills whose only cosponsor is a former member (not in our
+  // Representative table) will never drain — they'd block the queue forever
+  // under ASC order. Pushing them to the tail keeps drain progress steady.
   const batch = await prisma.bill.findMany({
     where: {
       momentumTier: { in: tiers },
       cosponsorCount: { gt: 0 },
       cosponsors: { none: {} },
     },
-    orderBy: [{ currentStatusDate: "asc" }],
+    orderBy: [{ currentStatusDate: "desc" }],
     select: { billId: true },
     take: limit,
   });
