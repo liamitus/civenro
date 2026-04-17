@@ -4,6 +4,7 @@ import { setupServer } from "msw/node";
 import {
   fetchAllTextVersions,
   fetchBillActions,
+  fetchBillCosponsors,
   fetchOfficialBillTitle,
 } from "./congress-api";
 
@@ -107,6 +108,180 @@ describe("fetchBillActions", () => {
 
     const actions = await fetchBillActions(119, "hr", 1);
     expect(actions).toBeNull();
+  });
+});
+
+describe("fetchBillActions pagination", () => {
+  it("follows pagination.next until all actions are fetched", async () => {
+    // Congress.gov caps each response at 250. A high-activity bill (NDAA,
+    // appropriations) can have 400+ actions across its lifecycle. Without
+    // pagination we silently store only the first 250.
+    server.use(
+      http.get(
+        "https://api.congress.gov/v3/bill/119/hr/999/actions",
+        ({ request }) => {
+          const url = new URL(request.url);
+          const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+          if (offset === 0) {
+            return HttpResponse.json({
+              actions: Array.from({ length: 250 }, (_, i) => ({
+                actionDate: "2026-04-01",
+                text: `action-${i}`,
+                type: "Floor",
+                sourceSystem: { name: "House" },
+              })),
+              pagination: {
+                count: 270,
+                next: "https://api.congress.gov/v3/bill/119/hr/999/actions?offset=250&limit=250",
+              },
+            });
+          }
+          return HttpResponse.json({
+            actions: Array.from({ length: 20 }, (_, i) => ({
+              actionDate: "2026-04-01",
+              text: `action-${250 + i}`,
+              type: "Floor",
+              sourceSystem: { name: "House" },
+            })),
+            pagination: { count: 270 },
+          });
+        },
+      ),
+    );
+
+    const actions = await fetchBillActions(119, "hr", 999);
+    expect(actions).not.toBeNull();
+    expect(actions).toHaveLength(270);
+    expect(actions![0].text).toBe("action-0");
+    expect(actions![269].text).toBe("action-269");
+  });
+
+  it("stops early when a page returns fewer than limit rows", async () => {
+    server.use(
+      http.get("https://api.congress.gov/v3/bill/119/hr/500/actions", () =>
+        HttpResponse.json({
+          actions: [
+            {
+              actionDate: "2026-04-01",
+              text: "only-one",
+              type: "Floor",
+              sourceSystem: { name: "House" },
+            },
+          ],
+        }),
+      ),
+    );
+
+    const actions = await fetchBillActions(119, "hr", 500);
+    expect(actions).toHaveLength(1);
+  });
+});
+
+describe("fetchBillCosponsors pagination", () => {
+  it("follows pagination.next past 250", async () => {
+    // H.R. 82 (118th) reports 330 cosponsors but we stored 209 pre-fix —
+    // the tail was silently lost at the 250 ceiling. Pagination must fetch all.
+    server.use(
+      http.get(
+        "https://api.congress.gov/v3/bill/118/hr/82/cosponsors",
+        ({ request }) => {
+          const url = new URL(request.url);
+          const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+          if (offset === 0) {
+            return HttpResponse.json({
+              cosponsors: Array.from({ length: 250 }, (_, i) => ({
+                bioguideId: `P${String(i).padStart(6, "0")}`,
+                firstName: "First",
+                lastName: `Last${i}`,
+                party: i % 2 === 0 ? "D" : "R",
+                state: "CA",
+                district: 1,
+                sponsorshipDate: "2024-01-15",
+                isOriginalCosponsor: false,
+              })),
+              pagination: {
+                count: 330,
+                next: "https://api.congress.gov/v3/bill/118/hr/82/cosponsors?offset=250&limit=250",
+              },
+            });
+          }
+          return HttpResponse.json({
+            cosponsors: Array.from({ length: 80 }, (_, i) => ({
+              bioguideId: `P${String(250 + i).padStart(6, "0")}`,
+              firstName: "First",
+              lastName: `Last${250 + i}`,
+              party: "R",
+              state: "TX",
+              district: 2,
+              sponsorshipDate: "2024-02-20",
+              isOriginalCosponsor: false,
+            })),
+            pagination: { count: 330 },
+          });
+        },
+      ),
+    );
+
+    const cosponsors = await fetchBillCosponsors(118, "hr", 82);
+    expect(cosponsors).toHaveLength(330);
+    expect(cosponsors[0].bioguideId).toBe("P000000");
+    expect(cosponsors[329].bioguideId).toBe("P000329");
+  });
+
+  it("handles a small bill that fits in one page", async () => {
+    server.use(
+      http.get("https://api.congress.gov/v3/bill/119/s/1884/cosponsors", () =>
+        HttpResponse.json({
+          cosponsors: [
+            {
+              bioguideId: "C001000",
+              firstName: "John",
+              lastName: "Cornyn",
+              party: "R",
+              state: "TX",
+              sponsorshipDate: "2025-05-22",
+              isOriginalCosponsor: true,
+            },
+          ],
+          pagination: { count: 1 },
+        }),
+      ),
+    );
+
+    const cosponsors = await fetchBillCosponsors(119, "s", 1884);
+    expect(cosponsors).toHaveLength(1);
+    expect(cosponsors[0].isOriginalCosponsor).toBe(true);
+  });
+
+  it("returns partial data if a later page fails (does not throw)", async () => {
+    let call = 0;
+    server.use(
+      http.get(
+        "https://api.congress.gov/v3/bill/119/hr/77/cosponsors",
+        ({ request }) => {
+          call++;
+          const url = new URL(request.url);
+          const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+          if (offset === 0 && call === 1) {
+            return HttpResponse.json({
+              cosponsors: Array.from({ length: 250 }, (_, i) => ({
+                bioguideId: `X${String(i).padStart(6, "0")}`,
+                isOriginalCosponsor: false,
+              })),
+              pagination: {
+                count: 400,
+                next: "https://api.congress.gov/v3/bill/119/hr/77/cosponsors?offset=250&limit=250",
+              },
+            });
+          }
+          return new HttpResponse(null, { status: 500 });
+        },
+      ),
+    );
+
+    const cosponsors = await fetchBillCosponsors(119, "hr", 77);
+    // Should still return the first 250 we successfully fetched.
+    expect(cosponsors.length).toBeGreaterThanOrEqual(250);
   });
 });
 

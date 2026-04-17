@@ -1,8 +1,16 @@
 /**
  * Bill XML parser — extracts structured sections from congress.gov bill XML.
+ *
+ * Design: the old parser kept a hardcoded whitelist of tags to recurse into
+ * and dropped everything else. That silently lost <quoted-block> content —
+ * the inserted text of amendments, which is the substantive change in most
+ * amendment bills. This version traverses <quoted-block> transparently,
+ * captures the USLM textual tags (text, continuation-text, after-quoted-block),
+ * and falls through to "recurse if it has structural children; capture if
+ * it has text" for any future tag we haven't taught it about.
  */
 
-const CONTAINER_TAGS = new Set([
+const STRUCTURAL_TAGS = new Set([
   "legis-body",
   "division",
   "title",
@@ -16,9 +24,32 @@ const CONTAINER_TAGS = new Set([
   "paragraph",
   "subparagraph",
   "clause",
+  "subclause",
+  "item",
+  "subitem",
+  // <quoted-block> wraps text a bill inserts into existing law. It has no
+  // own enum/header, so we traverse it transparently — children surface with
+  // the outer bill's path.
+  "quoted-block",
 ]);
 
-const TEXTUAL_TAGS = new Set(["text"]);
+// Tags whose content is a block of bill text that should be captured
+// verbatim, without introducing a new heading level.
+const TEXTUAL_TAGS = new Set([
+  "text",
+  "continuation-text",
+  "after-quoted-block",
+]);
+
+// Tags ignored inside a legis-body subtree — either handled separately
+// (enum/header via extractHeading) or structurally irrelevant.
+const SKIP_TAGS = new Set([
+  "enum",
+  "header",
+  "toc",
+  "toc-entry",
+  "sidenote",
+]);
 
 export interface ParsedChunk {
   path: string[];
@@ -48,14 +79,26 @@ function parseContainer(node: any, path: string[]): ParsedChunk[] {
   const results: ParsedChunk[] = [];
   const { enumVal, headerVal } = extractHeading(node);
   const localHeading = buildContainerHeading(node["#name"], enumVal, headerVal);
+  // <quoted-block> has no enum/header of its own — don't introduce an empty
+  // path segment; just pass the parent path through.
   const newPath = localHeading ? [...path, localHeading] : [...path];
 
   if (node.$$) {
     for (const child of node.$$) {
       const name = child["#name"];
-      if (CONTAINER_TAGS.has(name)) {
+      if (!name || SKIP_TAGS.has(name)) continue;
+
+      if (STRUCTURAL_TAGS.has(name)) {
         results.push(...parseContainer(child, newPath));
       } else if (TEXTUAL_TAGS.has(name)) {
+        const text = parseTextNode(child);
+        if (text) results.push({ path: newPath, content: text });
+      } else if (hasStructuralChildren(child)) {
+        // Unknown tag with children — traverse transparently rather than
+        // silently dropping. Missing a future USLM container is fail-open.
+        results.push(...parseContainer(child, newPath));
+      } else {
+        // Unknown leaf — capture any text it holds.
         const text = parseTextNode(child);
         if (text) results.push({ path: newPath, content: text });
       }
@@ -68,6 +111,14 @@ function parseContainer(node: any, path: string[]): ParsedChunk[] {
   }
 
   return results;
+}
+
+function hasStructuralChildren(node: any): boolean {
+  if (!Array.isArray(node.$$)) return false;
+  return node.$$.some(
+    (c: any) =>
+      STRUCTURAL_TAGS.has(c["#name"]) || TEXTUAL_TAGS.has(c["#name"]),
+  );
 }
 
 function extractHeading(node: any) {
@@ -111,7 +162,11 @@ function buildContainerHeading(
   if (
     nodeName === "subsection" ||
     nodeName === "paragraph" ||
-    nodeName === "subparagraph"
+    nodeName === "subparagraph" ||
+    nodeName === "clause" ||
+    nodeName === "subclause" ||
+    nodeName === "item" ||
+    nodeName === "subitem"
   ) {
     if (enumVal && headerVal) return tidyContent(`${enumVal} ${headerVal}`);
     return tidyContent(enumVal || headerVal);

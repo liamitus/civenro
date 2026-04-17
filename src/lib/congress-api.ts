@@ -170,36 +170,28 @@ export async function fetchBillActions(
   billNumber: number,
 ): Promise<CongressAction[] | null> {
   try {
-    const response = await withRetry(() =>
-      congressApiClient.get(
-        `/bill/${congress}/${apiBillType}/${billNumber}/actions`,
-        {
-          params: { limit: 250 },
-        },
-      ),
+    const raw = await fetchAllPages<Record<string, unknown>>(
+      `/bill/${congress}/${apiBillType}/${billNumber}/actions`,
+      "actions",
     );
+    if (raw === null) return null;
 
-    const actions = response.data?.actions;
-    if (!Array.isArray(actions)) return null;
-
-    return actions.map(
-      (a: {
-        actionDate?: string;
-        text?: string;
-        type?: string;
-        sourceSystem?: { name?: string };
-      }) => ({
-        actionDate: a.actionDate ?? "",
-        text: a.text ?? "",
-        type: a.type ?? null,
-        chamber:
-          a.sourceSystem?.name === "Senate"
-            ? "Senate"
-            : a.sourceSystem?.name?.includes("House")
-              ? "House"
-              : null,
-      }),
-    );
+    return raw.map((a) => {
+      const actionDate = typeof a.actionDate === "string" ? a.actionDate : "";
+      const text = typeof a.text === "string" ? a.text : "";
+      const type = typeof a.type === "string" ? a.type : null;
+      const sourceName =
+        typeof (a.sourceSystem as { name?: unknown })?.name === "string"
+          ? (a.sourceSystem as { name: string }).name
+          : "";
+      const chamber: string | null =
+        sourceName === "Senate"
+          ? "Senate"
+          : sourceName.includes("House")
+            ? "House"
+            : null;
+      return { actionDate, text, type, chamber };
+    });
   } catch (error: unknown) {
     console.error(
       "Failed to fetch bill actions:",
@@ -207,6 +199,58 @@ export async function fetchBillActions(
     );
     return null;
   }
+}
+
+/**
+ * Fetch every page of a Congress.gov list endpoint by following the
+ * `pagination.next` link (or incrementing offset when next is absent).
+ * Caps total rows so a runaway response doesn't blow out memory.
+ * Returns whatever was collected when a mid-sequence page fails — partial
+ * data beats no data for cosponsor/action enrichment.
+ */
+const PAGE_LIMIT = 250;
+const MAX_PAGES = 20; // 5,000 rows max per resource — way above anything Congress publishes.
+
+async function fetchAllPages<T>(
+  path: string,
+  arrayKey: string,
+): Promise<T[] | null> {
+  const collected: T[] = [];
+  let offset = 0;
+  let shapeOk = false;
+
+  for (let page = 0; page < MAX_PAGES; page++) {
+    let res;
+    try {
+      res = await withRetry(() =>
+        congressApiClient.get(path, {
+          params: { limit: PAGE_LIMIT, offset },
+        }),
+      );
+    } catch (err) {
+      // Bail with partial data if a mid-sequence page fails — calling code
+      // already tolerates empty results, and we've at least captured the
+      // pages we successfully fetched before the failure.
+      if (page === 0) throw err;
+      break;
+    }
+
+    const arr = res.data?.[arrayKey];
+    if (!Array.isArray(arr)) {
+      return shapeOk ? collected : null;
+    }
+    shapeOk = true;
+    collected.push(...(arr as T[]));
+
+    // Stop when the server returns fewer than a full page — there can't be more.
+    if (arr.length < PAGE_LIMIT) break;
+
+    const nextUrl: unknown = res.data?.pagination?.next;
+    if (typeof nextUrl !== "string" || nextUrl.length === 0) break;
+    offset += PAGE_LIMIT;
+  }
+
+  return collected;
 }
 
 /**
@@ -267,10 +311,10 @@ export interface BillCosponsorRecord {
 }
 
 /**
- * Fetch the individual cosponsors for a bill from Congress.gov. Returns an
- * empty array on error — this is a supplementary signal, not core metadata.
- * Paginates up to 250 per page, which covers all but a handful of bills
- * (Congress.gov caps at 250 per request).
+ * Fetch every individual cosponsor for a bill from Congress.gov, paginating
+ * past the 250-per-request ceiling. Returns whatever was successfully
+ * collected on mid-sequence failure; returns an empty array on full failure —
+ * this is a supplementary signal, not core metadata.
  */
 export async function fetchBillCosponsors(
   congress: number,
@@ -278,13 +322,11 @@ export async function fetchBillCosponsors(
   billNumber: number,
 ): Promise<BillCosponsorRecord[]> {
   try {
-    const res = await withRetry(() =>
-      congressApiClient.get(
-        `/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`,
-        { params: { limit: 250 } },
-      ),
+    const raw = await fetchAllPages<Record<string, unknown>>(
+      `/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`,
+      "cosponsors",
     );
-    const raw: Array<Record<string, unknown>> = res.data?.cosponsors ?? [];
+    if (raw === null) return [];
     return raw
       .map((c) => {
         const bioguideId =
@@ -390,17 +432,16 @@ export async function fetchBillMetadata(
   billNumber: number,
 ): Promise<BillMetadata | null> {
   try {
-    const [billRes, cosponsorsRes, summary] = await Promise.all([
+    const [billRes, cosponsorList, summary] = await Promise.all([
       withRetry(() =>
         congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
       ),
-      withRetry(() =>
-        congressApiClient.get(
-          `/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`,
-          {
-            params: { limit: 250 },
-          },
-        ),
+      // Full list, paginated — cosponsorCount below is taken from the bill
+      // endpoint, but partySplit derives from the actual list we've fetched
+      // so we need the full roster to avoid undercounting big bills.
+      fetchAllPages<{ party?: string }>(
+        `/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`,
+        "cosponsors",
       ).catch(() => null),
       fetchBillSummary(congress, apiBillType, billNumber),
     ]);
@@ -413,12 +454,11 @@ export async function fetchBillMetadata(
       ? `${sponsorItem.fullName ?? ""}`.trim() || null
       : null;
 
-    type Cosponsor = { party?: string };
-    const cosponsorList: Cosponsor[] = cosponsorsRes?.data?.cosponsors ?? [];
+    const safeCosponsorList = cosponsorList ?? [];
     let partySplit: string | null = null;
-    if (cosponsorList.length > 0) {
+    if (safeCosponsorList.length > 0) {
       const counts: Record<string, number> = {};
-      for (const c of cosponsorList) {
+      for (const c of safeCosponsorList) {
         const p = (c.party || "?").toUpperCase();
         counts[p] = (counts[p] || 0) + 1;
       }
@@ -430,7 +470,7 @@ export async function fetchBillMetadata(
 
     return {
       sponsor,
-      cosponsorCount: bill.cosponsors?.count ?? cosponsorList.length ?? null,
+      cosponsorCount: bill.cosponsors?.count ?? safeCosponsorList.length ?? null,
       cosponsorPartySplit: partySplit,
       policyArea: bill.policyArea?.name ?? null,
       latestActionDate: bill.latestAction?.actionDate ?? null,

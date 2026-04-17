@@ -5,6 +5,34 @@ import { nameToSlug } from "../lib/slug";
 
 const prisma = createStandalonePrisma();
 
+/**
+ * Normalize a GovTrack `role.district` value for storage.
+ *
+ * GovTrack represents at-large seats (single-district states like SD, VT,
+ * WY, AK, DE, ND) as `0`, which the old `role.district ? ... : null`
+ * check silently coerced to null — leaving us unable to match those reps
+ * by district and giving civic-lookup a false "delegate" fingerprint.
+ *
+ * Returns:
+ *   - null for senators and non-representative roles (no district concept)
+ *   - "At Large" for the numeric-zero at-large encoding
+ *   - the number as a string otherwise (e.g. "14")
+ */
+export function normalizeDistrict(
+  district: number | string | null | undefined,
+  chamber: string,
+): string | null {
+  if (chamber !== "representative") return null;
+  if (district == null) return null;
+  if (typeof district === "number") {
+    if (district === 0) return "At Large";
+    return String(district);
+  }
+  const trimmed = district.trim();
+  if (trimmed === "" || trimmed === "0") return "At Large";
+  return trimmed;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetchRepresentativesFunction() {
   try {
@@ -20,6 +48,8 @@ export async function fetchRepresentativesFunction() {
       }
 
       const imageUrl = `https://bioguide.congress.gov/bioguide/photo/${bioguideId[0]}/${bioguideId}.jpg`;
+      const chamber: string = role.role_type_label.toLowerCase();
+      const district = normalizeDistrict(role.district, chamber);
 
       await prisma.representative.upsert({
         where: { bioguideId },
@@ -27,9 +57,9 @@ export async function fetchRepresentativesFunction() {
           firstName: person.firstname,
           lastName: person.lastname,
           state: role.state,
-          district: role.district ? role.district.toString() : null,
+          district,
           party: role.party,
-          chamber: role.role_type_label.toLowerCase(),
+          chamber,
           imageUrl,
           link: person.link,
         },
@@ -39,9 +69,9 @@ export async function fetchRepresentativesFunction() {
           firstName: person.firstname,
           lastName: person.lastname,
           state: role.state,
-          district: role.district ? role.district.toString() : null,
+          district,
           party: role.party,
-          chamber: role.role_type_label.toLowerCase(),
+          chamber,
           imageUrl,
           link: person.link,
         },
