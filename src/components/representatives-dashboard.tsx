@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAddress } from "@/hooks/use-address";
 import { AddressAutocomplete } from "@/components/address-autocomplete";
+import { RepPhoto } from "@/components/representatives/rep-photo";
 import {
   partyColor,
   chamberLabel,
@@ -242,30 +243,14 @@ export function RepresentativesDashboard() {
                   <div className="flex gap-3.5">
                     {/* 4:5 portrait — object-position: center 20% avoids ceiling/forehead extremes */}
                     <div className="bg-muted relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-md">
-                      {rep.bioguideId ? (
-                        <img
-                          src={`/api/photos/${rep.bioguideId}`}
-                          alt={rep.name}
-                          className="pointer-events-none h-full w-full object-cover object-[center_20%] select-none"
-                          draggable={false}
-                          loading="lazy"
-                          onError={(e) => {
-                            const el = e.currentTarget;
-                            el.style.display = "none";
-                            el.parentElement!.querySelector(
-                              "[data-fallback]",
-                            )!.removeAttribute("hidden");
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        data-fallback
-                        hidden={!!rep.bioguideId}
-                        className="text-muted-foreground flex h-full w-full items-center justify-center text-lg font-medium"
-                      >
-                        {rep.firstName?.[0]}
-                        {rep.lastName?.[0]}
-                      </div>
+                      <RepPhoto
+                        bioguideId={rep.bioguideId ?? null}
+                        firstName={rep.firstName}
+                        lastName={rep.lastName}
+                        alt={rep.name}
+                        imgClassName="object-[center_20%]"
+                        fallbackClassName="text-lg font-medium"
+                      />
                     </div>
 
                     {/* Info — name is primary, everything else is muted */}

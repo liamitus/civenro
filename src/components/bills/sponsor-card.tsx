@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { partyColor } from "@/lib/representative-utils";
 import { parseSponsorString } from "@/lib/sponsor";
+import { RepPhoto } from "@/components/representatives/rep-photo";
 
 type RepMatch = {
   bioguideId: string;
@@ -104,30 +105,14 @@ export function SponsorCard({
     <>
       <div className="flex items-center gap-3">
         <div className="bg-muted relative h-15 w-12 flex-shrink-0 overflow-hidden rounded-md">
-          {rep?.bioguideId ? (
-            <img
-              src={`/api/photos/${rep.bioguideId}`}
-              alt={displayName}
-              className="pointer-events-none h-full w-full object-cover object-[center_20%] select-none"
-              draggable={false}
-              loading="lazy"
-              onError={(e) => {
-                const el = e.currentTarget;
-                el.style.display = "none";
-                el.parentElement!.querySelector(
-                  "[data-fallback]",
-                )!.removeAttribute("hidden");
-              }}
-            />
-          ) : null}
-          <div
-            data-fallback
-            hidden={!!rep?.bioguideId}
-            className="text-muted-foreground flex h-full w-full items-center justify-center text-sm font-semibold"
-          >
-            {parsed.firstName[0]}
-            {parsed.lastName[0]}
-          </div>
+          <RepPhoto
+            bioguideId={rep?.bioguideId ?? null}
+            firstName={parsed.firstName}
+            lastName={parsed.lastName}
+            alt={displayName}
+            imgClassName="object-[center_20%]"
+            fallbackClassName="text-sm font-semibold"
+          />
         </div>
 
         <div className="min-w-0 flex-1">

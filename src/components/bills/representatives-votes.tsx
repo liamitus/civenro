@@ -11,6 +11,7 @@ import type {
   ChamberName,
 } from "@/types";
 import { partyColor as partyColors } from "@/lib/representative-utils";
+import { RepPhoto } from "@/components/representatives/rep-photo";
 
 const NO_VOTE_SENTINEL = "No vote recorded";
 
@@ -125,30 +126,13 @@ function RepCard({
           <div
             className={`relative ${muted ? "h-11 w-9" : "h-14 w-11"} bg-muted flex-shrink-0 overflow-hidden rounded-md`}
           >
-            {rep.bioguideId ? (
-              <img
-                src={`/api/photos/${rep.bioguideId}`}
-                alt={`${rep.firstName} ${rep.lastName}`}
-                className="pointer-events-none h-full w-full object-cover object-[center_20%] select-none"
-                draggable={false}
-                loading="lazy"
-                onError={(e) => {
-                  const el = e.currentTarget;
-                  el.style.display = "none";
-                  el.parentElement!.querySelector(
-                    "[data-fallback]",
-                  )!.removeAttribute("hidden");
-                }}
-              />
-            ) : null}
-            <div
-              data-fallback
-              hidden={!!rep.bioguideId}
-              className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-semibold"
-            >
-              {rep.firstName[0]}
-              {rep.lastName[0]}
-            </div>
+            <RepPhoto
+              bioguideId={rep.bioguideId ?? null}
+              firstName={rep.firstName}
+              lastName={rep.lastName}
+              imgClassName="object-[center_20%]"
+              fallbackClassName="text-xs font-semibold"
+            />
           </div>
           <div className="min-w-0 flex-1">
             <p
