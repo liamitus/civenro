@@ -55,7 +55,7 @@ export default async function BillDetailPage({
   const { id } = await params;
   const billId = parseInt(id);
 
-  const [bill, actions, textVersions] = await Promise.all([
+  const [bill, actions, textVersions, cosponsorRows] = await Promise.all([
     prisma.bill.findUnique({ where: { id: billId } }),
     prisma.billAction.findMany({
       where: { billId },
@@ -73,7 +73,24 @@ export default async function BillDetailPage({
         isSubstantive: true,
       },
     }),
+    prisma.billCosponsor.findMany({
+      where: { billId, withdrawnAt: null },
+      orderBy: [{ representative: { lastName: "asc" } }],
+      select: {
+        representative: {
+          select: {
+            bioguideId: true,
+            slug: true,
+            firstName: true,
+            lastName: true,
+            state: true,
+            party: true,
+          },
+        },
+      },
+    }),
   ]);
+  const cosponsors = cosponsorRows.map((c) => c.representative);
 
   if (!bill) notFound();
 
@@ -189,6 +206,7 @@ export default async function BillDetailPage({
           <SponsorCard
             sponsor={bill.sponsor}
             rep={sponsorRep}
+            cosponsors={cosponsors}
             cosponsorCount={bill.cosponsorCount}
             cosponsorPartySplit={bill.cosponsorPartySplit}
           />
