@@ -121,6 +121,16 @@ export default function AboutPage() {
           >
             GitHub
           </a>
+          . Bugs, feature requests, and roadmap work happen in the open — you
+          can browse or file anything on the public{" "}
+          <a
+            href="https://github.com/liamitus/govroll/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-2"
+          >
+            issue tracker
+          </a>
           . This instance is focused on the U.S. Congress, but the code
           isn&apos;t tied to any one country. If you&apos;d like to bring the
           same kind of civic transparency to your own parliament, legislature,
