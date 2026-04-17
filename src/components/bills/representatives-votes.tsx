@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAddress } from "@/hooks/use-address";
 import { Input } from "@/components/ui/input";
@@ -319,30 +319,33 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
   const [loading, setLoading] = useState(false);
   const [inputAddress, setInputAddress] = useState("");
 
+  const fetchReps = useCallback(
+    async (addr: string) => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/representatives", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: addr, billId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setReps(data.representatives);
+          setChamberPassage(data.chamberPassage || []);
+        }
+      } catch (err) {
+        console.error("Error fetching representatives:", err);
+      }
+      setLoading(false);
+    },
+    [billId],
+  );
+
   useEffect(() => {
     if (address) {
       fetchReps(address);
     }
-  }, [address, billId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchReps = async (addr: string) => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/representatives", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: addr, billId }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setReps(data.representatives);
-        setChamberPassage(data.chamberPassage || []);
-      }
-    } catch (err) {
-      console.error("Error fetching representatives:", err);
-    }
-    setLoading(false);
-  };
+  }, [address, fetchReps]);
 
   const handleSubmitAddress = () => {
     if (inputAddress.trim()) {

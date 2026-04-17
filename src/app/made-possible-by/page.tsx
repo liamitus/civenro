@@ -29,15 +29,6 @@ function dailyShuffle<T>(arr: T[]): T[] {
   return out;
 }
 
-type DonorRow = {
-  id: string;
-  displayName: string | null;
-  tributeName: string | null;
-  displayMode: string;
-  regionCode: string | null;
-  createdAt: Date;
-};
-
 const DONOR_SELECT = {
   id: true,
   displayName: true,

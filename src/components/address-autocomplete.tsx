@@ -179,6 +179,7 @@ export function AddressAutocomplete({
         autoComplete="off"
         role="combobox"
         aria-expanded={showDropdown}
+        aria-controls="address-autocomplete-listbox"
         aria-autocomplete="list"
         aria-activedescendant={
           activeIndex >= 0 ? `address-option-${activeIndex}` : undefined
@@ -186,6 +187,7 @@ export function AddressAutocomplete({
       />
       {showDropdown && (
         <ul
+          id="address-autocomplete-listbox"
           role="listbox"
           className="border-border/80 absolute top-[calc(100%+6px)] right-0 left-0 z-50 overflow-hidden rounded-xl border bg-white py-1 shadow-xl"
         >

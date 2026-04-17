@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
 type FeedDonor = {
   id: string;
@@ -46,16 +46,13 @@ function donorLabel(d: FeedDonor): string {
 }
 
 export function LiveFeed({ donors }: { donors: FeedDonor[] }) {
-  const [now, setNow] = useState(Date.now());
-
-  // Update relative times every 30s
+  // A pure render-time counter that ticks every 30s — force-refreshes relative
+  // times (`timeAgo`) without reading `Date.now()` during render.
+  const [, tick] = useReducer((n: number) => n + 1, 0);
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 30_000);
+    const interval = setInterval(tick, 30_000);
     return () => clearInterval(interval);
   }, []);
-
-  // Suppress hydration warnings from time-dependent rendering
-  void now;
 
   return (
     <section className="space-y-3">
