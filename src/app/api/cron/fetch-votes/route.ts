@@ -21,7 +21,7 @@ import { reportError } from "@/lib/error-reporting";
  * billId, rollCallNumber), so overlapping windows are fine.
  */
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const expected = process.env.CRON_SECRET;
@@ -35,12 +35,15 @@ export async function GET(request: Request) {
   }
 
   const start = Date.now();
-  // Overlap the daily cron's 7-day window to self-heal any missed days.
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  // Hobby plan caps this function at 60s. The per-day loop inside
+  // fetchVotesFunction does 3–4 sequential DB round-trips per voter, so a
+  // 7-day re-walk regularly blew the budget. The cron fires every 30m, so
+  // a 2-day overlap is plenty to self-heal any missed runs.
+  const since = new Date();
+  since.setDate(since.getDate() - 2);
 
   try {
-    await fetchVotesFunction(sevenDaysAgo);
+    await fetchVotesFunction(since);
     const ms = Date.now() - start;
     console.log(`[fetch-votes cron] completed in ${ms}ms`);
     return NextResponse.json({ ok: true, ms });

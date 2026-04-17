@@ -66,9 +66,7 @@ jobs:
   ping:
     name: Invoke ingest endpoint
     runs-on: ubuntu-latest
-    # Worst case: curl --max-time 310 × 3 attempts (1 + 2 retries) ≈ 16 min.
-    # 20 min leaves headroom without letting a runaway hold a runner forever.
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - name: Resolve endpoint
         id: route
@@ -123,12 +121,10 @@ jobs:
           echo "Calling $URL"
 
           # --fail-with-body so non-2xx responses still print the body,
-          # --max-time 310 gives Vercel's 300s function ceiling plus 10s
-          # of slack. Endpoints declare their own maxDuration (<=300s); this
-          # is the client-side upper bound that should always exceed it.
+          # --max-time 65 gives Vercel's 60s function plus 5s of slack.
           http_code=$(
             curl --silent --show-error --fail-with-body \
-              --max-time 310 \
+              --max-time 65 \
               --retry 2 --retry-delay 5 --retry-connrefused \
               -H "Authorization: Bearer ${SECRET}" \
               -H "Accept: application/json" \

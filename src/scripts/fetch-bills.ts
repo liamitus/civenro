@@ -6,7 +6,15 @@ import dayjs from "dayjs";
 const prisma = createStandalonePrisma();
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export async function fetchBillsFunction(billIds?: string[]) {
+export async function fetchBillsFunction(
+  billIds?: string[],
+  options?: { lookbackMonths?: number },
+) {
+  // How far back of lastBill.introducedDate to re-walk. Large values
+  // self-heal if GovTrack indexes a bill late; small values fit inside
+  // a 60s function budget. Callers running under a cron pass a small
+  // value (~1); CLI/admin backfills can leave the default for safety.
+  const lookbackMonths = options?.lookbackMonths ?? 6;
   try {
     if (billIds && billIds.length > 0) {
       console.log(`Fetching ${billIds.length} specific bills:`, billIds);
@@ -39,7 +47,7 @@ export async function fetchBillsFunction(billIds?: string[]) {
       });
 
       const startDate = lastBill
-        ? dayjs(lastBill.introducedDate).subtract(6, "months")
+        ? dayjs(lastBill.introducedDate).subtract(lookbackMonths, "months")
         : dayjs("2024-01-01");
       const endDate = dayjs();
       let currentDate = startDate;
