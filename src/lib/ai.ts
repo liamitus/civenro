@@ -1,223 +1,104 @@
 /**
- * Provider-agnostic AI layer.
- * Supports Anthropic Claude and OpenAI GPT.
+ * AI integration layer — wraps Vercel AI Gateway via the AI SDK.
+ *
+ * All provider calls go through the Gateway using "provider/model" string
+ * model IDs. This gives us a single auth surface (AI_GATEWAY_API_KEY locally,
+ * OIDC on Vercel), unified observability, and the ability to change providers
+ * without touching call sites.
  */
+
+import {
+  streamText,
+  generateText,
+  type StreamTextResult,
+  type ModelMessage,
+  type UIMessage,
+  convertToModelMessages,
+} from "ai";
 
 import type { BillSection } from "./bill-sections";
 import { buildSectionIndex, filterSections } from "./bill-sections";
 import type { BillMetadata } from "./congress-api";
 
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
+/** Canonical usage shape consumed by the spend ledger. */
 export interface AiUsageRecord {
   model: string;
   inputTokens: number;
   outputTokens: number;
 }
 
-interface ChatResponse {
-  content: string;
-  usage: AiUsageRecord;
-}
+/** Model IDs routed through Vercel AI Gateway. */
+const SONNET_MODEL = "anthropic/claude-sonnet-4-20250514";
+/** Cheaper model for bounded, structured tasks like section-picking or
+ *  diff summarization where hallucination risk is inherently low. */
+const HAIKU_MODEL = "anthropic/claude-haiku-4-5";
 
-/** Return shape for chat helpers that may make multiple provider calls. */
-export interface AiChatResult {
-  content: string;
-  usage: AiUsageRecord[];
-}
-
-type Provider = "anthropic" | "openai";
-
-const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
-/** Cheaper model for bounded, structured tasks like diff summarization
- *  where the input is already constrained and hallucination risk is low. */
-const ANTHROPIC_HAIKU_MODEL = "claude-haiku-4-5-20251001";
-const OPENAI_MODEL = "gpt-4o";
-const OPENAI_CHEAP_MODEL = "gpt-4o-mini";
-
-/** Threshold (chars) above which we use two-step section filtering. */
+/** Above this total section-text size we run a pre-pass to pick sections. */
 const LARGE_BILL_THRESHOLD = 100_000;
 
-function detectProvider(): Provider {
-  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
-  if (process.env.OPENAI_API_KEY) return "openai";
-  throw new Error(
-    "No AI API key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.",
-  );
-}
+const CITATION_INSTRUCTIONS = `When answering, quote directly from the bill text using markdown blockquotes when it helps. Attribute quotes to the section they came from:
 
-async function callAnthropic(
-  systemPrompt: string,
-  messages: ChatMessage[],
-  maxTokens = 2048,
-  model: string = ANTHROPIC_MODEL,
-): Promise<ChatResponse> {
-  const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-    timeout: 30_000,
-  });
+> "exact quote from the bill"
+>
+> — Section 4(a)
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: maxTokens,
-    system: systemPrompt,
-    messages: messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
-  });
+If the user asks about something not covered in the bill sections provided, say so plainly. Do not invent provisions. Stay factual and neutral.`;
 
-  const textBlock = response.content.find((block) => block.type === "text");
-  return {
-    content: textBlock?.text || "",
-    usage: {
-      model,
-      inputTokens: response.usage?.input_tokens ?? 0,
-      outputTokens: response.usage?.output_tokens ?? 0,
-    },
-  };
-}
+// ─────────────────────────────────────────────────────────────────────────
+//  Prompt builders
+// ─────────────────────────────────────────────────────────────────────────
 
-async function callOpenAI(
-  systemPrompt: string,
-  messages: ChatMessage[],
-  maxTokens = 2048,
-  model: string = OPENAI_MODEL,
-): Promise<ChatResponse> {
-  const { default: OpenAI } = await import("openai");
-  const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    timeout: 30_000,
-  });
-
-  const response = await client.chat.completions.create({
-    model,
-    max_tokens: maxTokens,
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...messages.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      })),
-    ],
-  });
-
-  return {
-    content: response.choices[0]?.message?.content || "",
-    usage: {
-      model,
-      inputTokens: response.usage?.prompt_tokens ?? 0,
-      outputTokens: response.usage?.completion_tokens ?? 0,
-    },
-  };
-}
-
-/** Tier selection for callProvider. "cheap" uses Haiku/4o-mini for bounded
- *  tasks where hallucination risk is low; "quality" uses Sonnet/4o. */
-type ModelTier = "cheap" | "quality";
-
-async function callProvider(
-  provider: Provider,
-  systemPrompt: string,
-  messages: ChatMessage[],
-  maxTokens?: number,
-  tier: ModelTier = "quality",
-): Promise<ChatResponse> {
-  if (provider === "anthropic") {
-    const model = tier === "cheap" ? ANTHROPIC_HAIKU_MODEL : ANTHROPIC_MODEL;
-    return callAnthropic(systemPrompt, messages, maxTokens, model);
-  }
-  const model = tier === "cheap" ? OPENAI_CHEAP_MODEL : OPENAI_MODEL;
-  return callOpenAI(systemPrompt, messages, maxTokens, model);
-}
-
-// ── Bill chat ──────────────────────────────────────────────────────
-
-/**
- * Format bill metadata into a compact context block. Returns "" if nothing useful.
- */
-function formatMetadataForPrompt(meta: BillMetadata | null): string {
-  if (!meta) return "";
+function formatMetadataForPrompt(metadata: BillMetadata | null): string {
+  if (!metadata) return "";
   const lines: string[] = [];
-  if (meta.sponsor) lines.push(`Sponsor: ${meta.sponsor}`);
-  if (meta.cosponsorCount != null && meta.cosponsorCount > 0) {
+  if (metadata.sponsor) lines.push(`Sponsor: ${metadata.sponsor}`);
+  if (metadata.cosponsorCount != null)
+    lines.push(`Cosponsors: ${metadata.cosponsorCount}`);
+  if (metadata.cosponsorPartySplit)
+    lines.push(`Party split: ${metadata.cosponsorPartySplit}`);
+  if (metadata.policyArea) lines.push(`Policy area: ${metadata.policyArea}`);
+  if (metadata.latestActionDate && metadata.latestActionText)
     lines.push(
-      `Cosponsors: ${meta.cosponsorCount}${meta.cosponsorPartySplit ? ` (${meta.cosponsorPartySplit})` : ""}`,
+      `Latest action (${metadata.latestActionDate}): ${metadata.latestActionText}`,
     );
-  } else if (meta.cosponsorCount === 0) {
-    lines.push("Cosponsors: none");
-  }
-  if (meta.policyArea) lines.push(`Policy area: ${meta.policyArea}`);
-  if (meta.latestActionDate && meta.latestActionText) {
-    lines.push(
-      `Latest action (${meta.latestActionDate}): ${meta.latestActionText}`,
-    );
-  }
-  // Include the CRS (Congressional Research Service) plain-language summary
-  // when we have it. When fullText is unavailable, this is the AI's only
-  // substantive source and should drive the answer.
-  if (meta.shortText && meta.shortText.trim().length > 0) {
+  if (metadata.shortText) {
     lines.push("");
-    lines.push("Nonpartisan summary (Congressional Research Service):");
-    lines.push(meta.shortText.trim());
+    lines.push("CRS summary (nonpartisan, introduced version):");
+    lines.push(metadata.shortText);
   }
-  return lines.length > 0 ? lines.join("\n") : "";
+  return lines.join("\n");
 }
 
-/**
- * Format sections into a labeled text block for the system prompt.
- */
 function formatSectionsForPrompt(sections: BillSection[]): string {
   return sections
-    .map((s) => `[${s.sectionRef}] ${s.heading}\n${s.content}`)
+    .map((s) => `### ${s.heading}\n\n${s.content}`)
     .join("\n\n---\n\n");
 }
 
-const CITATION_INSTRUCTIONS = `
-IMPORTANT — follow these rules when answering:
-1. Support your answers with direct quotes from the bill text using markdown blockquotes.
-2. Format each quote like this:
-
-   > "exact quoted text from the bill"
-   >
-   > — Section X(y)
-
-3. After each quote, explain what it means in plain language.
-4. If the bill text does not address the user's question, say so explicitly.
-5. Never fabricate quotes. Only quote text that appears verbatim in the bill above.
-6. Keep your language clear and accessible — avoid legal jargon where possible.`;
-
 /**
- * Generate a chat response about a bill using structured sections.
+ * Build the system prompt for a bill chat turn. Extracted so we can test it
+ * deterministically and share between streaming and non-streaming paths.
  */
-export async function generateBillChatResponse(
+export function buildBillChatSystemPrompt(
   billTitle: string,
   billSections: BillSection[] | null,
-  conversationHistory: ChatMessage[],
-  userMessage: string,
   metadata: BillMetadata | null = null,
-): Promise<AiChatResult> {
-  const provider = detectProvider();
+): string {
   const metadataBlock = formatMetadataForPrompt(metadata);
-  const usage: AiUsageRecord[] = [];
 
-  // No sections available — answer from title / summary / metadata only.
-  // When a CRS summary is present it's substantive enough to answer most
-  // questions; when only title + metadata, be upfront about the limits.
+  // No sections — answer from title / CRS summary / metadata only.
   if (!billSections || billSections.length === 0) {
     const hasSummary =
       metadata?.shortText != null && metadata.shortText.trim().length > 0;
 
-    const systemPrompt = hasSummary
-      ? `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
+    if (hasSummary) {
+      return `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
 
 The bill is titled "${billTitle}".
 
-${metadataBlock ? `${metadataBlock}\n\n` : ""}Your primary source is the nonpartisan Congressional Research Service summary above, which describes the bill as introduced. Answer questions directly from this summary — it is substantive and authoritative. Quote from it using markdown blockquotes when helpful:
+${metadataBlock}
+
+Your primary source is the nonpartisan Congressional Research Service summary above, which describes the bill as introduced. Answer questions directly from this summary — it is substantive and authoritative. Quote from it using markdown blockquotes when helpful:
 
 > "exact quote from the summary"
 >
@@ -225,80 +106,57 @@ ${metadataBlock ? `${metadataBlock}\n\n` : ""}Your primary source is the nonpart
 
 Only say something is not covered if the summary genuinely does not address it. Do not claim you cannot see the bill — you have its official nonpartisan summary. The full bill text may have been amended since introduction; if a user asks about specific provisions, note that the summary describes the introduced version.
 
-Stay factual and neutral.`
-      : `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
+Stay factual and neutral.`;
+    }
 
-The bill is titled "${billTitle}".${
-          metadataBlock ? `\n\nBill information:\n${metadataBlock}` : ""
-        }
+    return `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
+
+The bill is titled "${billTitle}".${metadataBlock ? `\n\nBill information:\n${metadataBlock}` : ""}
 
 Full bill text is not yet available in our system. Explain this once at the start of your answer — briefly, one sentence — then answer what you can from the title and metadata above. Do not repeat this caveat in every section; one upfront mention is enough. Suggest the user check congress.gov for the full text if they need specifics.
 
 Stay factual and neutral.`;
-
-    const messages: ChatMessage[] = [
-      ...conversationHistory,
-      { role: "user", content: userMessage },
-    ];
-
-    const response = await callProvider(provider, systemPrompt, messages);
-    usage.push(response.usage);
-    return { content: response.content, usage };
   }
 
-  // Check total size to decide approach
-  const totalChars = billSections.reduce(
-    (sum, s) => sum + s.heading.length + s.content.length,
-    0,
-  );
+  const billTextBlock = formatSectionsForPrompt(billSections);
 
-  let sectionsToUse = billSections;
-
-  // Two-step approach for very large bills
-  if (totalChars > LARGE_BILL_THRESHOLD) {
-    const filtered = await filterRelevantSections(
-      provider,
-      billTitle,
-      billSections,
-      userMessage,
-    );
-    sectionsToUse = filtered.sections;
-    usage.push(filtered.usage);
-  }
-
-  const billTextBlock = formatSectionsForPrompt(sectionsToUse);
-
-  const systemPrompt = `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions clearly and accessibly, prioritizing direct quotes from the bill text.
+  return `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions clearly and accessibly, prioritizing direct quotes from the bill text.
 
 ${metadataBlock ? `Bill information:\n${metadataBlock}\n\n` : ""}Here is the text of "${billTitle}", organized by section:
 
 ${billTextBlock}
 
 ${CITATION_INSTRUCTIONS}`;
+}
 
-  const messages: ChatMessage[] = [
-    ...conversationHistory,
-    { role: "user", content: userMessage },
-  ];
+// ─────────────────────────────────────────────────────────────────────────
+//  Section filtering (pre-stream, non-streaming)
+// ─────────────────────────────────────────────────────────────────────────
 
-  const response = await callProvider(provider, systemPrompt, messages);
-  usage.push(response.usage);
-  return { content: response.content, usage };
+/** Whether a bill is large enough to warrant the pre-filter pass. */
+export function shouldFilterSections(billSections: BillSection[]): boolean {
+  const totalChars = billSections.reduce(
+    (sum, s) => sum + s.heading.length + s.content.length,
+    0,
+  );
+  return totalChars > LARGE_BILL_THRESHOLD;
 }
 
 /**
- * Two-step filtering: ask the model which sections are relevant,
- * then return only those sections for the main prompt.
+ * Ask a cheap model which sections are relevant to the user's question.
+ * Returns a trimmed section list plus a usage record for the spend ledger.
+ *
+ * Bounded classification over a table of contents — Haiku is sufficient and
+ * cuts the first-leg latency roughly in half vs. Sonnet.
  */
-async function filterRelevantSections(
-  provider: Provider,
+export async function selectSectionsForQuestion(
   billTitle: string,
   allSections: BillSection[],
   userMessage: string,
 ): Promise<{ sections: BillSection[]; usage: AiUsageRecord }> {
   const index = buildSectionIndex(allSections);
 
-  const systemPrompt = `You are a legislative research assistant. Given a table of contents for a bill and a user's question, identify which sections are most likely to contain the answer.
+  const system = `You are a legislative research assistant. Given a table of contents for a bill and a user's question, identify which sections are most likely to contain the answer.
 
 Bill: "${billTitle}"
 
@@ -308,32 +166,100 @@ ${index}
 Return ONLY a JSON array of section references that are relevant to the question. Example: ["Section 2", "Section 5(a)"]
 Return at most 15 sections. If unsure, include more rather than fewer.`;
 
-  const messages: ChatMessage[] = [{ role: "user", content: userMessage }];
+  const result = await generateText({
+    model: HAIKU_MODEL,
+    system,
+    messages: [{ role: "user", content: userMessage }],
+    maxOutputTokens: 512,
+  });
 
-  const response = await callProvider(provider, systemPrompt, messages, 512);
+  const usage: AiUsageRecord = {
+    model: HAIKU_MODEL,
+    inputTokens: result.usage?.inputTokens ?? 0,
+    outputTokens: result.usage?.outputTokens ?? 0,
+  };
 
-  // Parse the JSON array from the response
   try {
-    const match = response.content.match(/\[[\s\S]*\]/);
+    const match = result.text.match(/\[[\s\S]*\]/);
     if (match) {
       const refs: string[] = JSON.parse(match[0]);
       const filtered = filterSections(allSections, refs);
-      if (filtered.length > 0)
-        return { sections: filtered, usage: response.usage };
+      if (filtered.length > 0) return { sections: filtered, usage };
     }
   } catch {
-    // Fall back to all sections if parsing fails
+    // Fall through to the fallback below
   }
 
-  // Fallback: return first 30 sections (better than nothing)
-  return { sections: allSections.slice(0, 30), usage: response.usage };
+  // Fallback: return first 30 sections. Better than nothing, and keeps the
+  // main call inside a reasonable context budget.
+  return { sections: allSections.slice(0, 30), usage };
 }
 
-// ── Change summary ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+//  Main chat turn (streaming)
+// ─────────────────────────────────────────────────────────────────────────
+
+export interface StreamBillChatParams {
+  billTitle: string;
+  billSections: BillSection[] | null;
+  metadata: BillMetadata | null;
+  uiMessages: UIMessage[];
+  onFinish?: (event: {
+    text: string;
+    usage: AiUsageRecord;
+  }) => void | Promise<void>;
+  onError?: (event: { error: unknown }) => void;
+}
 
 /**
- * Generate a plain-language summary of what changed between two bill versions.
- * The summary is cached in BillTextVersion.changeSummary after generation.
+ * Kicks off the main chat generation against Sonnet via Gateway and returns
+ * the streamText result. The caller is responsible for piping it to the
+ * client — typically via `result.toUIMessageStreamResponse(...)`.
+ *
+ * `onFinish` fires after the full response is generated; record spend, write
+ * the assistant Message row, and populate the response cache there.
+ */
+export async function streamBillChatResponse(
+  params: StreamBillChatParams,
+): Promise<StreamTextResult<Record<string, never>, never>> {
+  const { billTitle, billSections, metadata, uiMessages, onFinish, onError } =
+    params;
+
+  const system = buildBillChatSystemPrompt(billTitle, billSections, metadata);
+  const messages: ModelMessage[] = await convertToModelMessages(uiMessages);
+
+  return streamText({
+    model: SONNET_MODEL,
+    system,
+    messages,
+    maxOutputTokens: 2048,
+    onFinish: onFinish
+      ? async (event) => {
+          await onFinish({
+            text: event.text,
+            usage: {
+              model: SONNET_MODEL,
+              inputTokens: event.usage?.inputTokens ?? 0,
+              outputTokens: event.usage?.outputTokens ?? 0,
+            },
+          });
+        }
+      : undefined,
+    onError: onError
+      ? ({ error }) => {
+          onError({ error });
+        }
+      : undefined,
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//  Change summary (non-streaming, used by the change-summaries cron)
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Plain-language summary of what changed between two bill versions.
+ * Bounded diff-description task — Haiku is sufficient.
  */
 export async function generateChangeSummary(
   billTitle: string,
@@ -341,10 +267,8 @@ export async function generateChangeSummary(
   currentText: string,
   previousVersionType: string,
   currentVersionType: string,
-): Promise<AiChatResult> {
-  const provider = detectProvider();
-
-  const systemPrompt =
+): Promise<{ content: string; usage: AiUsageRecord[] }> {
+  const system =
     "You are a nonpartisan legislative analyst. Given two versions of a bill, provide a clear, plain-language summary of what changed. Focus on substantive policy changes — new provisions, removed sections, changed numbers or thresholds, altered scope. Skip procedural or formatting changes. Write 2-4 sentences maximum. Do not use bullet points. Write for a general audience, not lawyers.";
 
   const userPrompt = `Bill: "${billTitle}"
@@ -357,17 +281,70 @@ ${currentText.slice(0, 30000)}
 
 Summarize the substantive changes between these two versions.`;
 
-  const messages: ChatMessage[] = [{ role: "user", content: userPrompt }];
+  const result = await generateText({
+    model: HAIKU_MODEL,
+    system,
+    messages: [{ role: "user", content: userPrompt }],
+    maxOutputTokens: 1024,
+  });
 
-  // "cheap" tier — this is a bounded diff summarization task. Research shows
-  // hallucination risk drops sharply when the model describes a structured
-  // delta vs. generating a summary from scratch, so Haiku is sufficient.
-  const response = await callProvider(
-    provider,
-    systemPrompt,
-    messages,
-    1024,
-    "cheap",
-  );
-  return { content: response.content, usage: [response.usage] };
+  return {
+    content: result.text,
+    usage: [
+      {
+        model: HAIKU_MODEL,
+        inputTokens: result.usage?.inputTokens ?? 0,
+        outputTokens: result.usage?.outputTokens ?? 0,
+      },
+    ],
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//  Non-streaming bill chat (scripts, tests)
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Non-streaming equivalent of `streamBillChatResponse` — convenient for
+ * verification scripts and unit tests that want a single string answer.
+ * Production code paths should stream via `streamBillChatResponse`.
+ */
+export async function generateBillChatAnswer(
+  billTitle: string,
+  billSections: BillSection[] | null,
+  conversationHistory: Array<{ role: "user" | "assistant"; content: string }>,
+  userMessage: string,
+  metadata: BillMetadata | null = null,
+): Promise<{ content: string; usage: AiUsageRecord[] }> {
+  const usage: AiUsageRecord[] = [];
+
+  let sectionsToUse = billSections;
+  if (billSections && shouldFilterSections(billSections)) {
+    const filtered = await selectSectionsForQuestion(
+      billTitle,
+      billSections,
+      userMessage,
+    );
+    sectionsToUse = filtered.sections;
+    usage.push(filtered.usage);
+  }
+
+  const system = buildBillChatSystemPrompt(billTitle, sectionsToUse, metadata);
+  const result = await generateText({
+    model: SONNET_MODEL,
+    system,
+    messages: [
+      ...conversationHistory.map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: userMessage },
+    ],
+    maxOutputTokens: 2048,
+  });
+
+  usage.push({
+    model: SONNET_MODEL,
+    inputTokens: result.usage?.inputTokens ?? 0,
+    outputTokens: result.usage?.outputTokens ?? 0,
+  });
+
+  return { content: result.text, usage };
 }

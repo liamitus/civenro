@@ -7,7 +7,7 @@
 import "dotenv/config";
 import { prisma } from "../lib/prisma";
 import { parseSectionsFromFullText } from "../lib/bill-sections";
-import { generateBillChatResponse } from "../lib/ai";
+import { generateBillChatAnswer } from "../lib/ai";
 
 async function main() {
   // Find the SAVE Act
@@ -59,7 +59,7 @@ async function main() {
   for (const q of questions) {
     console.log(`─── Q: ${q} ───`);
     const start = Date.now();
-    const result = await generateBillChatResponse(bill.title, sections, [], q);
+    const result = await generateBillChatAnswer(bill.title, sections, [], q);
     const answer = result.content;
     const ms = Date.now() - start;
     console.log(answer);
@@ -75,7 +75,7 @@ async function main() {
 
   // Test the no-sections fallback
   console.log("─── Q (no sections): generic question with empty bill text ───");
-  const emptyResult = await generateBillChatResponse(
+  const emptyResult = await generateBillChatAnswer(
     bill.title,
     null,
     [],
