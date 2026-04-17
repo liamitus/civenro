@@ -21,7 +21,7 @@ import { reportError } from "@/lib/error-reporting";
  * billId, rollCallNumber), so overlapping windows are fine.
  */
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const expected = process.env.CRON_SECRET;
