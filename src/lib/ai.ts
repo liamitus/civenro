@@ -310,7 +310,17 @@ Return at most 15 sections. If unsure, include more rather than fewer.`;
 
   const messages: ChatMessage[] = [{ role: "user", content: userMessage }];
 
-  const response = await callProvider(provider, systemPrompt, messages, 512);
+  // Bounded classification task (pick section refs from a table of contents)
+  // — Haiku/4o-mini is sufficient and cuts the large-bill latency budget
+  // roughly in half, which matters when the whole turn must finish inside
+  // the 60s Hobby function timeout.
+  const response = await callProvider(
+    provider,
+    systemPrompt,
+    messages,
+    512,
+    "cheap",
+  );
 
   // Parse the JSON array from the response
   try {

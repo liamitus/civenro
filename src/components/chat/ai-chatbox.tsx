@@ -14,12 +14,21 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { AiPausedPanel } from "@/components/ai-paused-panel";
+import {
+  AiChatError,
+  mapErrorToState,
+  type AiChatErrorState,
+} from "@/components/chat/ai-chat-error";
 import type { ConversationMessage } from "@/types";
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH_VW = 0.95;
 const DEFAULT_WIDTH = 640;
 const WIDTH_STORAGE_KEY = "govroll:ai-chat:width";
+
+// Abort the chat request before Vercel's function timeout (60s on Hobby) so
+// we surface a controlled error instead of a non-JSON platform error page.
+const CHAT_TIMEOUT_MS = 58_000;
 
 function AiMessageContent({ text }: { text: string }) {
   return (
@@ -55,10 +64,12 @@ export function AiChatbox({
   onSignUp?: () => void;
 }) {
   const { user } = useAuth();
+  const userId = user?.id;
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<AiChatErrorState | null>(null);
   const [aiPaused, setAiPaused] = useState<{
     incomeCents: number;
     spendCents: number;
@@ -77,11 +88,11 @@ export function AiChatbox({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sheetInputRef = useRef<HTMLInputElement>(null);
 
-  // Load existing conversation once on mount.
-  // (Loading on `open` would race with optimistic user-message updates and
-  // overwrite local state mid-send.)
+  // Load existing conversation once per (billId, userId). Using `user?.id`
+  // instead of the `user` object keeps this stable across Supabase token
+  // refreshes, which otherwise re-fire the GET several times per session.
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
     fetch(`/api/ai/chat?billId=${billId}`)
       .then((res) => (res.ok ? res.json() : null))
@@ -93,7 +104,7 @@ export function AiChatbox({
     return () => {
       cancelled = true;
     };
-  }, [billId, user]);
+  }, [billId, userId]);
 
   // Probe what AI context is actually available for this bill so we can
   // warn the user upfront if we only have a summary (or just the title).
@@ -111,11 +122,11 @@ export function AiChatbox({
     };
   }, [billId]);
 
-  // Auto-scroll to bottom on new message
+  // Auto-scroll to bottom on new message, thinking state, or error
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, error]);
 
   // Focus input when sheet opens
   useEffect(() => {
@@ -132,11 +143,18 @@ export function AiChatbox({
       if (!text || !user || loading) return;
 
       setInput("");
+      setError(null);
       setMessages((prev) => [
         ...prev,
         { sender: "user", text, createdAt: new Date().toISOString() },
       ]);
       setLoading(true);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        CHAT_TIMEOUT_MS,
+      );
 
       try {
         const res = await fetch("/api/ai/chat", {
@@ -147,36 +165,84 @@ export function AiChatbox({
             userMessage: text,
             conversationId,
           }),
+          signal: controller.signal,
         });
 
-        const data = await res.json();
-        if (res.ok) {
-          setConversationId(data.conversationId);
+        // Read body as text first so we can handle non-JSON error pages
+        // (e.g. Vercel's "An error occurred" 504 body) without throwing.
+        const rawBody = await res.text();
+        let data: unknown = null;
+        let parseFailed = false;
+        if (rawBody) {
+          try {
+            data = JSON.parse(rawBody);
+          } catch {
+            parseFailed = true;
+          }
+        }
+        const parsed = (data ?? {}) as {
+          conversationId?: string;
+          aiAnswer?: string;
+          error?: string;
+          budget?: { incomeCents?: number; spendCents?: number };
+        };
+
+        if (res.ok && parsed.aiAnswer) {
+          if (parsed.conversationId) setConversationId(parsed.conversationId);
           setMessages((prev) => [
             ...prev,
             {
               sender: "ai",
-              text: data.aiAnswer,
+              text: parsed.aiAnswer as string,
               createdAt: new Date().toISOString(),
             },
           ]);
-        } else if (res.status === 503 && data.error === "ai_disabled") {
-          // AI budget exhausted — show paused panel
-          setAiPaused({
-            incomeCents: data.budget?.incomeCents ?? 0,
-            spendCents: data.budget?.spendCents ?? 0,
-          });
-          // Remove the optimistic user message since AI couldn't respond
-          setMessages((prev) => prev.slice(0, -1));
+          return;
         }
-      } catch (err) {
-        console.error("Chat error:", err);
-      }
 
-      setLoading(false);
+        // AI budget exhausted — show the paused panel and drop the
+        // optimistic user message since no response will ever arrive.
+        if (res.status === 503 && parsed.error === "ai_disabled") {
+          setAiPaused({
+            incomeCents: parsed.budget?.incomeCents ?? 0,
+            spendCents: parsed.budget?.spendCents ?? 0,
+          });
+          setMessages((prev) => prev.slice(0, -1));
+          return;
+        }
+
+        setError(
+          mapErrorToState({
+            status: res.status,
+            serverMessage: parsed.error,
+            isParseError: parseFailed,
+          }),
+        );
+      } catch (err) {
+        const isAbort =
+          err instanceof DOMException && err.name === "AbortError";
+        setError(
+          mapErrorToState({
+            isAbort,
+            isNetworkError: !isAbort,
+          }),
+        );
+      } finally {
+        clearTimeout(timeoutId);
+        setLoading(false);
+      }
     },
     [billId, conversationId, input, loading, user],
   );
+
+  // Re-send the last user message without duplicating it in the thread.
+  const retryLast = useCallback(() => {
+    const last = messages[messages.length - 1];
+    if (!last || last.sender !== "user") return;
+    setError(null);
+    setMessages((prev) => prev.slice(0, -1));
+    void sendMessage(last.text);
+  }, [messages, sendMessage]);
 
   // Submit from the inline trigger → opens sheet AND sends the message
   const submitFromTrigger = useCallback(() => {
@@ -333,7 +399,7 @@ export function AiChatbox({
                   spendCents={aiPaused.spendCents}
                 />
               </div>
-            ) : messages.length === 0 && !loading ? (
+            ) : messages.length === 0 && !loading && !error ? (
               <div className="flex h-full flex-col items-center justify-center px-6 text-center">
                 <p className="text-foreground mb-1 text-sm font-medium">
                   Ask anything about this bill
@@ -386,9 +452,21 @@ export function AiChatbox({
                   </div>
                 ))}
                 {loading && (
-                  <div className="flex justify-start">
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="flex justify-start"
+                  >
                     <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-2.5 text-sm">
-                      Thinking…
+                      <span className="sr-only">Assistant is thinking. </span>
+                      <span aria-hidden="true">Thinking…</span>
+                    </div>
+                  </div>
+                )}
+                {error && !loading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[88%]">
+                      <AiChatError state={error} onRetry={retryLast} />
                     </div>
                   </div>
                 )}
