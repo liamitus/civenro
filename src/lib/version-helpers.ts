@@ -6,25 +6,9 @@
  */
 
 /**
- * Version codes that represent substantive text changes.
- * These are the transitions where a user's vote may become stale.
- */
-const SUBSTANTIVE_CODES = new Set([
-  "rh",
-  "rs", // Reported by committee (may be entirely rewritten)
-  "eh",
-  "es", // Engrossed (floor amendments incorporated)
-  "eah",
-  "eas", // Engrossed amendment from other chamber
-  "enr", // Enrolled (final bicameral text)
-  "cph",
-  "cps", // Considered and passed
-  "ath",
-  "ats", // Agreed to (resolutions)
-]);
-
-/**
  * Version codes that are procedural or baseline — no text change from prior.
+ * Anything not in this set is treated as a substantive change (e.g. "rh", "rs",
+ * "eh", "es", "enr") where a user's vote may become stale.
  */
 const PROCEDURAL_CODES = new Set([
   "ih",

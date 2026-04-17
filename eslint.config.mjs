@@ -27,6 +27,17 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/purity": "warn",
       "react-hooks/immutability": "warn",
+      // Underscore-prefixed args/vars are the conventional "intentionally
+      // unused" marker; keep them for documentation / future use without lint
+      // noise.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   // Playwright specs have their own test globals (`test`, `expect`) and
