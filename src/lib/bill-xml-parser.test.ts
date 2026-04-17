@@ -85,9 +85,7 @@ describe("BillXmlParser — S.1884 HEAR Act (amendment bill)", () => {
   it("keeps subsection (b) Applicability inside its parent section", async () => {
     const chunks = await parse(fixture("s1884-hear-act.xml"));
     const applicability = chunks.find((c) =>
-      c.content.startsWith(
-        "The amendments made by subsection (a) shall apply",
-      ),
+      c.content.startsWith("The amendments made by subsection (a) shall apply"),
     );
     expect(applicability).toBeDefined();
     // Path should reflect: Section 2 > (b) Applicability
@@ -145,9 +143,7 @@ describe("BillXmlParser — unknown container recursion", () => {
 
 describe("BillXmlParser — empty / degenerate input", () => {
   it("returns empty array for a bill with no body", async () => {
-    const chunks = await parse(
-      `<?xml version="1.0"?><bill></bill>`,
-    );
+    const chunks = await parse(`<?xml version="1.0"?><bill></bill>`);
     expect(chunks).toEqual([]);
   });
 

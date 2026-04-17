@@ -470,7 +470,8 @@ export async function fetchBillMetadata(
 
     return {
       sponsor,
-      cosponsorCount: bill.cosponsors?.count ?? safeCosponsorList.length ?? null,
+      cosponsorCount:
+        bill.cosponsors?.count ?? safeCosponsorList.length ?? null,
       cosponsorPartySplit: partySplit,
       policyArea: bill.policyArea?.name ?? null,
       latestActionDate: bill.latestAction?.actionDate ?? null,

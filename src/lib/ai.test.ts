@@ -2,11 +2,7 @@ import { describe, expect, it } from "vitest";
 import { shouldFilterSections, buildBillChatSystemPrompt } from "./ai";
 import type { BillSection } from "./bill-sections";
 
-function section(
-  heading: string,
-  content: string,
-  ref = heading,
-): BillSection {
+function section(heading: string, content: string, ref = heading): BillSection {
   return { heading, content, sectionRef: ref };
 }
 

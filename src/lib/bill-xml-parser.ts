@@ -43,13 +43,7 @@ const TEXTUAL_TAGS = new Set([
 
 // Tags ignored inside a legis-body subtree — either handled separately
 // (enum/header via extractHeading) or structurally irrelevant.
-const SKIP_TAGS = new Set([
-  "enum",
-  "header",
-  "toc",
-  "toc-entry",
-  "sidenote",
-]);
+const SKIP_TAGS = new Set(["enum", "header", "toc", "toc-entry", "sidenote"]);
 
 export interface ParsedChunk {
   path: string[];
@@ -116,8 +110,7 @@ function parseContainer(node: any, path: string[]): ParsedChunk[] {
 function hasStructuralChildren(node: any): boolean {
   if (!Array.isArray(node.$$)) return false;
   return node.$$.some(
-    (c: any) =>
-      STRUCTURAL_TAGS.has(c["#name"]) || TEXTUAL_TAGS.has(c["#name"]),
+    (c: any) => STRUCTURAL_TAGS.has(c["#name"]) || TEXTUAL_TAGS.has(c["#name"]),
   );
 }
 
