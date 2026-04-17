@@ -11,7 +11,9 @@ export class AiDisabledError extends Error {
   readonly donateUrl = "/support";
 
   constructor(snapshot: BudgetSnapshot) {
-    super(`AI features are currently paused (${snapshot.aiDisabledReason ?? "unknown"})`);
+    super(
+      `AI features are currently paused (${snapshot.aiDisabledReason ?? "unknown"})`,
+    );
     this.name = "AiDisabledError";
     this.reason = snapshot.aiDisabledReason === "manual" ? "manual" : "budget";
     this.snapshot = snapshot;
@@ -58,7 +60,9 @@ export function invalidateAiGateCache() {
  * Throws `AiDisabledError` if AI features are currently off. Call at the top
  * of any API route that spends tokens.
  */
-export async function assertAiEnabled(_feature: string): Promise<BudgetSnapshot> {
+export async function assertAiEnabled(
+  _feature: string,
+): Promise<BudgetSnapshot> {
   const snapshot = await readSnapshot();
   if (!snapshot.aiEnabled) throw new AiDisabledError(snapshot);
   return snapshot;

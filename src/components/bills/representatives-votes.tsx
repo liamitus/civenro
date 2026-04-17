@@ -111,55 +111,68 @@ function RepCard({
     rep.vote !== NO_VOTE_SENTINEL ? voteContextLabel(rep.voteCategory) : null;
 
   return (
-    <div className={`rounded-lg bg-card border ${partyColors(rep.party).bar} ${muted ? "opacity-60" : ""}`}>
+    <div
+      className={`bg-card rounded-lg border ${partyColors(rep.party).bar} ${muted ? "opacity-60" : ""}`}
+    >
       <div className="flex items-center gap-3 p-3">
         <Link
           href={`/representatives/${rep.slug || rep.bioguideId}`}
-          className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+          className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80"
         >
-          <div className={`relative ${muted ? "w-9 h-11" : "w-11 h-14"} rounded-md overflow-hidden bg-muted flex-shrink-0`}>
+          <div
+            className={`relative ${muted ? "h-11 w-9" : "h-14 w-11"} bg-muted flex-shrink-0 overflow-hidden rounded-md`}
+          >
             {rep.bioguideId ? (
               <img
                 src={`/api/photos/${rep.bioguideId}`}
                 alt={`${rep.firstName} ${rep.lastName}`}
-                className="w-full h-full object-cover object-[center_20%] select-none pointer-events-none"
+                className="pointer-events-none h-full w-full object-cover object-[center_20%] select-none"
                 draggable={false}
                 loading="lazy"
                 onError={(e) => {
                   const el = e.currentTarget;
                   el.style.display = "none";
-                  el.parentElement!.querySelector("[data-fallback]")!.removeAttribute("hidden");
+                  el.parentElement!.querySelector(
+                    "[data-fallback]",
+                  )!.removeAttribute("hidden");
                 }}
               />
             ) : null}
-            <div data-fallback hidden={!!rep.bioguideId} className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-semibold">
-              {rep.firstName[0]}{rep.lastName[0]}
+            <div
+              data-fallback
+              hidden={!!rep.bioguideId}
+              className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-semibold"
+            >
+              {rep.firstName[0]}
+              {rep.lastName[0]}
             </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className={`font-semibold truncate ${muted ? "text-xs" : "text-sm"}`}>
+          <div className="min-w-0 flex-1">
+            <p
+              className={`truncate font-semibold ${muted ? "text-xs" : "text-sm"}`}
+            >
               {rep.firstName} {rep.lastName}
             </p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-muted-foreground text-[11px]">
               {rep.party.replace("Democratic", "Democrat")} · {rep.state}
               {rep.district ? `-${rep.district}` : ""}
             </p>
             {cosponsorText && (
-              <p className="text-[11px] text-civic-gold mt-0.5 truncate">
+              <p className="text-civic-gold mt-0.5 truncate text-[11px]">
                 {cosponsorText}
               </p>
             )}
           </div>
         </Link>
         <div className="flex items-center gap-2">
-          <div className="flex flex-col items-end gap-0.5 min-w-0">
+          <div className="flex min-w-0 flex-col items-end gap-0.5">
             <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${muted ? "text-muted-foreground" : voteColor(displayVote)}`}
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${muted ? "text-muted-foreground" : voteColor(displayVote)}`}
             >
               {normalizeVote(displayVote)}
             </span>
             {voteContext && (
-              <span className="text-[10px] text-muted-foreground italic text-right leading-tight">
+              <span className="text-muted-foreground text-right text-[10px] leading-tight italic">
                 {voteContext}
               </span>
             )}
@@ -167,7 +180,7 @@ function RepCard({
           {hasHistory && (
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground text-xs transition-colors"
               title="View vote history"
             >
               <svg
@@ -189,9 +202,11 @@ function RepCard({
       </div>
 
       {hasHistory && showHistory && (
-        <div className="px-3 pb-3 pt-0">
-          <div className="border-t pt-2 space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground">Vote History</p>
+        <div className="px-3 pt-0 pb-3">
+          <div className="space-y-1.5 border-t pt-2">
+            <p className="text-muted-foreground text-xs font-medium">
+              Vote History
+            </p>
             {rep.voteHistory!.map((vh, i) => (
               <div
                 key={i}
@@ -208,7 +223,7 @@ function RepCard({
                     : ""}
                 </span>
                 <span
-                  className={`font-semibold px-2 py-0.5 rounded-full ${voteColor(vh.vote)}`}
+                  className={`rounded-full px-2 py-0.5 font-semibold ${voteColor(vh.vote)}`}
                 >
                   {normalizeVote(vh.vote)}
                 </span>
@@ -226,7 +241,7 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
 
   if (passage.status === "pending") {
     return (
-      <div className="rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+      <div className="bg-muted/30 text-muted-foreground rounded-lg border border-dashed px-3 py-2 text-xs">
         The {chamberName} hasn&apos;t voted on this bill yet.
       </div>
     );
@@ -235,21 +250,21 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
   if (passage.status === "passed_without_rollcall") {
     const hasProcedural = passage.proceduralRollCallCount > 0;
     return (
-      <div className="rounded-lg border bg-accent/20 px-3 py-2.5 text-xs leading-relaxed">
+      <div className="bg-accent/20 rounded-lg border px-3 py-2.5 text-xs leading-relaxed">
         <p className="text-foreground">
           <span className="font-semibold">
             The {chamberName} passed this bill without a recorded roll call.
           </span>{" "}
           <span className="text-muted-foreground">
             Bills often pass by voice vote or unanimous consent when they
-            aren&apos;t controversial — no individual votes are recorded
-            on passage itself.
+            aren&apos;t controversial — no individual votes are recorded on
+            passage itself.
             {hasProcedural
               ? " Procedural votes during consideration were recorded — those are shown below."
               : ""}{" "}
             <Link
               href="/about/how-congress-votes"
-              className="underline underline-offset-2 hover:text-foreground"
+              className="hover:text-foreground underline underline-offset-2"
             >
               Learn more
             </Link>
@@ -266,7 +281,9 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
 export function RepresentativesVotes({ billId }: { billId: number }) {
   const { address, setUserAddress } = useAddress();
   const [reps, setReps] = useState<RepresentativeWithVote[]>([]);
-  const [chamberPassage, setChamberPassage] = useState<ChamberPassageInfo[]>([]);
+  const [chamberPassage, setChamberPassage] = useState<ChamberPassageInfo[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
   const [inputAddress, setInputAddress] = useState("");
 
@@ -304,16 +321,16 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
   if (!address) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Enter your address to see how your representatives voted on this bill.
         </p>
-        <div className="flex items-center rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1">
+        <div className="bg-background focus-within:ring-ring flex items-center rounded-lg border focus-within:ring-2 focus-within:ring-offset-1">
           <Input
             value={inputAddress}
             onChange={(e) => setInputAddress(e.target.value)}
             placeholder="Enter your US street address"
             onKeyDown={(e) => e.key === "Enter" && handleSubmitAddress()}
-            className="border-0 shadow-none focus-visible:ring-0 flex-1"
+            className="flex-1 border-0 shadow-none focus-visible:ring-0"
           />
           <Button
             size="sm"
@@ -323,13 +340,13 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
             Look up
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Your address is only used to find your district and is never saved.{" "}
           <a
             href="https://github.com/liamitus/govroll/blob/main/src/lib/civic-api.ts"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-foreground transition-colors"
+            className="hover:text-foreground underline transition-colors"
           >
             See how it works
           </a>
@@ -424,19 +441,15 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
       <div className="flex items-center justify-end">
         <button
           onClick={() => setUserAddress("")}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground text-xs transition-colors"
         >
           Change address
         </button>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-          <svg
-            className="h-4 w-4 animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
+        <div className="text-muted-foreground flex items-center gap-2 py-4 text-sm">
+          <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
               cx="12"
@@ -454,7 +467,7 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
           Finding your representatives...
         </div>
       ) : reps.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-2">
+        <p className="text-muted-foreground py-2 text-sm">
           No representatives found for this bill.
         </p>
       ) : (

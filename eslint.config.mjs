@@ -12,7 +12,31 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated + test artefacts.
+    "src/generated/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
+  // The new React-19/React-Compiler rules shipped in eslint-config-next flag
+  // a large amount of pre-existing code. Keep them visible as warnings for
+  // now; tracked in follow-up to fix case-by-case (setState-in-effect vs.
+  // useSyncExternalStore vs. derived state).
+  {
+    rules: {
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/immutability": "warn",
+    },
+  },
+  // Playwright specs have their own test globals (`test`, `expect`) and
+  // shouldn't be checked with React rules.
+  {
+    files: ["e2e/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-non-null-assertion": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

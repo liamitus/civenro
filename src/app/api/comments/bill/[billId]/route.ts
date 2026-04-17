@@ -15,7 +15,7 @@ interface CommentWithReplies {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ billId: string }> }
+  { params }: { params: Promise<{ billId: string }> },
 ) {
   const { billId } = await params;
   const id = parseInt(billId);
@@ -103,7 +103,7 @@ export async function GET(
     console.error("Error fetching comments:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

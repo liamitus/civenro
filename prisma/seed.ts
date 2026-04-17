@@ -19,8 +19,7 @@ async function main() {
         district: "11",
         party: "Democrat",
         chamber: "representative",
-        imageUrl:
-          "https://bioguide.congress.gov/bioguide/photo/P/P000197.jpg",
+        imageUrl: "https://bioguide.congress.gov/bioguide/photo/P/P000197.jpg",
         link: "https://www.govtrack.us/congress/members/nancy_pelosi/400314",
       },
     }),
@@ -35,8 +34,7 @@ async function main() {
         district: null,
         party: "Republican",
         chamber: "senator",
-        imageUrl:
-          "https://bioguide.congress.gov/bioguide/photo/C/C001098.jpg",
+        imageUrl: "https://bioguide.congress.gov/bioguide/photo/C/C001098.jpg",
         link: "https://www.govtrack.us/congress/members/ted_cruz/412573",
       },
     }),
@@ -51,8 +49,7 @@ async function main() {
         district: "14",
         party: "Democrat",
         chamber: "representative",
-        imageUrl:
-          "https://bioguide.congress.gov/bioguide/photo/O/O000172.jpg",
+        imageUrl: "https://bioguide.congress.gov/bioguide/photo/O/O000172.jpg",
         link: "https://www.govtrack.us/congress/members/alexandria_ocasio-cortez/412804",
       },
     }),
@@ -96,7 +93,8 @@ async function main() {
         link: "https://www.govtrack.us/congress/bills/119/s100",
         sponsor: "Sen. Mark Warner [D-VA]",
         policyArea: "Science, Technology, Communications",
-        latestActionText: "Read twice and referred to the Committee on Commerce, Science, and Transportation.",
+        latestActionText:
+          "Read twice and referred to the Committee on Commerce, Science, and Transportation.",
         latestActionDate: new Date("2025-01-15"),
         fullText:
           "SECTION 1. SHORT TITLE.\n\nThis Act may be cited as the 'Protecting Americans' Data from Foreign Adversaries Act'.\n\nSEC. 2. PURPOSE.\n\nThe purpose of this Act is to establish standards for the protection of sensitive personal data of United States persons from access by foreign adversaries.",

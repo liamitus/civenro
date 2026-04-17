@@ -22,7 +22,10 @@ export function parseSectionsFromFullText(fullText: string): BillSection[] {
   if (!fullText.trim()) return [];
 
   // Detect raw HTML fallback
-  if (fullText.trimStart().startsWith("<html") || fullText.trimStart().startsWith("<pre")) {
+  if (
+    fullText.trimStart().startsWith("<html") ||
+    fullText.trimStart().startsWith("<pre")
+  ) {
     return parseHtmlFallback(fullText);
   }
 
@@ -34,9 +37,7 @@ export function parseSectionsFromFullText(fullText: string): BillSection[] {
  * Used for the two-step large-bill approach.
  */
 export function buildSectionIndex(sections: BillSection[]): string {
-  return sections
-    .map((s) => `- ${s.sectionRef}: ${s.heading}`)
-    .join("\n");
+  return sections.map((s) => `- ${s.sectionRef}: ${s.heading}`).join("\n");
 }
 
 /**
@@ -72,7 +73,8 @@ function parseParsedFormat(fullText: string): BillSection[] {
     const firstLine = lines[0].trim();
 
     // Check if the first line is a heading (contains > path separator or matches heading pattern)
-    const isHeading = firstLine.includes(" > ") || HEADING_PATTERN.test(firstLine);
+    const isHeading =
+      firstLine.includes(" > ") || HEADING_PATTERN.test(firstLine);
 
     if (isHeading) {
       const heading = firstLine;

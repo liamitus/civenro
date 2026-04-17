@@ -15,8 +15,7 @@ import { createStandalonePrisma } from "../lib/prisma-standalone";
 const BUCKET = "photos";
 const GITHUB_URL =
   "https://raw.githubusercontent.com/unitedstates/images/gh-pages/congress/225x275";
-const BIOGUIDE_URL =
-  "https://bioguide.congress.gov/bioguide/photo";
+const BIOGUIDE_URL = "https://bioguide.congress.gov/bioguide/photo";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,9 +50,7 @@ async function main() {
   const { data: existingFiles } = await supabase.storage
     .from(BUCKET)
     .list("congress", { limit: 1000 });
-  const existing = new Set(
-    (existingFiles || []).map((f) => f.name),
-  );
+  const existing = new Set((existingFiles || []).map((f) => f.name));
 
   let uploaded = 0;
   let skipped = 0;

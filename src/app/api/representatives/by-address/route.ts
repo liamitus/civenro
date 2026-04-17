@@ -7,15 +7,15 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { address } = body;
 
   if (!address) {
-    return NextResponse.json(
-      { error: "Address is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Address is required" }, { status: 400 });
   }
 
   try {
@@ -32,8 +32,13 @@ export async function POST(request: NextRequest) {
       addressLength: typeof address === "string" ? address.length : 0,
     });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to look up representatives" },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to look up representatives",
+      },
+      { status: 500 },
     );
   }
 }

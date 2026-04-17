@@ -102,7 +102,9 @@ export async function computeMomentumFunction(
             cosponsorPartySplit: bill.cosponsorPartySplit,
             substantiveVersions: bill.textVersions.length,
             engagementCount:
-              bill._count.votes + bill._count.publicVotes + bill._count.comments,
+              bill._count.votes +
+              bill._count.publicVotes +
+              bill._count.comments,
           },
           currentCongress,
           now,

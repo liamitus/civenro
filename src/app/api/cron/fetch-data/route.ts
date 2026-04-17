@@ -77,7 +77,9 @@ export async function GET(request: Request) {
   const isMonday = new Date().getUTCDay() === 1;
 
   // 1. New bills — fast: just a few paginated API calls for recent months
-  results.push(await runWithBudget("bills", () => fetchBillsFunction(), deadline));
+  results.push(
+    await runWithBudget("bills", () => fetchBillsFunction(), deadline),
+  );
 
   // 2. Bill metadata — metadata-only refresh, no text download (~2-3s per bill).
   // Covers sponsor, policyArea, latestAction, and CRS summary — the fields shown
@@ -92,7 +94,11 @@ export async function GET(request: Request) {
 
   // 3. Bill text — batch of 5 bills missing text (~3s each w/ rate limiting)
   results.push(
-    await runWithBudget("bill-text", () => fetchBillTextFunction(undefined, 5), deadline),
+    await runWithBudget(
+      "bill-text",
+      () => fetchBillTextFunction(undefined, 5),
+      deadline,
+    ),
   );
 
   // 3b. Cosponsors — batch of 10 live bills whose individual cosponsor rows
@@ -122,7 +128,11 @@ export async function GET(request: Request) {
 
   // 5. Bill actions — batch of 15 active bills (~1s each w/ rate limiting)
   results.push(
-    await runWithBudget("bill-actions", () => fetchBillActionsFunction(undefined, 15), deadline),
+    await runWithBudget(
+      "bill-actions",
+      () => fetchBillActionsFunction(undefined, 15),
+      deadline,
+    ),
   );
 
   // 6. Momentum — recomputes the alive/dormant/dead signal for every bill whose
@@ -140,24 +150,37 @@ export async function GET(request: Request) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   results.push(
-    await runWithBudget("votes", () => fetchVotesFunction(sevenDaysAgo), deadline),
+    await runWithBudget(
+      "votes",
+      () => fetchVotesFunction(sevenDaysAgo),
+      deadline,
+    ),
   );
 
   // 8. Representatives — weekly refresh (Mondays only)
   if (isMonday) {
     results.push(
-      await runWithBudget("representatives", () => fetchRepresentativesFunction(), deadline),
+      await runWithBudget(
+        "representatives",
+        () => fetchRepresentativesFunction(),
+        deadline,
+      ),
     );
   }
 
   const totalMs = Date.now() - start;
-  console.log(`[fetch-data] completed in ${totalMs}ms:`, JSON.stringify(results));
+  console.log(
+    `[fetch-data] completed in ${totalMs}ms:`,
+    JSON.stringify(results),
+  );
 
   const failures = results.filter((r) => r.status === "error");
   if (failures.length > 0) {
     await reportError(
-      new Error(`fetch-data cron: ${failures.map((f) => f.stage).join(", ")} failed`),
-      { stages: results, totalMs }
+      new Error(
+        `fetch-data cron: ${failures.map((f) => f.stage).join(", ")} failed`,
+      ),
+      { stages: results, totalMs },
     );
   }
 

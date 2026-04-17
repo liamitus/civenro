@@ -19,7 +19,10 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   "claude-opus-4-6": { inputCentsPerMtok: 1500, outputCentsPerMtok: 7500 },
   "claude-opus-4-6[1m]": { inputCentsPerMtok: 1500, outputCentsPerMtok: 7500 },
   "claude-sonnet-4-6": { inputCentsPerMtok: 300, outputCentsPerMtok: 1500 },
-  "claude-haiku-4-5-20251001": { inputCentsPerMtok: 100, outputCentsPerMtok: 500 },
+  "claude-haiku-4-5-20251001": {
+    inputCentsPerMtok: 100,
+    outputCentsPerMtok: 500,
+  },
 
   // OpenAI — used mainly for the free moderation endpoint; listed for chat fallbacks
   "gpt-4o-mini": { inputCentsPerMtok: 15, outputCentsPerMtok: 60 },
@@ -40,7 +43,7 @@ const UNKNOWN_MODEL_FALLBACK: ModelPricing = {
 export function computeCostCents(
   model: string,
   inputTokens: number,
-  outputTokens: number
+  outputTokens: number,
 ): number {
   const pricing = MODEL_PRICING[model] ?? UNKNOWN_MODEL_FALLBACK;
   const inputCost = (inputTokens * pricing.inputCentsPerMtok) / 1_000_000;

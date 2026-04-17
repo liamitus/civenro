@@ -38,7 +38,7 @@ export const AI_BUFFER_CENTS = 500; // $5
 /** Total fixed costs in cents per month. */
 export const FIXED_TOTAL_CENTS = FIXED_MONTHLY_COSTS.reduce(
   (sum, item) => sum + item.monthlyCents,
-  0
+  0,
 );
 
 /**
@@ -49,7 +49,7 @@ export const FIXED_TOTAL_CENTS = FIXED_MONTHLY_COSTS.reduce(
  */
 export function estimatedAiCostCents(
   thisMonthSpendCents: number,
-  lastMonthSpendCents: number
+  lastMonthSpendCents: number,
 ): number {
   return Math.max(thisMonthSpendCents, lastMonthSpendCents) + AI_BUFFER_CENTS;
 }
@@ -60,7 +60,7 @@ export function estimatedAiCostCents(
  */
 export function totalMonthlyCostCents(
   thisMonthSpendCents: number,
-  lastMonthSpendCents: number
+  lastMonthSpendCents: number,
 ): number {
   return (
     FIXED_TOTAL_CENTS +

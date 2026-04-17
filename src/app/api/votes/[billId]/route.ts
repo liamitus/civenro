@@ -3,13 +3,17 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ billId: string }> }
+  { params }: { params: Promise<{ billId: string }> },
 ) {
   const { billId } = await params;
   const id = parseInt(billId);
 
   try {
-    const passageCategories = ["passage", "passage_suspension", "veto_override"];
+    const passageCategories = [
+      "passage",
+      "passage_suspension",
+      "veto_override",
+    ];
 
     const [publicVotes, passageVotes, latestVersion] = await Promise.all([
       prisma.vote.groupBy({
@@ -43,17 +47,18 @@ export async function GET(
     ]);
 
     // Fall back to all votes if no passage-categorized votes found
-    const congressionalVotes = passageVotes.length > 0
-      ? passageVotes
-      : await prisma.representativeVote.findMany({
-          where: { billId: id },
-          select: {
-            vote: true,
-            rollCallNumber: true,
-            chamber: true,
-            votedAt: true,
-          },
-        });
+    const congressionalVotes =
+      passageVotes.length > 0
+        ? passageVotes
+        : await prisma.representativeVote.findMany({
+            where: { billId: id },
+            select: {
+              vote: true,
+              rollCallNumber: true,
+              chamber: true,
+              votedAt: true,
+            },
+          });
 
     // Group congressional votes by roll call
     const rollCallMap = new Map<
@@ -67,7 +72,10 @@ export async function GET(
     >();
 
     for (const cv of congressionalVotes) {
-      const key = cv.rollCallNumber != null ? `${cv.chamber}-${cv.rollCallNumber}` : "legacy";
+      const key =
+        cv.rollCallNumber != null
+          ? `${cv.chamber}-${cv.rollCallNumber}`
+          : "legacy";
       if (!rollCallMap.has(key)) {
         rollCallMap.set(key, {
           rollCallNumber: cv.rollCallNumber,
@@ -90,13 +98,17 @@ export async function GET(
         rollCallNumber: rc.rollCallNumber,
         chamber: rc.chamber,
         votedAt: rc.votedAt?.toISOString() || null,
-        votes: Object.entries(rc.votes).map(([vote, count]) => ({ vote, count })),
+        votes: Object.entries(rc.votes).map(([vote, count]) => ({
+          vote,
+          count,
+        })),
       }));
 
     // Also provide the flat aggregation for backward compat
     const allCongressionalVotes: Record<string, number> = {};
     for (const cv of congressionalVotes) {
-      allCongressionalVotes[cv.vote] = (allCongressionalVotes[cv.vote] || 0) + 1;
+      allCongressionalVotes[cv.vote] =
+        (allCongressionalVotes[cv.vote] || 0) + 1;
     }
 
     return NextResponse.json({
@@ -104,10 +116,12 @@ export async function GET(
         voteType: v.voteType,
         count: v._count.voteType,
       })),
-      congressionalVotes: Object.entries(allCongressionalVotes).map(([vote, count]) => ({
-        vote,
-        count,
-      })),
+      congressionalVotes: Object.entries(allCongressionalVotes).map(
+        ([vote, count]) => ({
+          vote,
+          count,
+        }),
+      ),
       rollCalls,
       latestVersion: latestVersion
         ? {
@@ -122,7 +136,7 @@ export async function GET(
     console.error("Error fetching votes:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

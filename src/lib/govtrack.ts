@@ -11,23 +11,29 @@ export function delay(ms: number) {
 }
 
 export async function fetchGovTrackBills(params: Record<string, unknown>) {
-  const response = await withRetry(() => govtrackClient.get("/bill", { params }));
+  const response = await withRetry(() =>
+    govtrackClient.get("/bill", { params }),
+  );
   return response.data.objects;
 }
 
 export async function fetchGovTrackBill(govtrackId: number) {
-  const response = await withRetry(() => govtrackClient.get(`/bill/${govtrackId}`));
+  const response = await withRetry(() =>
+    govtrackClient.get(`/bill/${govtrackId}`),
+  );
   return response.data;
 }
 
 export async function fetchGovTrackRoles(params: Record<string, unknown>) {
-  const response = await withRetry(() => govtrackClient.get("/role", { params }));
+  const response = await withRetry(() =>
+    govtrackClient.get("/role", { params }),
+  );
   return response.data.objects;
 }
 
-export async function fetchGovTrackVoteVoters(
-  params: Record<string, unknown>
-) {
-  const response = await withRetry(() => govtrackClient.get("/vote_voter", { params }));
+export async function fetchGovTrackVoteVoters(params: Record<string, unknown>) {
+  const response = await withRetry(() =>
+    govtrackClient.get("/vote_voter", { params }),
+  );
   return response.data.objects;
 }

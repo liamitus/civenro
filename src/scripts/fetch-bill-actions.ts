@@ -27,7 +27,8 @@ function reconcileStatus(
   // Sort actions newest-first (congress.gov usually returns them this way,
   // but let's be safe)
   const sorted = [...actions].sort(
-    (a, b) => new Date(b.actionDate).getTime() - new Date(a.actionDate).getTime(),
+    (a, b) =>
+      new Date(b.actionDate).getTime() - new Date(a.actionDate).getTime(),
   );
 
   const originIsHouse = billType.startsWith("house");
@@ -50,9 +51,10 @@ function reconcileStatus(
   const becameLaw = sorted.find((a) =>
     /became public law|signed by president/i.test(a.text),
   );
-  const sentBack = sorted.find((a) =>
-    /message on (house|senate) action received/i.test(a.text) &&
-    /amendment/i.test(a.text),
+  const sentBack = sorted.find(
+    (a) =>
+      /message on (house|senate) action received/i.test(a.text) &&
+      /amendment/i.test(a.text),
   );
   const latestAction = sorted[0];
 
@@ -118,10 +120,14 @@ function reconcileStatus(
  * Fetch actions from congress.gov for bills that might have stale statuses,
  * store the actions, and reconcile the bill's currentStatus if needed.
  */
-export async function fetchBillActionsFunction(targetBillIds?: string[], limit = 100) {
+export async function fetchBillActionsFunction(
+  targetBillIds?: string[],
+  limit = 100,
+) {
   console.log(
     "Fetching bill actions for:",
-    targetBillIds?.join(", ") || `up to ${limit} active bills with non-terminal statuses`,
+    targetBillIds?.join(", ") ||
+      `up to ${limit} active bills with non-terminal statuses`,
   );
 
   try {
@@ -156,7 +162,11 @@ export async function fetchBillActionsFunction(targetBillIds?: string[], limit =
           continue;
         }
 
-        const actions = await fetchBillActions(congress, apiBillType, billNumber);
+        const actions = await fetchBillActions(
+          congress,
+          apiBillType,
+          billNumber,
+        );
         if (!actions || actions.length === 0) {
           console.warn(`No actions found for ${bill.billId}.`);
           continue;

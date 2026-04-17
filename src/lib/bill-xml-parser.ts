@@ -47,11 +47,7 @@ function parseBillOrResolution(topNode: any): ParsedChunk[] {
 function parseContainer(node: any, path: string[]): ParsedChunk[] {
   const results: ParsedChunk[] = [];
   const { enumVal, headerVal } = extractHeading(node);
-  const localHeading = buildContainerHeading(
-    node["#name"],
-    enumVal,
-    headerVal
-  );
+  const localHeading = buildContainerHeading(node["#name"], enumVal, headerVal);
   const newPath = localHeading ? [...path, localHeading] : [...path];
 
   if (node.$$) {
@@ -91,7 +87,7 @@ function extractHeading(node: any) {
 function buildContainerHeading(
   nodeName: string,
   enumVal: string,
-  headerVal: string
+  headerVal: string,
 ): string {
   enumVal = enumVal.trim();
   headerVal = headerVal.trim();

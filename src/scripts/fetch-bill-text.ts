@@ -7,7 +7,10 @@ import {
   fetchBillMetadata,
 } from "../lib/congress-api";
 import type { TextVersionMeta } from "../lib/congress-api";
-import { extractVersionCode, isSubstantiveVersion } from "../lib/version-helpers";
+import {
+  extractVersionCode,
+  isSubstantiveVersion,
+} from "../lib/version-helpers";
 import { parseBillId } from "../lib/parse-bill-id";
 import { createStandalonePrisma } from "../lib/prisma-standalone";
 import { fetchBillTextFromGovInfo } from "../lib/govinfo";
@@ -102,7 +105,11 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
           if (updates.title) bill.title = updates.title as string;
         }
 
-        const allVersions = await fetchAllTextVersions(congress, apiBillType, billNumber);
+        const allVersions = await fetchAllTextVersions(
+          congress,
+          apiBillType,
+          billNumber,
+        );
         if (allVersions.length === 0) {
           // Fallback: try GovInfo bulk data directly. The congress.gov API's
           // /text endpoint is inconsistent — many published bills return an
@@ -148,7 +155,10 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
 
           await prisma.billTextVersion.upsert({
             where: {
-              billId_versionCode: { billId: bill.id, versionCode: gi.versionCode },
+              billId_versionCode: {
+                billId: bill.id,
+                versionCode: gi.versionCode,
+              },
             },
             update: {
               fullText,
@@ -180,7 +190,9 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
         for (const version of allVersions) {
           const versionCode = extractVersionCode(version.formats);
           if (!versionCode) {
-            console.warn(`Could not extract version code for ${bill.billId} version: ${version.type}`);
+            console.warn(
+              `Could not extract version code for ${bill.billId} version: ${version.type}`,
+            );
             continue;
           }
 
@@ -288,6 +300,10 @@ if (require.main === module) {
   const limitIdx = args.indexOf("--limit");
   const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1] || "10", 10) : 10;
   const billId =
-    limitIdx === 0 ? undefined : args[0]?.startsWith("--") ? undefined : args[0];
+    limitIdx === 0
+      ? undefined
+      : args[0]?.startsWith("--")
+        ? undefined
+        : args[0];
   fetchBillTextFunction(billId, limit);
 }

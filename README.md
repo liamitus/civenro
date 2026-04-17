@@ -47,13 +47,13 @@ The app runs at **http://localhost:1776**.
 
 ### Useful Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server on port 1776 |
-| `npm run db:seed` | Seed local DB with sample data |
-| `npm run db:reset` | Reset DB and re-run all migrations |
-| `npm run db:studio` | Open Prisma Studio (DB browser) |
-| `npm run lint` | Run ESLint |
+| Command                  | Description                                 |
+| ------------------------ | ------------------------------------------- |
+| `npm run dev`            | Start dev server on port 1776               |
+| `npm run db:seed`        | Seed local DB with sample data              |
+| `npm run db:reset`       | Reset DB and re-run all migrations          |
+| `npm run db:studio`      | Open Prisma Studio (DB browser)             |
+| `npm run lint`           | Run ESLint                                  |
 | `npx prisma migrate dev` | Create a new migration after schema changes |
 
 ### Data Backfill Scripts
@@ -70,11 +70,11 @@ npx tsx src/scripts/fetch-votes.ts                 # ~15min, no API key needed
 
 ## Environment Strategy
 
-| File | Committed | Purpose |
-|------|-----------|---------|
-| `.env.example` | Yes | Template with placeholder values |
-| `.env` | No | Local dev config (copy from `.env.example`) |
-| Vercel env vars | N/A | Production secrets (set in dashboard) |
+| File            | Committed | Purpose                                     |
+| --------------- | --------- | ------------------------------------------- |
+| `.env.example`  | Yes       | Template with placeholder values            |
+| `.env`          | No        | Local dev config (copy from `.env.example`) |
+| Vercel env vars | N/A       | Production secrets (set in dashboard)       |
 
 There is no staging environment. All changes go directly from local dev to production via `main` branch pushes.
 
@@ -96,10 +96,10 @@ prisma generate && next build
 
 ### Cron Jobs
 
-| Cron | Schedule | Description |
-|------|----------|-------------|
-| `/api/cron/fetch-data` | Daily 10 AM ET | Fetches new bills, text, actions, votes, reps |
-| `/api/cron/evaluate-budget` | Daily midnight UTC | Recomputes AI budget gate |
+| Cron                        | Schedule           | Description                                   |
+| --------------------------- | ------------------ | --------------------------------------------- |
+| `/api/cron/fetch-data`      | Daily 10 AM ET     | Fetches new bills, text, actions, votes, reps |
+| `/api/cron/evaluate-budget` | Daily midnight UTC | Recomputes AI budget gate                     |
 
 Both require `CRON_SECRET` to be set in Vercel project settings.
 

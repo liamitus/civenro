@@ -5,7 +5,9 @@ import { checkNameL1 } from "@/lib/moderation/layer1";
 import { checkNameL2 } from "@/lib/moderation/layer2";
 
 function clientIp(request: NextRequest): string | undefined {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined
+  );
 }
 
 export async function PATCH(request: NextRequest) {
@@ -16,14 +18,17 @@ export async function PATCH(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { username } = body;
 
   if (!username || typeof username !== "string" || !username.trim()) {
     return NextResponse.json(
       { error: "Username is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -34,7 +39,7 @@ export async function PATCH(request: NextRequest) {
   if (!l1.ok) {
     return NextResponse.json(
       { error: l1.reason ?? "Username is not allowed." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -43,7 +48,7 @@ export async function PATCH(request: NextRequest) {
   if (l2.flagged) {
     return NextResponse.json(
       { error: "That username cannot be used. Please choose another." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

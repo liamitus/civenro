@@ -17,7 +17,9 @@ async function backfill() {
     distinct: ["rollCallNumber", "chamber"],
   });
 
-  console.log(`Found ${votesWithoutCategory.length} distinct roll calls to backfill`);
+  console.log(
+    `Found ${votesWithoutCategory.length} distinct roll calls to backfill`,
+  );
 
   for (const { rollCallNumber, chamber } of votesWithoutCategory) {
     if (!rollCallNumber || !chamber) continue;
@@ -36,7 +38,9 @@ async function backfill() {
 
       const voteObj = res.data.objects?.[0];
       if (!voteObj?.category) {
-        console.log(`  No category found for ${chamber} roll call #${rollCallNumber}`);
+        console.log(
+          `  No category found for ${chamber} roll call #${rollCallNumber}`,
+        );
         continue;
       }
 
@@ -46,7 +50,7 @@ async function backfill() {
       });
 
       console.log(
-        `  ${chamber} #${rollCallNumber}: ${voteObj.category} (${updated.count} records)`
+        `  ${chamber} #${rollCallNumber}: ${voteObj.category} (${updated.count} records)`,
       );
 
       await delay(300);

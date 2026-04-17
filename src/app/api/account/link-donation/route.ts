@@ -16,14 +16,20 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Sign in to link a donation." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Sign in to link a donation." },
+      { status: 401 },
+    );
   }
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { token } = body;
   if (!token || typeof token !== "string") {
@@ -36,21 +42,30 @@ export async function POST(request: NextRequest) {
   });
 
   if (!linkToken) {
-    return NextResponse.json({ error: "Invalid or expired link." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Invalid or expired link." },
+      { status: 404 },
+    );
   }
 
   if (linkToken.usedAt) {
-    return NextResponse.json({ error: "This link has already been used." }, { status: 409 });
+    return NextResponse.json(
+      { error: "This link has already been used." },
+      { status: 409 },
+    );
   }
 
   if (linkToken.expiresAt < new Date()) {
-    return NextResponse.json({ error: "This link has expired." }, { status: 410 });
+    return NextResponse.json(
+      { error: "This link has expired." },
+      { status: 410 },
+    );
   }
 
   if (linkToken.donation.userId) {
     return NextResponse.json(
       { error: "This donation is already linked to an account." },
-      { status: 409 }
+      { status: 409 },
     );
   }
 

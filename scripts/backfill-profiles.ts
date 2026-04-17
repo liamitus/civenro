@@ -14,7 +14,7 @@ const prisma = new PrismaClient({ adapter });
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
+  { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
 function resolveUsername(user: {
@@ -39,22 +39,43 @@ function resolveUsername(user: {
 
 async function main() {
   // Collect all distinct userIds across tables
-  const [commentUsers, voteUsers, voteHistoryUsers, conversationUsers, commentVoteUsers, donationUsers] =
-    await Promise.all([
-      prisma.comment.findMany({ distinct: ["userId"], select: { userId: true } }),
-      prisma.vote.findMany({ distinct: ["userId"], select: { userId: true } }),
-      prisma.voteHistory.findMany({ distinct: ["userId"], select: { userId: true } }),
-      prisma.conversation.findMany({ distinct: ["userId"], select: { userId: true } }),
-      prisma.commentVote.findMany({ distinct: ["userId"], select: { userId: true } }),
-      prisma.donation.findMany({
-        distinct: ["userId"],
-        select: { userId: true },
-        where: { userId: { not: null } },
-      }),
-    ]);
+  const [
+    commentUsers,
+    voteUsers,
+    voteHistoryUsers,
+    conversationUsers,
+    commentVoteUsers,
+    donationUsers,
+  ] = await Promise.all([
+    prisma.comment.findMany({ distinct: ["userId"], select: { userId: true } }),
+    prisma.vote.findMany({ distinct: ["userId"], select: { userId: true } }),
+    prisma.voteHistory.findMany({
+      distinct: ["userId"],
+      select: { userId: true },
+    }),
+    prisma.conversation.findMany({
+      distinct: ["userId"],
+      select: { userId: true },
+    }),
+    prisma.commentVote.findMany({
+      distinct: ["userId"],
+      select: { userId: true },
+    }),
+    prisma.donation.findMany({
+      distinct: ["userId"],
+      select: { userId: true },
+      where: { userId: { not: null } },
+    }),
+  ]);
 
   const allUserIds = new Set<string>();
-  for (const list of [commentUsers, voteUsers, voteHistoryUsers, conversationUsers, commentVoteUsers]) {
+  for (const list of [
+    commentUsers,
+    voteUsers,
+    voteHistoryUsers,
+    conversationUsers,
+    commentVoteUsers,
+  ]) {
     for (const row of list) {
       if (row.userId) allUserIds.add(row.userId);
     }
@@ -72,7 +93,9 @@ async function main() {
   const existingIds = new Set(existingProfiles.map((p) => p.id));
 
   const toCreate = [...allUserIds].filter((id) => !existingIds.has(id));
-  console.log(`${existingIds.size} already have profiles, ${toCreate.length} need backfill`);
+  console.log(
+    `${existingIds.size} already have profiles, ${toCreate.length} need backfill`,
+  );
 
   // Process in batches
   const BATCH_SIZE = 50;
@@ -116,7 +139,9 @@ async function main() {
     }
   }
 
-  console.log(`\nDone: ${created} created, ${failed} failed, ${existingIds.size} already existed`);
+  console.log(
+    `\nDone: ${created} created, ${failed} failed, ${existingIds.size} already existed`,
+  );
 
   // Also update comment usernames from the newly created profiles
   const profiles = await prisma.profile.findMany({
@@ -129,7 +154,9 @@ async function main() {
       data: { username: profile.username },
     });
     if (result.count > 0) {
-      console.log(`  Updated ${result.count} anonymous comments for ${profile.username}`);
+      console.log(
+        `  Updated ${result.count} anonymous comments for ${profile.username}`,
+      );
     }
   }
 

@@ -9,23 +9,30 @@ interface VoteHistoryEntry {
   versionType: string | null;
 }
 
-export function VoteHistorySection({ history }: { history: VoteHistoryEntry[] }) {
+export function VoteHistorySection({
+  history,
+}: {
+  history: VoteHistoryEntry[];
+}) {
   // Only show if there are 2+ entries (single entry = no re-votes, not interesting)
   if (history.length < 2) return null;
 
   return (
-    <div className="pt-3 border-t border-border/30">
-      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+    <div className="border-border/30 border-t pt-3">
+      <p className="text-muted-foreground mb-1.5 text-[11px] font-medium tracking-wider uppercase">
         Your vote history
       </p>
       <div className="space-y-1">
         {history.map((entry, i) => (
-          <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div
+            key={i}
+            className="text-muted-foreground flex items-center gap-2 text-xs"
+          >
             <span className="tabular-nums">
               {dayjs(entry.createdAt).format("MMM D, YYYY")}
             </span>
             <span className="text-foreground/70">—</span>
-            <span className="font-medium text-foreground/80">
+            <span className="text-foreground/80 font-medium">
               {entry.voteType}
             </span>
             {entry.versionType && (

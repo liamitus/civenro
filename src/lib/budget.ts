@@ -64,7 +64,7 @@ export async function getOrCreateLedger(period = currentPeriod()) {
 }
 
 export async function getBudgetSnapshot(
-  period = currentPeriod()
+  period = currentPeriod(),
 ): Promise<BudgetSnapshot> {
   const ledger = await getOrCreateLedger(period);
   const availableCents =
@@ -109,7 +109,7 @@ export async function recordSpend(event: UsageInput) {
   const costCents = computeCostCents(
     event.model,
     event.inputTokens,
-    event.outputTokens
+    event.outputTokens,
   );
   const period = currentPeriod();
   await getOrCreateLedger(period);

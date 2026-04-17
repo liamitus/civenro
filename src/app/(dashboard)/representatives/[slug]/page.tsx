@@ -53,7 +53,7 @@ export default async function RepresentativeDetailPage({
   if (!rep) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8 space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8 px-6 py-8">
       <RepHero rep={rep} />
       <RepDetailInteractive bioguideId={rep.bioguideId} />
     </div>

@@ -9,17 +9,17 @@ export const metadata = {
 
 export default function BillsPage() {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 space-y-10">
+    <div className="mx-auto max-w-6xl space-y-10 px-6 py-8">
       {/* Representatives section — the hero */}
       <RepresentativesDashboard />
 
       {/* Divider */}
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-border/50" />
-        <span className="text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground">
+        <div className="bg-border/50 h-px flex-1" />
+        <span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase">
           Legislation
         </span>
-        <div className="h-px flex-1 bg-border/50" />
+        <div className="bg-border/50 h-px flex-1" />
       </div>
 
       {/* Bills feed — Suspense boundary is required because BillListClient

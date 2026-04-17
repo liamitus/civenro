@@ -17,8 +17,7 @@ const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
 const GITHUB_URL =
   "https://raw.githubusercontent.com/unitedstates/images/gh-pages/congress/225x275";
-const BIOGUIDE_URL =
-  "https://bioguide.congress.gov/bioguide/photo";
+const BIOGUIDE_URL = "https://bioguide.congress.gov/bioguide/photo";
 
 function getSupabase() {
   return createClient(

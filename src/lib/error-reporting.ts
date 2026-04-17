@@ -24,7 +24,7 @@ function fingerprint(message: string, stack?: string): string {
 
 export async function reportError(
   error: unknown,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
 ) {
   const apiKey = process.env.RESEND_API_KEY;
   const alertEmail = process.env.ALERT_EMAIL;

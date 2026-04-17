@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await params;
   const page = parseInt(request.nextUrl.searchParams.get("page") || "1");
@@ -44,7 +44,7 @@ export async function GET(
     console.error("Error fetching user comments:", error);
     return NextResponse.json(
       { error: "Failed to fetch user comments" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

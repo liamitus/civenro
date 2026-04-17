@@ -22,14 +22,18 @@ export function NavBar() {
   const logoHref = isLoaded && address ? "/bills" : "/";
 
   return (
-    <header className="sticky top-0 z-50 bg-navy border-b border-white/10">
+    <header className="bg-navy sticky top-0 z-50 border-b border-white/10">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href={logoHref} className="flex items-center gap-2 group">
-          <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
-          <span className="text-white text-base font-semibold tracking-wide uppercase font-heading">
+        <Link href={logoHref} className="group flex items-center gap-2">
+          <span className="text-civic-gold text-sm tracking-widest">
+            &#9733;
+          </span>
+          <span className="font-heading text-base font-semibold tracking-wide text-white uppercase">
             Govroll
           </span>
-          <span className="text-civic-gold text-sm tracking-widest">&#9733;</span>
+          <span className="text-civic-gold text-sm tracking-widest">
+            &#9733;
+          </span>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -38,22 +42,24 @@ export function NavBar() {
               variant="ghost"
               size="sm"
               onClick={() => setAuthOpen(true)}
-              className="text-sm text-white/80 hover:text-white border border-white/15 hover:border-white/30 hover:bg-white/10 h-8 px-4 tracking-wide uppercase"
+              className="h-8 border border-white/15 px-4 text-sm tracking-wide text-white/80 uppercase hover:border-white/30 hover:bg-white/10 hover:text-white"
             >
               Sign In
             </Button>
           )}
 
           <DropdownMenu>
-            <DropdownMenuTrigger
-              className="flex items-center justify-center size-8 text-white/60 hover:text-white hover:bg-white/5 rounded transition-colors cursor-pointer"
-            >
+            <DropdownMenuTrigger className="flex size-8 cursor-pointer items-center justify-center rounded text-white/60 transition-colors hover:bg-white/5 hover:text-white">
               <Menu className="size-[18px]" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={6} className="min-w-[180px]">
+            <DropdownMenuContent
+              align="end"
+              sideOffset={6}
+              className="min-w-[180px]"
+            >
               {user && (
                 <>
-                  <div className="px-1.5 py-1 text-xs font-medium text-muted-foreground truncate max-w-[200px]">
+                  <div className="text-muted-foreground max-w-[200px] truncate px-1.5 py-1 text-xs font-medium">
                     {user.email}
                   </div>
                   <DropdownMenuItem render={<Link href="/account" />}>

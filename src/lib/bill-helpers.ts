@@ -77,7 +77,9 @@ const BILL_TYPES: Record<string, BillTypeInfo> = {
 export function getBillTypeInfo(billType: string): BillTypeInfo {
   return (
     BILL_TYPES[billType] || {
-      label: billType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      label: billType
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
       shortLabel: billType,
       description: "A piece of legislation before Congress.",
       becomesLaw: false,
@@ -131,7 +133,10 @@ function getStatusPosition(
     return { stepIndex: Infinity, isFailed: false };
 
   // Passed both chambers, awaiting president
-  if (currentStatus === "passed_bill" || currentStatus.startsWith("conference_"))
+  if (
+    currentStatus === "passed_bill" ||
+    currentStatus.startsWith("conference_")
+  )
     return { stepIndex: 3, isFailed: false };
 
   // Concurrent resolution cleared both chambers — it doesn't go to the
@@ -150,7 +155,10 @@ function getStatusPosition(
     return { stepIndex: originIsHouse ? 2 : 1, isFailed: false };
 
   // Ping-pong — both chambers have acted, reconciling
-  if (currentStatus === "pass_back_house" || currentStatus === "pass_back_senate")
+  if (
+    currentStatus === "pass_back_house" ||
+    currentStatus === "pass_back_senate"
+  )
     return { stepIndex: 2, isFailed: false };
 
   // Introduced / committee stage
@@ -164,7 +172,10 @@ function getStatusPosition(
     return { stepIndex: originIsHouse ? 1 : 2, isFailed: true };
   if (currentStatus === "fail_originating_senate")
     return { stepIndex: originIsHouse ? 2 : 1, isFailed: true };
-  if (currentStatus === "fail_second_house" || currentStatus === "fail_second_senate")
+  if (
+    currentStatus === "fail_second_house" ||
+    currentStatus === "fail_second_senate"
+  )
     return { stepIndex: 2, isFailed: true };
 
   // Cloture failure is always Senate; suspension failure is always House
@@ -304,21 +315,24 @@ export function getStatusExplanation(
   if (currentStatus === "enacted_signed") {
     return {
       headline: "Signed into law",
-      detail: "The President has signed this bill. It is now the law of the land.",
+      detail:
+        "The President has signed this bill. It is now the law of the land.",
     };
   }
 
   if (currentStatus === "enacted_tendayrule") {
     return {
       headline: "Became law (unsigned)",
-      detail: "The President did not sign this bill within 10 days while Congress was in session, so it automatically became law.",
+      detail:
+        "The President did not sign this bill within 10 days while Congress was in session, so it automatically became law.",
     };
   }
 
   if (currentStatus === "enacted_veto_override") {
     return {
       headline: "Enacted — veto overridden",
-      detail: "The President vetoed this bill, but Congress overrode the veto with a two-thirds vote in both chambers. It is now law.",
+      detail:
+        "The President vetoed this bill, but Congress overrode the veto with a two-thirds vote in both chambers. It is now law.",
     };
   }
 
@@ -362,25 +376,29 @@ export function getStatusExplanation(
   if (currentStatus === "prov_kill_cloturefailed") {
     return {
       headline: "Blocked by Filibuster",
-      detail: "A cloture vote failed in the Senate, meaning debate could not be ended to move to a final vote. The bill is effectively stalled but could be brought up again.",
+      detail:
+        "A cloture vote failed in the Senate, meaning debate could not be ended to move to a final vote. The bill is effectively stalled but could be brought up again.",
     };
   }
   if (currentStatus === "prov_kill_suspensionfailed") {
     return {
       headline: "Suspension of Rules Failed",
-      detail: "The House attempted to fast-track this bill under suspension of the rules, but the motion failed to get the required two-thirds majority. The bill could still be brought up under normal procedures.",
+      detail:
+        "The House attempted to fast-track this bill under suspension of the rules, but the motion failed to get the required two-thirds majority. The bill could still be brought up under normal procedures.",
     };
   }
   if (currentStatus === "prov_kill_pingpongfail") {
     return {
       headline: "Reconciliation Failed",
-      detail: "The two chambers could not agree on a final version of this bill during the amendment exchange process.",
+      detail:
+        "The two chambers could not agree on a final version of this bill during the amendment exchange process.",
     };
   }
   if (currentStatus === "prov_kill_veto") {
     return {
       headline: "Vetoed by the President",
-      detail: "The President has vetoed this bill. Congress can attempt to override the veto with a two-thirds vote in both chambers.",
+      detail:
+        "The President has vetoed this bill. Congress can attempt to override the veto with a two-thirds vote in both chambers.",
     };
   }
 
@@ -414,19 +432,23 @@ export function getStatusExplanation(
   if (currentStatus === "vetoed_pocket") {
     return {
       headline: "Pocket Vetoed",
-      detail: "The President did not sign this bill and Congress adjourned within 10 days, resulting in a pocket veto. A pocket veto cannot be overridden.",
+      detail:
+        "The President did not sign this bill and Congress adjourned within 10 days, resulting in a pocket veto. A pocket veto cannot be overridden.",
     };
   }
   if (currentStatus.startsWith("vetoed_override_fail_")) {
     return {
       headline: "Veto Override Failed",
-      detail: "The President vetoed this bill, and Congress attempted to override the veto but failed to achieve the required two-thirds majority.",
+      detail:
+        "The President vetoed this bill, and Congress attempted to override the veto but failed to achieve the required two-thirds majority.",
     };
   }
 
   // Fallback
   return {
-    headline: currentStatus.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    headline: currentStatus
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase()),
     detail: `This ${typeInfo.label.toLowerCase()} is currently in the legislative process.`,
   };
 }
@@ -462,7 +484,10 @@ interface Milestone {
  * Map version codes to the action milestone they correspond to.
  * RS = committee report in Senate, ES = Senate passage, EAH = House amendment, etc.
  */
-const VERSION_TO_MILESTONE: Record<string, { type: Milestone["milestoneType"]; chamber: string }> = {
+const VERSION_TO_MILESTONE: Record<
+  string,
+  { type: Milestone["milestoneType"]; chamber: string }
+> = {
   // Committee reports
   rh: { type: "committee", chamber: "House" },
   rs: { type: "committee", chamber: "Senate" },
@@ -510,11 +535,16 @@ function extractActionMilestones(actions: ActionRecord[]): Milestone[] {
     }
 
     // Committee reported
-    if (type === "Committee" && /reported/i.test(text) && !/referred/i.test(text)) {
+    if (
+      type === "Committee" &&
+      /reported/i.test(text) &&
+      !/referred/i.test(text)
+    ) {
       if (!milestones.some((m) => m.milestoneType === "committee")) {
         milestones.push({
           label: "Reported by Committee",
-          description: "A committee reviewed this bill and advanced it for full consideration",
+          description:
+            "A committee reviewed this bill and advanced it for full consideration",
           date: action.actionDate,
           milestoneType: "committee",
           chamber: chamber || undefined,
@@ -587,7 +617,8 @@ function attachVersionDetails(
     // Skip intro versions and procedural versions
     if (code === "ih" || code === "is") continue;
     if (!v.isSubstantive || !v.changeSummary) continue;
-    if (v.changeSummary === "Initial version of the bill as introduced.") continue;
+    if (v.changeSummary === "Initial version of the bill as introduced.")
+      continue;
 
     const mapping = VERSION_TO_MILESTONE[code];
     if (!mapping) continue;
@@ -611,7 +642,10 @@ function attachVersionDetails(
       // Fold the changeSummary into the existing milestone
       match.detail = v.changeSummary;
       // If there were cross-chamber amendments, note it in the label
-      if ((code === "eah" || code === "eas") && !match.label.includes("with changes")) {
+      if (
+        (code === "eah" || code === "eas") &&
+        !match.label.includes("with changes")
+      ) {
         match.label = `${match.label} (with changes)`;
         match.description = `The ${mapping.chamber} passed an amended version`;
       }
@@ -758,7 +792,10 @@ export function getEffectiveStatus(
   if (isFailed || currentStatus.startsWith("enacted_")) return currentStatus;
 
   const actionMilestones = extractActionMilestones(actions);
-  const enrichedMilestones = attachVersionDetails(actionMilestones, textVersions);
+  const enrichedMilestones = attachVersionDetails(
+    actionMilestones,
+    textVersions,
+  );
   const lastMilestone = enrichedMilestones[enrichedMilestones.length - 1];
 
   if (lastMilestone?.label.includes("(with changes)")) {
@@ -776,7 +813,9 @@ export function buildDynamicJourney(
   textVersions: VersionRecord[],
   effectiveStatus?: string,
 ): JourneyStep[] {
-  const status = effectiveStatus ?? getEffectiveStatus(billType, currentStatus, actions, textVersions);
+  const status =
+    effectiveStatus ??
+    getEffectiveStatus(billType, currentStatus, actions, textVersions);
   const staticJourney = getJourneySteps(billType, status);
 
   if (actions.length === 0) {
@@ -785,7 +824,10 @@ export function buildDynamicJourney(
 
   // Extract milestones from actions, then attach version details
   const actionMilestones = extractActionMilestones(actions);
-  const enrichedMilestones = attachVersionDetails(actionMilestones, textVersions);
+  const enrichedMilestones = attachVersionDetails(
+    actionMilestones,
+    textVersions,
+  );
 
   // Convert to JourneySteps (all completed — they happened)
   const isFailed =

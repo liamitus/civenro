@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # Dummy values so `next build` and `prisma generate` can evaluate modules
+  # that read env at import time. Never real secrets — CI never talks to prod.
+  DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+  DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci"
+  NEXT_PUBLIC_SUPABASE_URL: "https://ci.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci-anon-key"
+  SUPABASE_SERVICE_ROLE_KEY: "ci-service-role-key"
+  OPENAI_API_KEY: "sk-ci"
+  ANTHROPIC_API_KEY: "sk-ant-ci"
+  GOOGLE_CIVIC_API_KEY: "ci"
+  CONGRESS_DOT_GOV_API_KEY: "ci"
+  ADMIN_API_KEY: "ci"
+  CRON_SECRET: "ci"
+  STRIPE_SECRET_KEY: "sk_test_ci"
+  STRIPE_PUBLISHABLE_KEY: "pk_test_ci"
+  STRIPE_WEBHOOK_SECRET: "whsec_ci"
+
+jobs:
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci
+
+  lint:
+    name: Lint
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+
+  format:
+    name: Format check
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run format:check
+
+  typecheck:
+    name: Typecheck
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run typecheck
+
+  test:
+    name: Test
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
+
+  build:
+    name: Build
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      - run: npm ci
+      - run: npm run build
+
+  gitleaks:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -43,7 +43,7 @@ export function BudgetThermometer({
   const [year, month] = period.split("-");
   const monthName = new Date(Number(year), Number(month) - 1).toLocaleString(
     "en-US",
-    { month: "long" }
+    { month: "long" },
   );
 
   // Card style follows status
@@ -54,20 +54,20 @@ export function BudgetThermometer({
       : "bg-amber-50 border-amber-200";
 
   return (
-    <div className={`rounded-xl border p-8 space-y-5 ${cardBg}`}>
+    <div className={`space-y-5 rounded-xl border p-8 ${cardBg}`}>
       <div className="flex items-center justify-between text-lg">
         <span className="font-semibold">
           {monthName} {year} Running Costs
         </span>
         <span
-          className={`text-base font-semibold px-3 py-1 rounded-full ${status.bg}`}
+          className={`rounded-full px-3 py-1 text-base font-semibold ${status.bg}`}
         >
           {status.label}
         </span>
       </div>
 
       {/* Bar */}
-      <div className="w-full h-5 bg-muted rounded-full overflow-hidden">
+      <div className="bg-muted h-5 w-full overflow-hidden rounded-full">
         <div
           className={`h-full rounded-full transition-all duration-700 ${
             !aiEnabled ? "bg-red-500" : funded ? "bg-navy" : "bg-amber-500"
@@ -76,14 +76,14 @@ export function BudgetThermometer({
         />
       </div>
 
-      <div className="flex justify-between text-base text-muted-foreground">
+      <div className="text-muted-foreground flex justify-between text-base">
         <span>${incomeDollars} raised</span>
         <span>${totalDollars} to run this month</span>
       </div>
 
       {/* Cost breakdown */}
-      <details className="text-base text-muted-foreground">
-        <summary className="cursor-pointer hover:text-foreground transition-colors">
+      <details className="text-muted-foreground text-base">
+        <summary className="hover:text-foreground cursor-pointer transition-colors">
           What does this cover?
         </summary>
         <ul className="mt-4 space-y-2 pl-4">
@@ -100,7 +100,7 @@ export function BudgetThermometer({
                   ${(item.monthlyCents / 100).toFixed(0)}
                 </span>
               </li>
-            )
+            ),
           )}
           <li className="flex justify-between">
             <span>
@@ -109,23 +109,21 @@ export function BudgetThermometer({
                 — summaries, chat, analysis
               </span>
             </span>
-            <span className="font-mono">
-              ${(aiCostCents / 100).toFixed(0)}
-            </span>
+            <span className="font-mono">${(aiCostCents / 100).toFixed(0)}</span>
           </li>
-          <li className="flex justify-between border-t pt-2 font-medium text-foreground">
+          <li className="text-foreground flex justify-between border-t pt-2 font-medium">
             <span>Total</span>
             <span className="font-mono">${totalDollars}</span>
           </li>
         </ul>
-        <p className="mt-4 text-muted-foreground/60">
+        <p className="text-muted-foreground/60 mt-4">
           Hosting and database are free for now — these costs will grow with
           traffic.{" "}
           <a
             href="https://github.com/liamitus/govroll/blob/main/src/lib/site-costs.ts"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-foreground"
+            className="hover:text-foreground underline underline-offset-2"
           >
             See the source code for these numbers
           </a>
@@ -133,22 +131,23 @@ export function BudgetThermometer({
       </details>
 
       {!aiEnabled && incomeCents === 0 && (
-        <p className="text-base text-red-700 font-medium">
+        <p className="text-base font-medium text-red-700">
           AI features are paused until a few citizens chip in. ${totalDollars}{" "}
           covers a full month — be the first to unlock them for everyone.
         </p>
       )}
 
       {!aiEnabled && incomeCents > 0 && (
-        <p className="text-base text-red-700 font-medium">
+        <p className="text-base font-medium text-red-700">
           AI features are paused — contributions so far haven&apos;t quite
-          covered the month. About ${Math.max(1, Math.ceil((totalCostCents - incomeCents) / 100))}{" "}
-          more to bring them back online.
+          covered the month. About $
+          {Math.max(1, Math.ceil((totalCostCents - incomeCents) / 100))} more to
+          bring them back online.
         </p>
       )}
 
       {aiEnabled && !funded && (
-        <p className="text-base text-amber-800 font-medium">
+        <p className="text-base font-medium text-amber-800">
           AI is active but not yet funded this month. Contributions keep it
           running for everyone.
         </p>

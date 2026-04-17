@@ -15,80 +15,80 @@ function Star({ size: s = 36 }: { size?: number }) {
 export default async function OgImage() {
   // Load a serif font for the constitutional aesthetic
   const geistRes = await fetch(
-    new URL("https://cdn.jsdelivr.net/fontsource/fonts/eb-garamond@latest/latin-700-normal.woff")
+    new URL(
+      "https://cdn.jsdelivr.net/fontsource/fonts/eb-garamond@latest/latin-700-normal.woff",
+    ),
   );
   const geistFont = await geistRes.arrayBuffer();
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#0A1F44",
-        }}
-      >
-        {/* Stars + Brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
-          <Star size={60} />
-          <span
-            style={{
-              color: "#FFFFFF",
-              fontSize: 160,
-              fontFamily: "EBGaramond",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-            }}
-          >
-            GOVROLL
-          </span>
-          <Star size={60} />
-        </div>
-
-        {/* Decorative flourish */}
-        <div
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#0A1F44",
+      }}
+    >
+      {/* Stars + Brand */}
+      <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+        <Star size={60} />
+        <span
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "32px",
-            marginTop: 52,
-            color: "#B8860B",
+            color: "#FFFFFF",
+            fontSize: 160,
+            fontFamily: "EBGaramond",
+            fontWeight: 700,
+            letterSpacing: "0.1em",
           }}
         >
-          <div
-            style={{
-              width: 120,
-              height: 3,
-              backgroundColor: "#B8860B",
-              opacity: 0.55,
-            }}
-          />
-          <span
-            style={{
-              fontSize: 52,
-              fontFamily: "EBGaramond",
-              fontWeight: 700,
-              letterSpacing: "0.3em",
-              opacity: 0.8,
-            }}
-          >
-            E PLURIBUS UNUM
-          </span>
-          <div
-            style={{
-              width: 120,
-              height: 3,
-              backgroundColor: "#B8860B",
-              opacity: 0.55,
-            }}
-          />
-        </div>
+          GOVROLL
+        </span>
+        <Star size={60} />
       </div>
-    ),
+
+      {/* Decorative flourish */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "32px",
+          marginTop: 52,
+          color: "#B8860B",
+        }}
+      >
+        <div
+          style={{
+            width: 120,
+            height: 3,
+            backgroundColor: "#B8860B",
+            opacity: 0.55,
+          }}
+        />
+        <span
+          style={{
+            fontSize: 52,
+            fontFamily: "EBGaramond",
+            fontWeight: 700,
+            letterSpacing: "0.3em",
+            opacity: 0.8,
+          }}
+        >
+          E PLURIBUS UNUM
+        </span>
+        <div
+          style={{
+            width: 120,
+            height: 3,
+            backgroundColor: "#B8860B",
+            opacity: 0.55,
+          }}
+        />
+      </div>
+    </div>,
     {
       ...size,
       fonts: [
@@ -99,6 +99,6 @@ export default async function OgImage() {
           style: "normal",
         },
       ],
-    }
+    },
   );
 }

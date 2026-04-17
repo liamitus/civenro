@@ -26,9 +26,13 @@ export async function GET(request: Request) {
 
       // Ensure the user has a username (OAuth users won't have one set).
       // resolveUsername picks OAuth first name > Citizen-XXXX as fallback.
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
-        const currentUsername = user.user_metadata?.username as string | undefined;
+        const currentUsername = user.user_metadata?.username as
+          | string
+          | undefined;
         if (!currentUsername || currentUsername === "Anonymous") {
           const username = resolveUsername(user);
           await supabase.auth.updateUser({ data: { username } });

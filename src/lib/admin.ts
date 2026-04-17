@@ -5,7 +5,9 @@ import { prisma } from "@/lib/prisma";
  * Admin status is stored in the AdminUser table, not in Supabase claims,
  * so it's fully under Govroll's control.
  */
-export async function isAdmin(userId: string | null | undefined): Promise<boolean> {
+export async function isAdmin(
+  userId: string | null | undefined,
+): Promise<boolean> {
   if (!userId) return false;
   const admin = await prisma.adminUser.findUnique({
     where: { userId },

@@ -4,7 +4,7 @@ import { getAuthenticatedUserId } from "@/lib/auth";
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { userId, error } = await getAuthenticatedUserId();
   if (error) return error;
@@ -18,10 +18,7 @@ export async function DELETE(
     });
 
     if (!comment) {
-      return NextResponse.json(
-        { error: "Comment not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
 
     if (comment.userId !== userId) {
@@ -35,7 +32,7 @@ export async function DELETE(
     console.error("Error deleting comment:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

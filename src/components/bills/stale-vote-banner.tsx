@@ -35,10 +35,10 @@ export function StaleVoteBanner({
   const otherOptions = VOTE_OPTIONS.filter((v) => v !== currentVote);
 
   return (
-    <div className="rounded-lg border border-civic-gold/30 bg-civic-gold/5 p-4 space-y-3">
+    <div className="border-civic-gold/30 bg-civic-gold/5 space-y-3 rounded-lg border p-4">
       <div className="flex items-start gap-2">
         <svg
-          className="h-5 w-5 text-civic-gold shrink-0 mt-0.5"
+          className="text-civic-gold mt-0.5 h-5 w-5 shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -50,18 +50,19 @@ export function StaleVoteBanner({
             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
           />
         </svg>
-        <div className="space-y-2 min-w-0">
-          <p className="text-sm font-semibold text-foreground">
+        <div className="min-w-0 space-y-2">
+          <p className="text-foreground text-sm font-semibold">
             This bill has been updated since your vote
           </p>
 
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             You voted{" "}
-            <span className="font-semibold text-foreground">{currentVote}</span>
+            <span className="text-foreground font-semibold">{currentVote}</span>
             {votedOnVersion ? (
               <>
-                {" "}on the &ldquo;{votedOnVersion.versionType}&rdquo; version
-                ({dayjs(votedOnVersion.versionDate).format("MMM D, YYYY")})
+                {" "}
+                on the &ldquo;{votedOnVersion.versionType}&rdquo; version (
+                {dayjs(votedOnVersion.versionDate).format("MMM D, YYYY")})
               </>
             ) : (
               <> before version tracking was available</>
@@ -71,12 +72,14 @@ export function StaleVoteBanner({
           </p>
 
           {changeSummary ? (
-            <div className="text-xs text-muted-foreground pl-3 border-l-2 border-civic-gold/40">
-              <span className="font-medium text-foreground/80">What changed: </span>
+            <div className="text-muted-foreground border-civic-gold/40 border-l-2 pl-3 text-xs">
+              <span className="text-foreground/80 font-medium">
+                What changed:{" "}
+              </span>
               {changeSummary}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground italic">
+            <p className="text-muted-foreground text-xs italic">
               A summary of changes is being prepared.
             </p>
           )}
@@ -87,7 +90,7 @@ export function StaleVoteBanner({
         <button
           onClick={onConfirm}
           disabled={submitting}
-          className="px-3 py-1.5 rounded-md text-xs font-medium bg-navy text-white hover:bg-navy-light transition-colors disabled:opacity-50"
+          className="bg-navy hover:bg-navy-light rounded-md px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
         >
           Keep My Vote: {currentVote}
         </button>
@@ -96,7 +99,7 @@ export function StaleVoteBanner({
             key={option}
             onClick={() => onReVote(option)}
             disabled={submitting}
-            className="px-3 py-1.5 rounded-md text-xs font-medium border border-border/60 text-muted-foreground hover:text-foreground hover:border-navy/30 transition-colors disabled:opacity-50"
+            className="border-border/60 text-muted-foreground hover:text-foreground hover:border-navy/30 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
           >
             Change to {option}
           </button>

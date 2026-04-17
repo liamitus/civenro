@@ -10,26 +10,37 @@
  * These are the transitions where a user's vote may become stale.
  */
 const SUBSTANTIVE_CODES = new Set([
-  "rh", "rs",       // Reported by committee (may be entirely rewritten)
-  "eh", "es",       // Engrossed (floor amendments incorporated)
-  "eah", "eas",     // Engrossed amendment from other chamber
-  "enr",            // Enrolled (final bicameral text)
-  "cph", "cps",     // Considered and passed
-  "ath", "ats",     // Agreed to (resolutions)
+  "rh",
+  "rs", // Reported by committee (may be entirely rewritten)
+  "eh",
+  "es", // Engrossed (floor amendments incorporated)
+  "eah",
+  "eas", // Engrossed amendment from other chamber
+  "enr", // Enrolled (final bicameral text)
+  "cph",
+  "cps", // Considered and passed
+  "ath",
+  "ats", // Agreed to (resolutions)
 ]);
 
 /**
  * Version codes that are procedural or baseline — no text change from prior.
  */
 const PROCEDURAL_CODES = new Set([
-  "ih", "is",       // Introduced (baseline, not a "change")
-  "rfh", "rfs",     // Referred to committee (routing only)
-  "rdh", "rds",     // Received in other chamber (acknowledgment)
-  "rch", "rcs",     // Re-referred to different committee
-  "pch", "pcs",     // Placed on calendar (scheduling)
-  "hdh", "hds",     // Held at desk
-  "sc",             // Sponsor change (metadata only)
-  "pp",             // Public print
+  "ih",
+  "is", // Introduced (baseline, not a "change")
+  "rfh",
+  "rfs", // Referred to committee (routing only)
+  "rdh",
+  "rds", // Received in other chamber (acknowledgment)
+  "rch",
+  "rcs", // Re-referred to different committee
+  "pch",
+  "pcs", // Placed on calendar (scheduling)
+  "hdh",
+  "hds", // Held at desk
+  "sc", // Sponsor change (metadata only)
+  "pp", // Public print
 ]);
 
 /**

@@ -18,7 +18,7 @@ export async function DELETE() {
   if (!serviceRoleKey) {
     return NextResponse.json(
       { error: "Account deletion is not configured. Contact support." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -54,7 +54,7 @@ export async function DELETE() {
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceRoleKey,
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
     const { error } = await adminClient.auth.admin.deleteUser(user.id);
@@ -68,7 +68,7 @@ export async function DELETE() {
     reportError(err, { route: "DELETE /api/account/delete" });
     return NextResponse.json(
       { error: "Failed to delete account. Contact support." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -15,7 +15,7 @@ export async function GET() {
         error: error instanceof Error ? error.message : "Unknown error",
         timestamp,
       },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

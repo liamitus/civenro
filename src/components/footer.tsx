@@ -2,28 +2,43 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-navy/10 bg-civic-cream/50">
+    <footer className="border-navy/10 bg-civic-cream/50 border-t">
       <div className="mx-auto max-w-6xl px-6 py-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-            <Link href="/about" className="hover:text-foreground transition-colors">
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <nav className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs">
+            <Link
+              href="/about"
+              className="hover:text-foreground transition-colors"
+            >
               About
             </Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-foreground transition-colors"
+            >
               Terms
             </Link>
-            <Link href="/contact" className="hover:text-foreground transition-colors">
+            <Link
+              href="/contact"
+              className="hover:text-foreground transition-colors"
+            >
               Contact
             </Link>
-            <Link href="/support" className="hover:text-foreground transition-colors">
+            <Link
+              href="/support"
+              className="hover:text-foreground transition-colors"
+            >
               Support Govroll
             </Link>
           </nav>
 
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-muted-foreground/70 text-xs">
             &copy; {new Date().getFullYear()} Govroll &middot; Built by{" "}
             <a
               href="https://liamhowell.com"
@@ -36,7 +51,7 @@ export function Footer() {
           </p>
         </div>
 
-        <div className="mt-4 space-y-1.5 text-center text-[10px] text-muted-foreground/60 leading-relaxed">
+        <div className="text-muted-foreground/60 mt-4 space-y-1.5 text-center text-[10px] leading-relaxed">
           <p>
             Independent, non-partisan, and reader-supported. Govroll is not
             affiliated with or endorsed by the U.S. government.
@@ -47,7 +62,7 @@ export function Footer() {
               href="https://congress.gov"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-muted-foreground"
+              className="hover:text-muted-foreground underline underline-offset-2"
             >
               congress.gov
             </a>
@@ -57,7 +72,7 @@ export function Footer() {
               href="https://github.com/unitedstates/congress-legislators"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-muted-foreground"
+              className="hover:text-muted-foreground underline underline-offset-2"
             >
               unitedstates/congress-legislators
             </a>
@@ -67,7 +82,7 @@ export function Footer() {
               href="https://geocoding.geo.census.gov/"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-muted-foreground"
+              className="hover:text-muted-foreground underline underline-offset-2"
             >
               U.S. Census Bureau
             </a>

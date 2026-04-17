@@ -58,7 +58,9 @@ async function probeExists(
       headers: { "User-Agent": UA },
     });
     if (head.status !== 200) return -1;
-    const contentType = String(head.headers["content-type"] ?? "").toLowerCase();
+    const contentType = String(
+      head.headers["content-type"] ?? "",
+    ).toLowerCase();
     // Real bill XML → application/xml. Error page → text/html.
     if (!contentType.includes("xml")) return -1;
     return priorityIndex;
@@ -89,9 +91,7 @@ export async function fetchBillTextFromGovInfo(
   });
 
   // Fire all HEADs in parallel. Each returns its priority index on hit.
-  const hits = await Promise.all(
-    urls.map((u) => probeExists(u.url, u.idx)),
-  );
+  const hits = await Promise.all(urls.map((u) => probeExists(u.url, u.idx)));
 
   // Pick the highest-priority hit (lowest index).
   let bestIdx = Number.POSITIVE_INFINITY;

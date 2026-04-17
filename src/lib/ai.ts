@@ -45,7 +45,7 @@ function detectProvider(): Provider {
   if (process.env.ANTHROPIC_API_KEY) return "anthropic";
   if (process.env.OPENAI_API_KEY) return "openai";
   throw new Error(
-    "No AI API key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY."
+    "No AI API key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.",
   );
 }
 
@@ -56,7 +56,10 @@ async function callAnthropic(
   model: string = ANTHROPIC_MODEL,
 ): Promise<ChatResponse> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 30_000 });
+  const client = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    timeout: 30_000,
+  });
 
   const response = await client.messages.create({
     model,
@@ -86,7 +89,10 @@ async function callOpenAI(
   model: string = OPENAI_MODEL,
 ): Promise<ChatResponse> {
   const { default: OpenAI } = await import("openai");
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000 });
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    timeout: 30_000,
+  });
 
   const response = await client.chat.completions.create({
     model,
@@ -147,7 +153,9 @@ function formatMetadataForPrompt(meta: BillMetadata | null): string {
   }
   if (meta.policyArea) lines.push(`Policy area: ${meta.policyArea}`);
   if (meta.latestActionDate && meta.latestActionText) {
-    lines.push(`Latest action (${meta.latestActionDate}): ${meta.latestActionText}`);
+    lines.push(
+      `Latest action (${meta.latestActionDate}): ${meta.latestActionText}`,
+    );
   }
   // Include the CRS (Congressional Research Service) plain-language summary
   // when we have it. When fullText is unavailable, this is the AI's only
@@ -165,10 +173,7 @@ function formatMetadataForPrompt(meta: BillMetadata | null): string {
  */
 function formatSectionsForPrompt(sections: BillSection[]): string {
   return sections
-    .map(
-      (s) =>
-        `[${s.sectionRef}] ${s.heading}\n${s.content}`,
-    )
+    .map((s) => `[${s.sectionRef}] ${s.heading}\n${s.content}`)
     .join("\n\n---\n\n");
 }
 
@@ -224,8 +229,8 @@ Stay factual and neutral.`
       : `You are a helpful, nonpartisan assistant that helps citizens understand U.S. legislation. You answer questions about bills clearly and accessibly, avoiding jargon where possible.
 
 The bill is titled "${billTitle}".${
-      metadataBlock ? `\n\nBill information:\n${metadataBlock}` : ""
-    }
+          metadataBlock ? `\n\nBill information:\n${metadataBlock}` : ""
+        }
 
 Full bill text is not yet available in our system. Explain this once at the start of your answer — briefly, one sentence — then answer what you can from the title and metadata above. Do not repeat this caveat in every section; one upfront mention is enough. Suggest the user check congress.gov for the full text if they need specifics.
 
@@ -303,9 +308,7 @@ ${index}
 Return ONLY a JSON array of section references that are relevant to the question. Example: ["Section 2", "Section 5(a)"]
 Return at most 15 sections. If unsure, include more rather than fewer.`;
 
-  const messages: ChatMessage[] = [
-    { role: "user", content: userMessage },
-  ];
+  const messages: ChatMessage[] = [{ role: "user", content: userMessage }];
 
   const response = await callProvider(provider, systemPrompt, messages, 512);
 
@@ -315,7 +318,8 @@ Return at most 15 sections. If unsure, include more rather than fewer.`;
     if (match) {
       const refs: string[] = JSON.parse(match[0]);
       const filtered = filterSections(allSections, refs);
-      if (filtered.length > 0) return { sections: filtered, usage: response.usage };
+      if (filtered.length > 0)
+        return { sections: filtered, usage: response.usage };
     }
   } catch {
     // Fall back to all sections if parsing fails
@@ -358,6 +362,12 @@ Summarize the substantive changes between these two versions.`;
   // "cheap" tier — this is a bounded diff summarization task. Research shows
   // hallucination risk drops sharply when the model describes a structured
   // delta vs. generating a summary from scratch, so Haiku is sufficient.
-  const response = await callProvider(provider, systemPrompt, messages, 1024, "cheap");
+  const response = await callProvider(
+    provider,
+    systemPrompt,
+    messages,
+    1024,
+    "cheap",
+  );
   return { content: response.content, usage: [response.usage] };
 }

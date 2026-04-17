@@ -53,14 +53,17 @@ export async function PATCH(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { donationId, action } = body;
 
   if (!donationId || !["anonymize", "hide"].includes(action)) {
     return NextResponse.json(
       { error: "donationId and action (anonymize|hide) required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

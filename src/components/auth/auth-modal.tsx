@@ -12,7 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { PasswordStrengthIndicator, validatePassword } from "./password-strength";
+import {
+  PasswordStrengthIndicator,
+  validatePassword,
+} from "./password-strength";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
@@ -124,12 +127,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               <DialogTitle>Check Your Email</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 We sent a confirmation link to{" "}
-                <span className="font-medium text-foreground">{email}</span>.
+                <span className="text-foreground font-medium">{email}</span>.
                 Click the link in the email to continue.
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Didn&apos;t receive it? Check your spam folder or try again.
               </p>
               <Button
@@ -147,7 +150,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               <DialogTitle>Reset Password</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleForgotPassword} className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Enter your email and we&apos;ll send you a link to reset your
                 password.
               </p>
@@ -168,7 +171,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 {submitting ? "Sending..." : "Send Reset Link"}
               </Button>
 
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-center text-sm">
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
@@ -211,7 +214,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
             <div className="relative">
               <Separator />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
+              <span className="bg-popover text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-xs">
                 or
               </span>
             </div>
@@ -235,7 +238,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     <button
                       type="button"
                       onClick={() => switchMode("forgot")}
-                      className="text-xs text-muted-foreground hover:text-primary underline"
+                      className="text-muted-foreground hover:text-primary text-xs underline"
                     >
                       Forgot password?
                     </button>
@@ -265,20 +268,28 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               </Button>
 
               {mode === "register" && (
-                <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground text-center text-xs leading-relaxed">
                   By creating an account, you agree to our{" "}
-                  <Link href="/terms" className="underline underline-offset-2 hover:text-foreground" onClick={() => onOpenChange(false)}>
+                  <Link
+                    href="/terms"
+                    className="hover:text-foreground underline underline-offset-2"
+                    onClick={() => onOpenChange(false)}
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground" onClick={() => onOpenChange(false)}>
+                  <Link
+                    href="/privacy"
+                    className="hover:text-foreground underline underline-offset-2"
+                    onClick={() => onOpenChange(false)}
+                  >
                     Privacy Policy
                   </Link>
                   .
                 </p>
               )}
 
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-center text-sm">
                 {mode === "login" ? (
                   <>
                     Don&apos;t have an account?{" "}
@@ -313,7 +324,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
 function GoogleIcon() {
   return (
-    <svg className="size-4 mr-2" viewBox="0 0 24 24">
+    <svg className="mr-2 size-4" viewBox="0 0 24 24">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
         fill="#4285F4"
@@ -336,7 +347,7 @@ function GoogleIcon() {
 
 function GitHubIcon() {
   return (
-    <svg className="size-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+    <svg className="mr-2 size-4" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
     </svg>
   );

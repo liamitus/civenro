@@ -55,7 +55,10 @@ export function DonateForm({
     // Client-side name validation
     if (displayMode === "NAMED" && !validateName(displayName, setNameError))
       return;
-    if (displayMode === "TRIBUTE" && !validateName(tributeName, setTributeError))
+    if (
+      displayMode === "TRIBUTE" &&
+      !validateName(tributeName, setTributeError)
+    )
       return;
 
     if (displayMode === "NAMED" && !displayName.trim()) {
@@ -114,7 +117,7 @@ export function DonateForm({
   })();
 
   return (
-    <Card className="p-6 space-y-6">
+    <Card className="space-y-6 p-6">
       {/* Amount presets */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">Amount</Label>
@@ -126,17 +129,17 @@ export function DonateForm({
                 setAmountCents(cents);
                 setCustomAmount("");
               }}
-              className={`flex-1 py-2.5 rounded-md text-sm font-medium border transition-colors ${
+              className={`flex-1 rounded-md border py-2.5 text-sm font-medium transition-colors ${
                 amountCents === cents && !customAmount
-                  ? "bg-navy text-white border-navy"
+                  ? "bg-navy border-navy text-white"
                   : "bg-card text-foreground border-border hover:border-navy/40"
               }`}
             >
               ${cents / 100}
             </button>
           ))}
-          <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+          <div className="relative flex-1">
+            <span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">
               $
             </span>
             <Input
@@ -149,39 +152,40 @@ export function DonateForm({
                 setCustomAmount(e.target.value);
                 setAmountCents(0);
               }}
-              className="pl-7 h-[42px]"
+              className="h-[42px] pl-7"
             />
           </div>
         </div>
         {impactLine && (
-          <p className="text-xs text-muted-foreground pt-1">{impactLine}</p>
+          <p className="text-muted-foreground pt-1 text-xs">{impactLine}</p>
         )}
 
         {typicalDonationCents && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Typical contribution: ${(typicalDonationCents / 100).toFixed(0)}
-            {donorCount > 0 && ` from ${donorCount.toLocaleString()} supporters`}
+            {donorCount > 0 &&
+              ` from ${donorCount.toLocaleString()} supporters`}
           </p>
         )}
       </div>
 
       {/* Recurring toggle */}
-      <label className="flex items-center gap-3 cursor-pointer group">
+      <label className="group flex cursor-pointer items-center gap-3">
         <div
-          className={`relative w-10 h-5 rounded-full transition-colors ${
+          className={`relative h-5 w-10 rounded-full transition-colors ${
             isRecurring ? "bg-navy" : "bg-muted"
           }`}
           onClick={() => setIsRecurring(!isRecurring)}
         >
           <div
-            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
               isRecurring ? "translate-x-5" : ""
             }`}
           />
         </div>
         <div>
           <span className="text-sm font-medium">Support monthly</span>
-          <span className="block text-xs text-muted-foreground">
+          <span className="text-muted-foreground block text-xs">
             Predictable support keeps Govroll running. Cancel anytime.
           </span>
         </div>
@@ -198,7 +202,10 @@ export function DonateForm({
               ["TRIBUTE", "In honor of someone"],
             ] as const
           ).map(([mode, label]) => (
-            <label key={mode} className="flex items-center gap-2 cursor-pointer">
+            <label
+              key={mode}
+              className="flex cursor-pointer items-center gap-2"
+            >
               <input
                 type="radio"
                 name="displayMode"
@@ -230,12 +237,10 @@ export function DonateForm({
             placeholder="Your name"
             maxLength={40}
           />
-          {nameError && (
-            <p className="text-xs text-red-500">{nameError}</p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            Personal names only. Displayed on the{" "}
-            <em>Made possible by</em> page after review.
+          {nameError && <p className="text-xs text-red-500">{nameError}</p>}
+          <p className="text-muted-foreground text-xs">
+            Personal names only. Displayed on the <em>Made possible by</em> page
+            after review.
           </p>
         </div>
       )}
@@ -259,7 +264,7 @@ export function DonateForm({
           {tributeError && (
             <p className="text-xs text-red-500">{tributeError}</p>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Honor a teacher, family member, friend, or someone who inspired your
             civic engagement. Personal names only.
           </p>
@@ -288,7 +293,7 @@ export function DonateForm({
       <Button
         onClick={handleSubmit}
         disabled={submitting || effectiveAmount < 100}
-        className="w-full bg-navy hover:bg-navy-light text-white h-12 text-base font-semibold tracking-wide"
+        className="bg-navy hover:bg-navy-light h-12 w-full text-base font-semibold tracking-wide text-white"
       >
         {submitting
           ? "Redirecting to Stripe..."

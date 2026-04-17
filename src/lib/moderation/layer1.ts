@@ -58,7 +58,7 @@ function normalize(name: string): string {
  */
 function matchesDenyList(
   normalized: string,
-  list: ReadonlySet<string>
+  list: ReadonlySet<string>,
 ): string | null {
   // Exact match
   if (list.has(normalized)) return normalized;

@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ bioguideId: string }> }
+  { params }: { params: Promise<{ bioguideId: string }> },
 ) {
   const { bioguideId } = await params;
 
@@ -16,7 +16,7 @@ export async function GET(
     if (!rep) {
       return NextResponse.json(
         { error: "Representative not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -85,12 +85,18 @@ export async function GET(
 
     // Key votes: passage votes only, most recent first
     const keyVotes = votingRecord
-      .filter((v) => v.category === "passage" && (v.repVote === "Yea" || v.repVote === "Nay"))
+      .filter(
+        (v) =>
+          v.category === "passage" &&
+          (v.repVote === "Yea" || v.repVote === "Nay"),
+      )
       .slice(0, 6);
 
     // Compute stats
     const totalVotes = repVotes.length;
-    const missedVotes = repVotes.filter((rv) => rv.vote === "Not Voting").length;
+    const missedVotes = repVotes.filter(
+      (rv) => rv.vote === "Not Voting",
+    ).length;
     const yeaCount = repVotes.filter((rv) => rv.vote === "Yea").length;
     const nayCount = repVotes.filter((rv) => rv.vote === "Nay").length;
 
@@ -115,7 +121,8 @@ export async function GET(
       stats: {
         totalVotes,
         missedVotes,
-        missedVotePct: totalVotes > 0 ? Math.round((missedVotes / totalVotes) * 100) : 0,
+        missedVotePct:
+          totalVotes > 0 ? Math.round((missedVotes / totalVotes) * 100) : 0,
         yeaCount,
         nayCount,
       },
@@ -124,7 +131,7 @@ export async function GET(
     console.error("Error fetching representative detail:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

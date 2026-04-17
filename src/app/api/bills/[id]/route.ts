@@ -4,7 +4,7 @@ import { reportError } from "@/lib/error-reporting";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   const billId = parseInt(id);
@@ -22,7 +22,7 @@ export async function GET(
     reportError(error, { route: "GET /api/bills/[id]", billId });
     return NextResponse.json(
       { error: "Failed to fetch bill" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

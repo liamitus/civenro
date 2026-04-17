@@ -108,7 +108,9 @@ async function restoreAiOutputs(force: boolean): Promise<number> {
     if (!bill) continue;
 
     const existing = await prisma.billTextVersion.findUnique({
-      where: { billId_versionCode: { billId: bill.id, versionCode: o.versionCode } },
+      where: {
+        billId_versionCode: { billId: bill.id, versionCode: o.versionCode },
+      },
       select: { id: true, changeSummary: true },
     });
 

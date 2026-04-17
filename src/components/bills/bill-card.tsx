@@ -13,9 +13,9 @@ function CardNavIndicator() {
   return (
     <div
       aria-busy="true"
-      className="absolute inset-0 rounded-lg ring-2 ring-navy/40 pointer-events-none"
+      className="ring-navy/40 pointer-events-none absolute inset-0 rounded-lg ring-2"
     >
-      <div className="absolute top-3 right-4 w-3.5 h-3.5 rounded-full border-2 border-navy/20 border-t-navy/70 animate-spin" />
+      <div className="border-navy/20 border-t-navy/70 absolute top-3 right-4 h-3.5 w-3.5 animate-spin rounded-full border-2" />
     </div>
   );
 }
@@ -23,21 +23,31 @@ function CardNavIndicator() {
 function statusStyle(status: string): { label: string; className: string } {
   if (status.startsWith("enacted_"))
     return { label: "Enacted", className: "bg-enacted-soft text-enacted" };
-  if (status === "passed_bill" || status.startsWith("conference_") ||
-      status === "passed_simpleres" || status === "passed_concurrentres")
+  if (
+    status === "passed_bill" ||
+    status.startsWith("conference_") ||
+    status === "passed_simpleres" ||
+    status === "passed_concurrentres"
+  )
     return { label: "Passed", className: "bg-passed-soft text-passed" };
   if (status.startsWith("pass_over_") || status.startsWith("pass_back_"))
     return { label: "In Progress", className: "bg-passed-soft text-passed" };
   if (status.startsWith("prov_kill_") && status !== "prov_kill_veto")
     return { label: "Stalled", className: "bg-muted text-foreground/60" };
-  if (status.startsWith("fail_") || status.startsWith("vetoed_") || status === "prov_kill_veto")
+  if (
+    status.startsWith("fail_") ||
+    status.startsWith("vetoed_") ||
+    status === "prov_kill_veto"
+  )
     return { label: "Failed", className: "bg-failed-soft text-failed" };
   if (status === "reported")
     return { label: "In Committee", className: "bg-muted text-foreground/70" };
   return { label: "Introduced", className: "bg-muted text-foreground/70" };
 }
 
-function chamberTag(billType: string): { label: string; className: string } | null {
+function chamberTag(
+  billType: string,
+): { label: string; className: string } | null {
   if (billType.startsWith("house"))
     return { label: "House", className: "text-house" };
   if (billType.startsWith("senate"))
@@ -147,27 +157,44 @@ export function BillCard({
   );
 
   return (
-    <Link href={`/bills/${bill.id}`} className="block group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 active:scale-[0.997] transition-transform">
-      <div className={`relative px-5 py-4 rounded-lg border border-border/50 bg-white hover:border-navy/25 hover:shadow-[0_2px_12px_rgba(10,31,68,0.1)] transition-all duration-200 ${treatment.cardClass}`}>
+    <Link
+      href={`/bills/${bill.id}`}
+      className="group focus-visible:ring-navy/40 block rounded-lg transition-transform focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.997]"
+    >
+      <div
+        className={`border-border/50 hover:border-navy/25 relative rounded-lg border bg-white px-5 py-4 transition-all duration-200 hover:shadow-[0_2px_12px_rgba(10,31,68,0.1)] ${treatment.cardClass}`}
+      >
         <CardNavIndicator />
         {/* Chamber indicator line */}
         <div
-          className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${
-            bill.billType.startsWith("house") ? "bg-house/70" : bill.billType.startsWith("senate") ? "bg-senate/70" : "bg-muted"
+          className={`absolute top-0 bottom-0 left-0 w-1 rounded-l-lg ${
+            bill.billType.startsWith("house")
+              ? "bg-house/70"
+              : bill.billType.startsWith("senate")
+                ? "bg-senate/70"
+                : "bg-muted"
           }`}
         />
 
         <div className="pl-3">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-sm font-medium leading-snug text-navy line-clamp-2 group-hover:text-navy-light transition-colors flex-1">
+            <h3 className="text-navy group-hover:text-navy-light line-clamp-2 flex-1 text-sm leading-snug font-medium transition-colors">
               {bill.title}
             </h3>
             {voted && (
               <span
-                className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-navy/8 text-navy/80 border border-navy/10"
+                className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
                 title="You've voted on this bill"
               >
-                <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="h-2.5 w-2.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
                 Voted
@@ -176,42 +203,48 @@ export function BillCard({
           </div>
 
           {bill.shortText && (
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-1">
+            <p className="text-muted-foreground mt-1 line-clamp-1 text-xs leading-relaxed">
               {bill.shortText}
             </p>
           )}
 
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
             {chamber && (
-              <span className={`text-xs font-bold tracking-wider uppercase ${chamber.className}`}>
+              <span
+                className={`text-xs font-bold tracking-wider uppercase ${chamber.className}`}
+              >
                 {chamber.label}
               </span>
             )}
             {topic && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${topic.color}`}>
+              <span
+                className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${topic.color}`}
+              >
                 {topic.label}
               </span>
             )}
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${status.className}`}>
+            <span
+              className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${status.className}`}
+            >
               {status.label}
             </span>
             {treatment.momentumChip && (
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${treatment.momentumChip.className}`}
+                className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${treatment.momentumChip.className}`}
               >
                 {treatment.momentumChip.label}
               </span>
             )}
             {bill.sponsor && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 {bill.sponsor}
               </span>
             )}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {dayjs(displayDate).format("MMM D, YYYY")}
             </span>
             {treatment.silenceNote && (
-              <span className="text-xs italic text-muted-foreground/70">
+              <span className="text-muted-foreground/70 text-xs italic">
                 {treatment.silenceNote}
               </span>
             )}
@@ -220,10 +253,18 @@ export function BillCard({
           {/* Engagement signals — shown only when there's actual activity */}
           {(bill.commentCount != null && bill.commentCount > 0) ||
           (bill.publicVoteCount != null && bill.publicVoteCount > 0) ? (
-            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="text-muted-foreground mt-2 flex items-center gap-3 text-xs">
               {bill.publicVoteCount != null && bill.publicVoteCount > 0 && (
                 <span className="inline-flex items-center gap-1">
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    className="h-3 w-3"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M7 10v12" />
                     <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H7a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L15 2a3.13 3.13 0 0 1 3 3.88Z" />
                   </svg>
@@ -250,9 +291,17 @@ export function BillCard({
                       window.location.href = `/bills/${bill.id}#discussion`;
                     }
                   }}
-                  className="inline-flex items-center gap-1 hover:text-navy transition-colors cursor-pointer underline-offset-2 hover:underline"
+                  className="hover:text-navy inline-flex cursor-pointer items-center gap-1 underline-offset-2 transition-colors hover:underline"
                 >
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    className="h-3 w-3"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                   {bill.commentCount.toLocaleString()}{" "}

@@ -17,16 +17,22 @@ async function main() {
   });
 
   if (recent.length === 0) {
-    console.log("No existing conversations to test against (DB empty for chat).");
+    console.log(
+      "No existing conversations to test against (DB empty for chat).",
+    );
     await prisma.$disconnect();
     return;
   }
 
   for (const c of recent) {
-    console.log(`\nConversation ${c.id} — bill ${c.billId}, ${c.messages.length} messages`);
+    console.log(
+      `\nConversation ${c.id} — bill ${c.billId}, ${c.messages.length} messages`,
+    );
     for (const m of c.messages.slice(0, 4)) {
       const preview = m.text.slice(0, 100).replace(/\n/g, " ");
-      console.log(`  [${m.sender}] ${preview}${m.text.length > 100 ? "…" : ""}`);
+      console.log(
+        `  [${m.sender}] ${preview}${m.text.length > 100 ? "…" : ""}`,
+      );
     }
 
     // Simulate the GET-endpoint reshape
@@ -50,11 +56,20 @@ async function main() {
   });
   console.log(`\nSampled ${aiMessages.length} historical AI messages.`);
   const withMd = aiMessages.filter((m) => /[*_`>#]/.test(m.text)).length;
-  console.log(`  ${withMd} already contain markdown-like chars (will render through react-markdown)`);
-  console.log(`  ${aiMessages.length - withMd} are plain text (still valid markdown)`);
+  console.log(
+    `  ${withMd} already contain markdown-like chars (will render through react-markdown)`,
+  );
+  console.log(
+    `  ${aiMessages.length - withMd} are plain text (still valid markdown)`,
+  );
 
-  console.log("\n✓ Persistence query path works; all messages reshape cleanly.");
+  console.log(
+    "\n✓ Persistence query path works; all messages reshape cleanly.",
+  );
   await prisma.$disconnect();
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
