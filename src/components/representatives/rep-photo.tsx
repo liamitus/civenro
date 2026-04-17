@@ -1,32 +1,61 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 interface RepPhotoProps {
-  bioguideId: string;
-  firstName: string;
-  lastName: string;
+  bioguideId: string | null;
+  firstName: string | undefined;
+  lastName: string | undefined;
+  /** Extra classes for the <img>. Use to override object-position. */
+  imgClassName?: string;
+  /** Extra classes for the initials fallback (font-size, etc.). */
+  fallbackClassName?: string;
+  /** Skip lazy-loading for above-the-fold photos. */
+  priority?: boolean;
+  /** Alt-text override; defaults to first + last name. */
+  alt?: string;
 }
 
-export function RepPhoto({ bioguideId, firstName, lastName }: RepPhotoProps) {
+/**
+ * Bioguide-backed representative photo with an initials fallback.
+ *
+ * The wrapping element must be `position: relative` with a fixed width/height,
+ * since the image uses Next.js `fill` layout.
+ */
+export function RepPhoto({
+  bioguideId,
+  firstName,
+  lastName,
+  imgClassName = "object-top",
+  fallbackClassName = "text-2xl font-medium",
+  priority = false,
+  alt,
+}: RepPhotoProps) {
   const [failed, setFailed] = useState(false);
+  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`;
 
-  if (failed) {
+  if (!bioguideId || failed) {
     return (
-      <div className="text-muted-foreground flex h-full w-full items-center justify-center text-2xl font-medium">
-        {firstName?.[0]}
-        {lastName?.[0]}
+      <div
+        className={`text-muted-foreground flex h-full w-full items-center justify-center ${fallbackClassName}`}
+      >
+        {initials}
       </div>
     );
   }
 
   return (
-    <img
+    <Image
       src={`/api/photos/${bioguideId}`}
-      alt={`${firstName} ${lastName}`}
-      className="pointer-events-none h-full w-full object-cover object-top select-none"
+      alt={alt ?? `${firstName ?? ""} ${lastName ?? ""}`.trim()}
+      fill
+      sizes="(max-width: 640px) 80px, 120px"
+      className={`pointer-events-none object-cover select-none ${imgClassName}`}
       draggable={false}
+      priority={priority}
       onError={() => setFailed(true)}
+      unoptimized
     />
   );
 }
