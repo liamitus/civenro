@@ -94,14 +94,38 @@ Push to `main` triggers an automatic Vercel deployment. The build runs:
 prisma generate && next build
 ```
 
-### Cron Jobs
+### Ingestion (GitHub Actions)
 
-| Cron | Schedule | Description |
-|------|----------|-------------|
-| `/api/cron/fetch-data` | Daily 10 AM ET | Fetches new bills, text, actions, votes, reps |
-| `/api/cron/evaluate-budget` | Daily midnight UTC | Recomputes AI budget gate |
+Govroll runs on Vercel Hobby, which caps cron jobs at once-per-day. To get
+fresher data (recorded floor votes in ~30 minutes, not ~24 hours), the
+data pipeline is scheduled by **GitHub Actions** (`.github/workflows/ingest.yml`),
+which calls idempotent, CRON_SECRET-gated endpoints on govroll.com.
 
-Both require `CRON_SECRET` to be set in Vercel project settings.
+| Endpoint | Cadence | Purpose |
+|---|---|---|
+| `/api/cron/fetch-votes` | every 30 min | Recorded roll-call votes (last 7d window) |
+| `/api/cron/compute-momentum` | hourly | Recomputes alive/dormant/dead signal |
+| `/api/cron/backfill-bill-text` | hourly | Fills missing bill text (small batch) |
+| `/api/cron/backfill-bill-actions` | every 2h | Status / action history for active bills |
+| `/api/cron/backfill-cosponsors` | every 2h | Individual cosponsor rows |
+| `/api/cron/fetch-bills` | every 3h | New bills since our latest |
+| `/api/cron/generate-change-summaries` | every 4h | AI change summaries (budget-gated) |
+| `/api/cron/refresh-bill-metadata` | every 6h | Sponsor / policyArea / CRS summary refresh |
+| `/api/cron/evaluate-budget` | daily 00:00 UTC | Recomputes AI budget gate |
+| `/api/cron/fetch-representatives` | weekly Mon 10:00 UTC | Member roster refresh |
+
+**One-time setup in the GitHub repo:**
+
+1. `Settings → Secrets and variables → Actions → Secrets` — add `CRON_SECRET` matching the Vercel env var.
+2. `Settings → Secrets and variables → Actions → Variables` — add `GOVROLL_BASE_URL` = `https://govroll.com` (no trailing slash).
+
+**Manual trigger:** `Actions → ingest → Run workflow → pick endpoint`. Useful
+for one-off backfills or forcing fresh data after a deploy.
+
+**Why not Vercel cron?** Hobby allows 100 crons but only at daily minimum
+interval (`0 */4 * * *` fails to deploy). GH Actions cron is free, supports
+5-minute intervals, and has its own run history. If we upgrade to Vercel
+Pro, we can move some of these back to Vercel cron for simpler operations.
 
 ## Architecture Notes
 
