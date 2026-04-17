@@ -73,7 +73,10 @@ function cosponsorLabel(
 /**
  * When the best vote we have for a rep is NOT a passage vote, label it
  * with context so a "Yes" badge on a procedural motion isn't mistaken
- * for a "Yes" on the bill itself.
+ * for a "Yes" on the bill itself. GovTrack only gives us a coarse
+ * category (no motion text), so we avoid overclaiming — e.g. we don't
+ * say "to advance this bill" for a procedural vote because it could
+ * just as well be a motion to table.
  */
 function voteContextLabel(category: string | null): string | null {
   if (!category) return null;
@@ -82,14 +85,14 @@ function voteContextLabel(category: string | null): string | null {
     case "passage_suspension":
     case "veto_override":
       return null; // normal passage vote, no extra context
-    case "procedural":
-      return "on procedural motion";
+    case "cloture":
+      return "to end debate (cloture)";
     case "amendment":
       return "on an amendment";
-    case "cloture":
-      return "on cloture";
     case "nomination":
-      return "on nomination";
+      return "on a related nomination";
+    case "procedural":
+      return "on a procedural step";
     default:
       return null;
   }
@@ -225,9 +228,38 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
   const chamberName = passage.chamber === "house" ? "House" : "Senate";
 
   if (passage.status === "pending") {
+    // Pending + procedural votes recorded → reps have taken a
+    // position on *something* related to this bill (discharge,
+    // motion to proceed, cloture, etc.) even though final passage
+    // hasn't happened. Surface that so the notice doesn't read as
+    // "no information at all."
+    if (passage.proceduralRollCallCount > 0) {
+      return (
+        <div className="rounded-lg border bg-accent/20 px-3 py-2.5 text-xs leading-relaxed">
+          <p className="text-foreground">
+            <span className="font-semibold">
+              {`The ${chamberName} hasn\u2019t held a final vote on this bill yet.`}
+            </span>{" "}
+            <span className="text-muted-foreground">
+              But it did record a vote on a related procedural step —
+              typically a motion to bring the bill up for debate, end a
+              filibuster, or set it aside. Those votes appear below and
+              often signal where a member stands.{" "}
+              <Link
+                href="/about/how-congress-votes#procedural"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                Learn more
+              </Link>
+              .
+            </span>
+          </p>
+        </div>
+      );
+    }
     return (
       <div className="rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-        The {chamberName} hasn&apos;t voted on this bill yet.
+        {`The ${chamberName} hasn\u2019t voted on this bill yet.`}
       </div>
     );
   }
@@ -395,6 +427,30 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
               muted
             />
           ))}
+        </div>
+      );
+    }
+
+    // Pending chamber with some procedural votes recorded. Show the
+    // notice (which explains what procedural votes signal) alongside
+    // the rep cards. Reps without a procedural vote show "Not yet" so
+    // we don't imply absence from a vote that never happened.
+    if (passage.status === "pending") {
+      return (
+        <div className="space-y-2">
+          <ChamberNotice passage={passage} />
+          {groupReps.map((rep) => {
+            const isMissing = rep.vote === NO_VOTE_SENTINEL;
+            const displayVote = isMissing ? "Not yet" : rep.vote;
+            return (
+              <RepCard
+                key={rep.bioguideId}
+                rep={rep}
+                displayVote={displayVote}
+                muted={isMissing}
+              />
+            );
+          })}
         </div>
       );
     }
