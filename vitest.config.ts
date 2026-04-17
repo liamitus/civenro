@@ -5,8 +5,15 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./vitest.setup.ts"],
-    // Keep Playwright specs out of the unit-test runner.
-    exclude: ["node_modules", "dist", ".next", "e2e/**"],
+    // Keep Playwright specs and integration tests (separate config) out of
+    // the unit-test runner.
+    exclude: [
+      "node_modules",
+      "dist",
+      ".next",
+      "e2e/**",
+      "tests/integration/**",
+    ],
     // Per-file DOM tests can opt in with: // @vitest-environment jsdom
     coverage: {
       provider: "v8",
