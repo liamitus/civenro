@@ -38,6 +38,18 @@ export default function ContactPage() {
               support@govroll.com
             </a>
           </p>
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            Prefer public tracking? File an issue on{" "}
+            <a
+              href="https://github.com/liamitus/govroll/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground underline underline-offset-2"
+            >
+              GitHub
+            </a>
+            .
+          </p>
         </section>
 
         <section className="space-y-2 rounded-lg border p-5">

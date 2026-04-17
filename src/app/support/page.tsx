@@ -92,6 +92,21 @@ export default async function SupportPage() {
         </p>
       )}
 
+      {/* Other ways to help */}
+      <p className="text-muted-foreground text-center text-sm">
+        Prefer contributing time instead of money? Govroll is open source —
+        browse open{" "}
+        <a
+          href="https://github.com/liamitus/govroll/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-navy underline underline-offset-2"
+        >
+          issues on GitHub
+        </a>
+        .
+      </p>
+
       {/* Legal disclosure */}
       <footer className="text-muted-foreground space-y-2 border-t pt-6 text-xs leading-relaxed">
         <p>
