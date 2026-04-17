@@ -29,7 +29,11 @@ export async function GET(request: Request) {
 
   const start = Date.now();
   try {
-    await fetchBillsFunction();
+    // Hobby plan caps this function at 60s. Keep the re-walk window tight
+    // so the sequential upsert loop fits. The cron fires every 3h, so a
+    // 1-month overlap still self-heals any bill GovTrack indexes late —
+    // a later run will sweep it up.
+    await fetchBillsFunction(undefined, { lookbackMonths: 1 });
     const ms = Date.now() - start;
     console.log(`[fetch-bills cron] completed in ${ms}ms`);
     return NextResponse.json({ ok: true, ms });
