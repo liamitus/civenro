@@ -12,12 +12,39 @@ const prisma = createStandalonePrisma();
  * a larger batch than fetch-bill-text can sustain.
  *
  * Prioritizes bills that have never been backfilled (sponsor IS NULL), then
- * bills missing CRS summaries. Newest bills first so the listing page always
- * shows enriched data on recent legislation.
+ * bills missing CRS summaries that haven't been refreshed recently. Newest
+ * bills first so the listing page always shows enriched data on recent
+ * legislation.
+ *
+ * `lastMetadataRefreshAt` is the cooldown: bills whose CRS summary Congress.gov
+ * hasn't published yet would otherwise dominate the queue forever, since they
+ * stay in `shortText IS NULL` permanently. The 14-day cooldown lets us re-check
+ * occasionally without burning every cron slot on the same hopeless bills.
  */
+const REFRESH_COOLDOWN_DAYS = 14;
+
 export async function refreshBillMetadataFunction(limit = 25) {
+  const cooldownCutoff = new Date(
+    Date.now() - REFRESH_COOLDOWN_DAYS * 24 * 60 * 60 * 1000,
+  );
+
   const bills = await prisma.bill.findMany({
-    where: { OR: [{ sponsor: null }, { shortText: null }] },
+    where: {
+      OR: [
+        { sponsor: null },
+        {
+          AND: [
+            { shortText: null },
+            {
+              OR: [
+                { lastMetadataRefreshAt: null },
+                { lastMetadataRefreshAt: { lt: cooldownCutoff } },
+              ],
+            },
+          ],
+        },
+      ],
+    },
     select: { id: true, billId: true },
     orderBy: [
       { sponsor: { sort: "asc", nulls: "first" } },
@@ -59,6 +86,7 @@ export async function refreshBillMetadataFunction(limit = 25) {
             ? new Date(meta.latestActionDate)
             : null,
           shortText: meta.shortText,
+          lastMetadataRefreshAt: new Date(),
         },
       });
       ok++;

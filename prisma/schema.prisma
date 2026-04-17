@@ -52,6 +52,10 @@ model Bill {
   daysSinceLastAction Int?
   deathReason         String?
   momentumComputedAt  DateTime?
+  // Set whenever refresh-bill-metadata successfully calls Congress.gov.
+  // Used to avoid re-fetching bills whose CRS summary hasn't been
+  // published yet — without it the cron loops over ~12k bills forever.
+  lastMetadataRefreshAt DateTime?
   votes             RepresentativeVote[]
   publicVotes       Vote[]
   comments          Comment[]
