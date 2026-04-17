@@ -151,10 +151,7 @@ export function AiChatbox({
       setLoading(true);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        CHAT_TIMEOUT_MS,
-      );
+      const timeoutId = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
 
       try {
         const res = await fetch("/api/ai/chat", {
