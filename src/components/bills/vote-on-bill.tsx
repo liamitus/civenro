@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { StaleVoteBanner } from "./stale-vote-banner";
 import { VoteHistorySection } from "./vote-history";
-import type {
-  VoteType,
-  VoteAggregation,
-  UserVoteStatus,
-  RollCallVote,
-} from "@/types";
+import type { VoteType, RollCallVote } from "@/types";
+import {
+  billVotesQueryKey,
+  fetchBillVotes,
+  fetchUserVote,
+  submitVote as submitVoteApi,
+  userVoteQueryKey,
+} from "@/lib/queries/votes-client";
 
 function VoteBar({
   segments,
@@ -144,53 +146,61 @@ export function VoteOnBill({
   onSignUp?: () => void;
 }) {
   const { user } = useAuth();
-  const [votes, setVotes] = useState<VoteAggregation | null>(null);
-  const [userVote, setUserVote] = useState<VoteType | null>(null);
-  const [userVoteStatus, setUserVoteStatus] = useState<UserVoteStatus | null>(
-    null,
-  );
-  const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchVotes = useCallback(async () => {
-    const res = await fetch(`/api/votes/${billId}`);
-    if (res.ok) setVotes(await res.json());
-  }, [billId]);
+  const { data: votes = null } = useQuery({
+    queryKey: billVotesQueryKey(billId),
+    queryFn: ({ signal }) => fetchBillVotes(billId, signal),
+    staleTime: 15_000,
+  });
 
-  const fetchUserVoteStatus = useCallback(async () => {
+  const { data: userVoteStatus = null } = useQuery({
+    queryKey: userVoteQueryKey(billId, user?.id ?? null),
+    queryFn: ({ signal }) => fetchUserVote(billId, signal),
+    enabled: !!user,
+    staleTime: 30_000,
+  });
+  const userVote = userVoteStatus?.vote?.voteType ?? null;
+
+  const mutation = useMutation({
+    mutationFn: (voteType: VoteType) => submitVoteApi(billId, voteType),
+    // Optimistic flip: stamp the user's choice into both caches before
+    // the server responds so the UI reflects intent immediately.
+    onMutate: async (voteType) => {
+      const userKey = userVoteQueryKey(billId, user?.id ?? null);
+      await queryClient.cancelQueries({ queryKey: userKey });
+      const previous = queryClient.getQueryData(userKey);
+      queryClient.setQueryData(userKey, (old: unknown) => {
+        const prev = old as typeof userVoteStatus;
+        return {
+          ...(prev ?? { isStale: false, staleInfo: null, vote: null }),
+          isStale: false,
+          staleInfo: null,
+          vote: {
+            ...(prev?.vote ?? {}),
+            voteType,
+          },
+        };
+      });
+      return { previous, userKey };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.userKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: billVotesQueryKey(billId) });
+      queryClient.invalidateQueries({
+        queryKey: userVoteQueryKey(billId, user?.id ?? null),
+      });
+    },
+  });
+  const submitting = mutation.isPending;
+
+  const submitVote = (voteType: VoteType) => {
     if (!user) return;
-    const res = await fetch(`/api/votes/${billId}/user`);
-    if (res.ok) {
-      const data: UserVoteStatus = await res.json();
-      setUserVoteStatus(data);
-      if (data.vote) setUserVote(data.vote.voteType);
-    }
-  }, [billId, user]);
-
-  useEffect(() => {
-    fetchVotes();
-  }, [fetchVotes]);
-
-  useEffect(() => {
-    fetchUserVoteStatus();
-  }, [fetchUserVoteStatus]);
-
-  const submitVote = async (voteType: VoteType) => {
-    if (!user) return;
-    setSubmitting(true);
-    const res = await fetch("/api/votes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ billId, voteType }),
-    });
-    if (res.ok) {
-      setUserVote(voteType);
-      setUserVoteStatus((prev) =>
-        prev ? { ...prev, isStale: false, staleInfo: null } : null,
-      );
-      fetchVotes();
-      fetchUserVoteStatus();
-    }
-    setSubmitting(false);
+    mutation.mutate(voteType);
   };
 
   const getCount = (type: string) =>

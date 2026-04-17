@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
@@ -106,46 +107,61 @@ export function CommentsSection({
   onSignUp?: () => void;
 }) {
   const { user } = useAuth();
-  const [comments, setComments] = useState<CommentData[]>([]);
-  const [total, setTotal] = useState(0);
+  const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<"new" | "best">("new");
 
-  const fetchComments = useCallback(async () => {
-    const res = await fetch(
-      `/api/comments/bill/${billId}?page=${page}&sort=${sort}`,
-    );
-    if (res.ok) {
-      const data = await res.json();
-      setComments(data.comments);
-      setTotal(data.total);
-    }
-  }, [billId, page, sort]);
+  const queryKey = ["bill-comments-page", billId, page, sort] as const;
+  const { data } = useQuery<{ comments: CommentData[]; total: number }>({
+    queryKey,
+    queryFn: async ({ signal }) => {
+      const res = await fetch(
+        `/api/comments/bill/${billId}?page=${page}&sort=${sort}`,
+        { signal },
+      );
+      if (!res.ok) throw new Error("Failed to load comments");
+      return res.json();
+    },
+    staleTime: 15_000,
+  });
+  const comments = data?.comments ?? [];
+  const total = data?.total ?? 0;
 
-  useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
+  const mutation = useMutation({
+    mutationFn: async ({
+      content,
+      parentCommentId,
+    }: {
+      content: string;
+      parentCommentId?: number;
+    }) => {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          billId,
+          content,
+          parentCommentId: parentCommentId || null,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to post comment");
+    },
+    onSuccess: () => {
+      // Invalidate every (page, sort) combo for this bill so the new
+      // comment shows up regardless of which tab is visible.
+      queryClient.invalidateQueries({
+        queryKey: ["bill-comments-page", billId],
+      });
+    },
+  });
+  const submitting = mutation.isPending;
 
   const submitComment = async (parentCommentId?: number, content?: string) => {
     const text = content || newComment;
     if (!text.trim() || !user) return;
-    setSubmitting(true);
-
-    await fetch("/api/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        billId,
-        content: text,
-        parentCommentId: parentCommentId || null,
-      }),
-    });
-
+    await mutation.mutateAsync({ content: text, parentCommentId });
     if (!parentCommentId) setNewComment("");
-    setSubmitting(false);
-    fetchComments();
   };
 
   return (
