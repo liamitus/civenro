@@ -19,7 +19,7 @@ type DonationRow = {
   hiddenAt: string | null;
 };
 
-export function DonationHistory({ userId }: { userId: string }) {
+export function DonationHistory({ userId: _userId }: { userId: string }) {
   const [donations, setDonations] = useState<DonationRow[]>([]);
   const [loading, setLoading] = useState(true);
 
