@@ -82,39 +82,29 @@ export async function POST(request: NextRequest) {
     if (chamberPassage.some((c) => c.chamber === "senate"))
       relevantChambers.push("senator");
 
+    // `officials` are already full Representative rows loaded in
+    // getRepresentativesByAddress — re-fetching them here would be a
+    // redundant round trip per rep. Fan out the vote + cosponsor lookups
+    // as two batched findMany calls instead of 2N per-rep queries, which
+    // is what pushed this route past the 60s Hobby cap.
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    const repsWithVotes = await Promise.all(
-      officials.map(async (official: any) => {
-        let dbRep = official.bioguideId
-          ? await prisma.representative.findUnique({
-              where: { bioguideId: official.bioguideId },
-            })
-          : null;
+    const repIds: number[] = officials
+      .map((o: any) => o.id)
+      .filter((id: unknown): id is number => typeof id === "number" && id > 0);
 
-        if (!dbRep) {
-          const nameParts = official.name.split(" ");
-          const firstName = nameParts[0];
-          const lastName = nameParts.slice(1).join(" ");
-          dbRep = await prisma.representative.findFirst({
-            where: {
-              firstName: { contains: firstName, mode: "insensitive" },
-              lastName: { contains: lastName, mode: "insensitive" },
-            },
-          });
-        }
+    const billIdInt = parseInt(billId);
 
-        if (dbRep) {
-          // Get all votes for this rep on this bill, plus their cosponsorship
-          // status. Cosponsorship is a strong support signal — especially
-          // valuable for bills that passed without a recorded roll call.
-          const [allVotes, cosponsorRow] = await Promise.all([
+    const [allVotesForBill, cosponsorRows] =
+      repIds.length > 0
+        ? await Promise.all([
             prisma.representativeVote.findMany({
               where: {
-                representativeId: dbRep.id,
-                billId: parseInt(billId),
+                billId: billIdInt,
+                representativeId: { in: repIds },
               },
               orderBy: { votedAt: "desc" },
               select: {
+                representativeId: true,
                 vote: true,
                 rollCallNumber: true,
                 chamber: true,
@@ -122,118 +112,111 @@ export async function POST(request: NextRequest) {
                 category: true,
               },
             }),
-            prisma.billCosponsor.findUnique({
+            prisma.billCosponsor.findMany({
               where: {
-                billId_representativeId: {
-                  billId: parseInt(billId),
-                  representativeId: dbRep.id,
-                },
+                billId: billIdInt,
+                representativeId: { in: repIds },
               },
               select: {
+                representativeId: true,
                 sponsoredAt: true,
                 isOriginal: true,
                 withdrawnAt: true,
               },
             }),
-          ]);
+          ])
+        : [[], []];
 
-          // Pick the best vote: passage categories first, then
-          // uncategorized (likely passage with missing metadata),
-          // then anything else (amendments, procedural) as last resort
-          const passageCategories = [
-            "passage",
-            "passage_suspension",
-            "veto_override",
-          ];
-          const amendmentCategories = [
-            "amendment",
-            "procedural",
-            "cloture",
-            "nomination",
-          ];
-
-          const passageVotes = allVotes.filter(
-            (v) => v.category && passageCategories.includes(v.category),
-          );
-          const uncategorizedVotes = allVotes.filter((v) => !v.category);
-          const otherVotes = allVotes.filter(
-            (v) =>
-              v.category &&
-              !passageCategories.includes(v.category) &&
-              !amendmentCategories.includes(v.category),
-          );
-          const amendmentVotes = allVotes.filter(
-            (v) => v.category && amendmentCategories.includes(v.category),
-          );
-
-          // Prioritized: passage > uncategorized > other > amendment
-          const votes =
-            passageVotes.length > 0
-              ? passageVotes
-              : uncategorizedVotes.length > 0
-                ? uncategorizedVotes
-                : otherVotes.length > 0
-                  ? otherVotes
-                  : amendmentVotes;
-
-          const latestVote = votes[0];
-
-          return {
-            bioguideId: dbRep.bioguideId,
-            slug: dbRep.slug,
-            firstName: dbRep.firstName,
-            lastName: dbRep.lastName,
-            state: dbRep.state,
-            district: dbRep.district,
-            party: dbRep.party,
-            chamber: dbRep.chamber,
-            imageUrl: dbRep.imageUrl,
-            link: dbRep.link,
-            id: dbRep.id,
-            name: official.name,
-            vote: latestVote?.vote || "No vote recorded",
-            voteCategory: latestVote?.category || null,
-            voteDate: latestVote?.votedAt?.toISOString() || null,
-            voteHistory:
-              allVotes.length > 1
-                ? allVotes.map((v: any) => ({
-                    vote: v.vote,
-                    rollCallNumber: v.rollCallNumber,
-                    chamber: v.chamber,
-                    votedAt: v.votedAt?.toISOString() || null,
-                  }))
-                : null,
-            cosponsorship: cosponsorRow
-              ? {
-                  sponsoredAt: cosponsorRow.sponsoredAt?.toISOString() || null,
-                  isOriginal: cosponsorRow.isOriginal,
-                  withdrawnAt: cosponsorRow.withdrawnAt?.toISOString() || null,
-                }
-              : null,
-          };
-        }
-
-        return {
-          name: official.name,
-          bioguideId: official.bioguideId || "",
-          slug: null,
-          firstName: official.firstName || "",
-          lastName: official.lastName || "",
-          state: official.state || "",
-          district: official.district || null,
-          party: official.party || "",
-          chamber: official.chamber || "",
-          imageUrl: null,
-          link: null,
-          id: 0,
-          vote: "Representative not found in database",
-          voteCategory: null,
-          voteDate: null,
-          voteHistory: null,
-          cosponsorship: null,
-        };
-      }),
+    type VoteRow = (typeof allVotesForBill)[number];
+    const votesByRep = new Map<number, VoteRow[]>();
+    for (const v of allVotesForBill) {
+      const bucket = votesByRep.get(v.representativeId);
+      if (bucket) bucket.push(v);
+      else votesByRep.set(v.representativeId, [v]);
+    }
+    const cosponsorByRep = new Map(
+      cosponsorRows.map((c) => [c.representativeId, c] as const),
     );
+
+    const passageCategories = new Set([
+      "passage",
+      "passage_suspension",
+      "veto_override",
+    ]);
+    const amendmentCategories = new Set([
+      "amendment",
+      "procedural",
+      "cloture",
+      "nomination",
+    ]);
+
+    const repsWithVotes = officials.map((official: any) => {
+      const allVotes = votesByRep.get(official.id) ?? [];
+      const cosponsorRow = cosponsorByRep.get(official.id) ?? null;
+
+      // Pick the best vote: passage categories first, then
+      // uncategorized (likely passage with missing metadata),
+      // then anything else (amendments, procedural) as last resort
+      const passageVotes = allVotes.filter(
+        (v) => v.category && passageCategories.has(v.category),
+      );
+      const uncategorizedVotes = allVotes.filter((v) => !v.category);
+      const otherVotes = allVotes.filter(
+        (v) =>
+          v.category &&
+          !passageCategories.has(v.category) &&
+          !amendmentCategories.has(v.category),
+      );
+      const amendmentVotes = allVotes.filter(
+        (v) => v.category && amendmentCategories.has(v.category),
+      );
+
+      // Prioritized: passage > uncategorized > other > amendment
+      const votes =
+        passageVotes.length > 0
+          ? passageVotes
+          : uncategorizedVotes.length > 0
+            ? uncategorizedVotes
+            : otherVotes.length > 0
+              ? otherVotes
+              : amendmentVotes;
+
+      const latestVote = votes[0];
+
+      return {
+        bioguideId: official.bioguideId,
+        slug: official.slug,
+        firstName: official.firstName,
+        lastName: official.lastName,
+        state: official.state,
+        district: official.district,
+        party: official.party,
+        chamber: official.chamber,
+        imageUrl: official.imageUrl,
+        link: official.link,
+        id: official.id,
+        name: official.name,
+        vote: latestVote?.vote || "No vote recorded",
+        voteCategory: latestVote?.category || null,
+        voteDate: latestVote?.votedAt?.toISOString() || null,
+        voteHistory:
+          allVotes.length > 1
+            ? allVotes.map((v) => ({
+                vote: v.vote,
+                rollCallNumber: v.rollCallNumber,
+                chamber: v.chamber,
+                votedAt: v.votedAt?.toISOString() || null,
+              }))
+            : null,
+        cosponsorship: cosponsorRow
+          ? {
+              sponsoredAt: cosponsorRow.sponsoredAt?.toISOString() || null,
+              isOriginal: cosponsorRow.isOriginal,
+              withdrawnAt: cosponsorRow.withdrawnAt?.toISOString() || null,
+            }
+          : null,
+      };
+    });
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
     const filteredReps = repsWithVotes.filter((rep) =>
