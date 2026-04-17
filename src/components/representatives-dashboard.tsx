@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useAddress } from "@/hooks/use-address";
 import { AddressAutocomplete } from "@/components/address-autocomplete";
 import { RepPhoto } from "@/components/representatives/rep-photo";
@@ -10,6 +11,11 @@ import {
   chamberLabel,
   nextElection,
 } from "@/lib/representative-utils";
+import {
+  fetchRepsByAddress,
+  repsByAddressQueryKey,
+  type RepByAddress,
+} from "@/lib/queries/representatives-client";
 
 /** "123 Main St, Springfield, IL 62704" → "Springfield, IL" */
 function shortAddress(full: string): string {
@@ -21,54 +27,32 @@ function shortAddress(full: string): string {
   return state ? `${city}, ${state}` : city;
 }
 
-interface Rep {
-  name: string;
-  party: string;
-  bioguideId: string;
-  slug: string | null;
-  chamber: string;
-  state: string;
-  district: string | null;
-  firstName: string;
-  lastName: string;
-  imageUrl: string | null;
-  phone: string | null;
-}
+type Rep = RepByAddress;
 
 export function RepresentativesDashboard() {
   const { address, setUserAddress, isLoaded } = useAddress();
-  const [reps, setReps] = useState<Rep[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [editAddress, setEditAddress] = useState(false);
   const [inputAddr, setInputAddr] = useState("");
 
-  const fetchReps = useCallback(async (addr: string) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/representatives/by-address", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: addr }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setReps(data.representatives || []);
-      } else {
-        setError("Could not find representatives for this address.");
-      }
-    } catch {
-      setError("Failed to look up representatives.");
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (isLoaded && address) {
-      fetchReps(address);
-    }
-  }, [isLoaded, address, fetchReps]);
+  const {
+    data: reps = [],
+    isFetching,
+    isError,
+    refetch,
+  } = useQuery<Rep[]>({
+    queryKey: repsByAddressQueryKey(address),
+    queryFn: ({ signal }) => fetchRepsByAddress(address, signal),
+    enabled: isLoaded && !!address,
+    // Address-keyed queries are cheap to cache — the same address will
+    // almost certainly resolve to the same reps within the 5-minute
+    // window, so refetchOnFocus isn't useful here.
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const loading = isFetching && reps.length === 0;
+  const error = isError
+    ? "Could not find representatives for this address."
+    : "";
 
   if (!isLoaded) return null;
 
@@ -209,7 +193,7 @@ export function RepresentativesDashboard() {
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             <button
-              onClick={() => fetchReps(address)}
+              onClick={() => refetch()}
               className="text-navy border-border/60 hover:bg-navy/5 inline-flex items-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors"
             >
               Try again
