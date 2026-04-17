@@ -22,8 +22,8 @@ export interface BillSummary {
   billType: string;
   currentChamber: string | null;
   currentStatus: string;
-  currentStatusDate: string;
-  introducedDate: string;
+  currentStatusDate: string | null;
+  introducedDate: string | null;
   link: string;
   shortText: string | null;
   sponsor: string | null;
