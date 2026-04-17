@@ -5,6 +5,7 @@ import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
 import { Footer } from "@/components/footer";
 import { BfcacheReload } from "@/components/bfcache-reload";
+import { QueryProvider } from "@/components/query-provider";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -46,12 +47,14 @@ export default function RootLayout({
       className={`${roboto.variable} ${geistMono.variable} ${gelasio.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <NuqsAdapter>
-          <BfcacheReload />
-          <NavBar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </NuqsAdapter>
+        <QueryProvider>
+          <NuqsAdapter>
+            <BfcacheReload />
+            <NavBar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </NuqsAdapter>
+        </QueryProvider>
       </body>
     </html>
   );

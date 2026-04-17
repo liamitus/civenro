@@ -1,18 +1,28 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useQueryStates,
   parseAsString,
   parseAsStringLiteral,
   parseAsBoolean,
 } from "nuqs";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
 import { BillCard } from "./bill-card";
 import { BillGroupCard } from "./bill-group-card";
 import { TOPICS } from "@/lib/topic-mapping";
 import { useAuth } from "@/hooks/use-auth";
 import { groupBills } from "@/lib/bill-grouping";
-import type { BillSummary } from "@/types";
+import {
+  billsQueryKey,
+  fetchBillsPageClient,
+  type BillsFilterState,
+} from "@/lib/queries/bills-client";
+import type { BillsQueryResult } from "@/lib/queries/bills";
 
 const SORT_OPTIONS = [
   { value: "relevant", label: "Trending" },
@@ -20,13 +30,6 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
 ] as const;
 
-// Filter state lives in the URL so it survives back-nav from a bill detail
-// page, is shareable, and works with the bfcache reload in layout.tsx.
-// - history: "replace" keeps the back button semantic (back exits /bills,
-//   doesn't step through every filter click).
-// - clearOnDefault keeps the URL clean — /bills stays /bills until the user
-//   actually narrows the feed.
-// - throttleMs smooths search typing so we don't spam history.
 const filterParsers = {
   search: parseAsString.withDefault(""),
   chamber: parseAsStringLiteral([
@@ -57,25 +60,77 @@ const filterOptions = {
 };
 
 export function BillListClient() {
-  const [bills, setBills] = useState<BillSummary[]>([]);
-  const [total, setTotal] = useState(0);
-  const [hiddenByMomentum, setHiddenByMomentum] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useQueryStates(filterParsers, filterOptions);
-  const { search, chamber, status, momentum, sortBy, topic, hideVoted } =
-    filters;
-  const [showFilters, setShowFilters] = useState(false);
-  const [votedBillIds, setVotedBillIds] = useState<Set<number>>(new Set());
+  const [rawFilters, setFilters] = useQueryStates(filterParsers, filterOptions);
+  const { hideVoted, ...filterTuple } = rawFilters;
+  const queryFilters: BillsFilterState = filterTuple;
+
   const observerRef = useRef<HTMLDivElement>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const { user } = useAuth();
 
-  const activeFilterCount =
-    (chamber !== "both" ? 1 : 0) +
-    (status !== "" ? 1 : 0) +
-    (hideVoted ? 1 : 0);
+  const {
+    data,
+    error: queryError,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteQuery<BillsQueryResult>({
+    queryKey: billsQueryKey(queryFilters),
+    queryFn: ({ pageParam, signal }) =>
+      fetchBillsPageClient(queryFilters, pageParam as number, signal),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const fetched = lastPage.page * lastPage.pageSize;
+      return fetched < lastPage.total ? lastPage.page + 1 : undefined;
+    },
+    // Keep the previous filter's data visible while the new one loads —
+    // prevents the skeleton flash when toggling a chamber pill.
+    placeholderData: keepPreviousData,
+  });
+
+  const bills = useMemo(
+    () => data?.pages.flatMap((p) => p.bills) ?? [],
+    [data],
+  );
+  const total = data?.pages[0]?.total ?? 0;
+  const hiddenByMomentum = data?.pages[0]?.hiddenByMomentum ?? 0;
+  const error = queryError
+    ? "Something went wrong loading bills. Please try again."
+    : null;
+  // The infinite query keeps prior pages during refetch; flag the "initial
+  // load" differently from "appending a page" for UX (skeletons vs spinner).
+  const isRefetchingFilter =
+    isFetching && !isFetchingNextPage && bills.length === 0;
+  const isRefiltering = isFetching && !isFetchingNextPage && bills.length > 0;
+
+  // Voted bills — only relevant for signed-in users. Moved off useEffect
+  // onto useQuery: enabled-gated, cached per user.
+  const { data: votedBillIdsArray } = useQuery<{ billIds: number[] }>({
+    queryKey: ["voted-bills", user?.id ?? null],
+    queryFn: async ({ signal }) => {
+      const res = await fetch("/api/user/voted-bills", {
+        cache: "no-store",
+        signal,
+      });
+      if (!res.ok) throw new Error("Failed to load voted bills");
+      return res.json();
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+  const votedBillIds = useMemo(
+    () => new Set<number>(votedBillIdsArray?.billIds ?? []),
+    [votedBillIdsArray],
+  );
+
+  // If the user signs out, clear the hideVoted toggle — otherwise a signed-
+  // out user sees "Voted hidden" with zero bills filtered.
+  useEffect(() => {
+    if (!user && hideVoted) setFilters({ hideVoted: false });
+  }, [user, hideVoted, setFilters]);
 
   const visibleBills = useMemo(
     () => (hideVoted ? bills.filter((b) => !votedBillIds.has(b.id)) : bills),
@@ -84,90 +139,32 @@ export function BillListClient() {
   const hiddenByVoteCount = hideVoted ? bills.length - visibleBills.length : 0;
   const feedItems = useMemo(() => groupBills(visibleBills), [visibleBills]);
 
-  // Load the set of bills the current user has voted on.
+  // Infinite-scroll sentinel: fire fetchNextPage when it scrolls into view.
   useEffect(() => {
-    if (!user) {
-      setVotedBillIds(new Set());
-      setFilters({ hideVoted: false });
-      return;
-    }
-    fetch("/api/user/voted-bills", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (Array.isArray(d?.billIds)) {
-          setVotedBillIds(new Set<number>(d.billIds));
-        }
-      })
-      .catch(() => {});
-  }, [user, setFilters]);
-
-  const fetchBills = useCallback(
-    async (pageNum: number, append: boolean = false) => {
-      if (append) setLoadingMore(true);
-      else setLoading(true);
-      const params = new URLSearchParams({
-        page: String(pageNum),
-        limit: "20",
-        sortBy,
-        order: "desc",
-        momentum,
-      });
-      if (chamber !== "both") params.set("chamber", chamber);
-      if (status) params.set("status", status);
-      if (search) params.set("search", search);
-      if (topic) {
-        // URL stores the user-facing label ("Environment"); the API wants the
-        // comma-joined CRS policy areas.
-        const topicInfo = TOPICS.find((t) => t.label === topic);
-        if (topicInfo) {
-          params.set("topic", topicInfo.policyAreas.join(","));
-        }
-      }
-
-      const res = await fetch(`/api/bills?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        setBills((prev) => (append ? [...prev, ...data.bills] : data.bills));
-        setTotal(data.total);
-        setHiddenByMomentum(data.hiddenByMomentum ?? 0);
-        setError(null);
-      } else {
-        setError("Something went wrong loading bills. Please try again.");
-      }
-      setLoading(false);
-      setLoadingMore(false);
-    },
-    [chamber, status, momentum, sortBy, search, topic],
-  );
-
-  useEffect(() => {
-    setPage(1);
-    fetchBills(1);
-  }, [fetchBills]);
-
-  useEffect(() => {
+    const el = observerRef.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (
           entries[0].isIntersecting &&
-          !loading &&
-          !loadingMore &&
-          bills.length < total
+          hasNextPage &&
+          !isFetchingNextPage &&
+          !isFetching
         ) {
-          const nextPage = page + 1;
-          setPage(nextPage);
-          fetchBills(nextPage, true);
+          fetchNextPage();
         }
       },
       { threshold: 0.1 },
     );
-    if (observerRef.current) observer.observe(observerRef.current);
+    observer.observe(el);
     return () => observer.disconnect();
-  }, [loading, loadingMore, bills.length, total, page, fetchBills]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetching]);
 
-  // `resetTo` is what the pill reverts to when the user clicks it while
-  // already active. Chamber has no "none" value, so it reverts to "both"
-  // (the default); status treats "" as "any".
+  const activeFilterCount =
+    (queryFilters.chamber !== "both" ? 1 : 0) +
+    (queryFilters.status !== "" ? 1 : 0) +
+    (hideVoted ? 1 : 0);
+
   const filterPill = (
     label: string,
     value: string,
@@ -179,7 +176,7 @@ export function BillListClient() {
       key={value}
       onClick={() =>
         setFilters({ [key]: current === value ? resetTo : value } as Partial<
-          typeof filters
+          typeof rawFilters
         >)
       }
       className={`rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-all ${
@@ -208,7 +205,7 @@ export function BillListClient() {
           </svg>
           <input
             placeholder="Search bills..."
-            value={search}
+            value={queryFilters.search}
             onChange={(e) => setFilters({ search: e.target.value })}
             className="border-border/60 placeholder:text-muted-foreground focus:ring-navy/20 focus:border-navy/20 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm focus:ring-2 focus:outline-none"
           />
@@ -219,7 +216,7 @@ export function BillListClient() {
               key={opt.value}
               onClick={() => setFilters({ sortBy: opt.value })}
               className={`rounded px-2 py-1 text-xs font-medium transition-all ${
-                sortBy === opt.value
+                queryFilters.sortBy === opt.value
                   ? "bg-navy/10 text-navy"
                   : "text-muted-foreground hover:text-navy"
               }`}
@@ -236,7 +233,7 @@ export function BillListClient() {
           <button
             onClick={() => setFilters({ topic: "" })}
             className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
-              topic === ""
+              queryFilters.topic === ""
                 ? "bg-navy text-white"
                 : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
             }`}
@@ -247,10 +244,12 @@ export function BillListClient() {
             <button
               key={t.label}
               onClick={() =>
-                setFilters({ topic: topic === t.label ? "" : t.label })
+                setFilters({
+                  topic: queryFilters.topic === t.label ? "" : t.label,
+                })
               }
               className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
-                topic === t.label
+                queryFilters.topic === t.label
                   ? "bg-navy text-white"
                   : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
               }`}
@@ -290,18 +289,48 @@ export function BillListClient() {
       {showFilters && (
         <div className="animate-fade-slide-up flex flex-wrap items-center gap-3 pb-2">
           <div className="border-border/50 flex items-center gap-0.5 rounded-full border px-1 py-0.5">
-            {filterPill("All", "both", chamber, "chamber", "both")}
-            {filterPill("House", "house", chamber, "chamber", "both")}
-            {filterPill("Senate", "senate", chamber, "chamber", "both")}
+            {filterPill("All", "both", queryFilters.chamber, "chamber", "both")}
+            {filterPill(
+              "House",
+              "house",
+              queryFilters.chamber,
+              "chamber",
+              "both",
+            )}
+            {filterPill(
+              "Senate",
+              "senate",
+              queryFilters.chamber,
+              "chamber",
+              "both",
+            )}
           </div>
 
           <div className="border-border/50 flex items-center gap-0.5 rounded-full border px-1 py-0.5">
-            {filterPill("Any", "", status, "status", "")}
-            {filterPill("Introduced", "introduced", status, "status", "")}
-            {filterPill("In Progress", "in_progress", status, "status", "")}
-            {filterPill("Passed", "passed", status, "status", "")}
-            {filterPill("Enacted", "enacted", status, "status", "")}
-            {filterPill("Failed", "failed", status, "status", "")}
+            {filterPill("Any", "", queryFilters.status, "status", "")}
+            {filterPill(
+              "Introduced",
+              "introduced",
+              queryFilters.status,
+              "status",
+              "",
+            )}
+            {filterPill(
+              "In Progress",
+              "in_progress",
+              queryFilters.status,
+              "status",
+              "",
+            )}
+            {filterPill("Passed", "passed", queryFilters.status, "status", "")}
+            {filterPill(
+              "Enacted",
+              "enacted",
+              queryFilters.status,
+              "status",
+              "",
+            )}
+            {filterPill("Failed", "failed", queryFilters.status, "status", "")}
           </div>
 
           {user && votedBillIds.size > 0 && (
@@ -343,18 +372,18 @@ export function BillListClient() {
       {/* Count + hidden bills link */}
       <div className="flex min-h-[24px] items-center justify-between">
         <p className="text-muted-foreground flex items-center gap-2 text-xs">
-          {loading && (
+          {isRefiltering && (
             <span className="text-navy/70 inline-flex items-center gap-1.5">
               <span className="border-navy/15 border-t-navy/70 h-3 w-3 animate-spin rounded-full border-2" />
               Updating…
             </span>
           )}
-          {!loading && total > 0 && (
+          {!isRefiltering && total > 0 && (
             <>
               <span>
                 {total.toLocaleString()} bill{total !== 1 ? "s" : ""}
               </span>
-              {momentum === "live" && hiddenByMomentum > 0 && (
+              {queryFilters.momentum === "live" && hiddenByMomentum > 0 && (
                 <button
                   onClick={() => setFilters({ momentum: "all" })}
                   className="text-muted-foreground/70 hover:text-navy underline decoration-dotted underline-offset-2 transition-colors"
@@ -362,7 +391,7 @@ export function BillListClient() {
                   ({hiddenByMomentum.toLocaleString()} dormant or dead hidden)
                 </button>
               )}
-              {momentum === "all" && (
+              {queryFilters.momentum === "all" && (
                 <button
                   onClick={() => setFilters({ momentum: "live" })}
                   className="text-muted-foreground/70 hover:text-navy underline decoration-dotted underline-offset-2 transition-colors"
@@ -383,9 +412,9 @@ export function BillListClient() {
       {/* Bill list */}
       <div
         className={`space-y-2 transition-opacity duration-150 ${
-          loading && bills.length > 0 ? "pointer-events-none opacity-40" : ""
+          isRefiltering ? "pointer-events-none opacity-40" : ""
         }`}
-        aria-busy={loading}
+        aria-busy={isRefiltering}
       >
         {feedItems.map((item, i) => {
           const key =
@@ -411,11 +440,9 @@ export function BillListClient() {
         })}
       </div>
 
-      {loading && bills.length === 0 && (
+      {(isLoading || isRefetchingFilter) && bills.length === 0 && (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            // Shape-matching skeleton: chamber bar + title rows + badge row.
-            // Respects prefers-reduced-motion automatically via motion-safe:.
             <div
               key={i}
               className="border-border/50 relative overflow-hidden rounded-lg border bg-white px-5 py-4"
@@ -443,7 +470,7 @@ export function BillListClient() {
         </div>
       )}
 
-      {loadingMore && (
+      {isFetchingNextPage && (
         <div className="flex justify-center py-6">
           <div className="text-muted-foreground flex items-center gap-2 text-xs">
             <div className="border-navy/15 border-t-navy/60 h-4 w-4 animate-spin rounded-full border-2" />
@@ -456,7 +483,7 @@ export function BillListClient() {
         <div className="border-border/60 bg-muted/30 space-y-3 rounded-lg border p-6 text-center">
           <p className="text-muted-foreground text-sm">{error}</p>
           <button
-            onClick={() => fetchBills(1)}
+            onClick={() => refetch()}
             className="text-navy border-border/60 hover:bg-navy/5 inline-flex items-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors"
           >
             Try again
@@ -464,7 +491,7 @@ export function BillListClient() {
         </div>
       )}
 
-      {!loading && !error && bills.length === 0 && (
+      {!isLoading && !error && bills.length === 0 && (
         <div className="py-16 text-center">
           <p className="text-muted-foreground text-sm">
             No bills found matching your filters.
