@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAddress } from "@/hooks/use-address";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,10 @@ import type {
 } from "@/types";
 import { partyColor as partyColors } from "@/lib/representative-utils";
 import { RepPhoto } from "@/components/representatives/rep-photo";
+import {
+  fetchRepsForBill,
+  repsForBillQueryKey,
+} from "@/lib/queries/representatives-client";
 
 const NO_VOTE_SENTINEL = "No vote recorded";
 
@@ -296,40 +301,20 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
 
 export function RepresentativesVotes({ billId }: { billId: number }) {
   const { address, setUserAddress } = useAddress();
-  const [reps, setReps] = useState<RepresentativeWithVote[]>([]);
-  const [chamberPassage, setChamberPassage] = useState<ChamberPassageInfo[]>(
-    [],
-  );
-  const [loading, setLoading] = useState(false);
   const [inputAddress, setInputAddress] = useState("");
 
-  const fetchReps = useCallback(
-    async (addr: string) => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/representatives", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: addr, billId }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setReps(data.representatives);
-          setChamberPassage(data.chamberPassage || []);
-        }
-      } catch (err) {
-        console.error("Error fetching representatives:", err);
-      }
-      setLoading(false);
-    },
-    [billId],
-  );
-
-  useEffect(() => {
-    if (address) {
-      fetchReps(address);
-    }
-  }, [address, fetchReps]);
+  const { data, isFetching } = useQuery({
+    queryKey: repsForBillQueryKey(billId, address),
+    queryFn: ({ signal }) => fetchRepsForBill(billId, address, signal),
+    enabled: !!address,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const reps: RepresentativeWithVote[] =
+    (data?.representatives as RepresentativeWithVote[] | undefined) ?? [];
+  const chamberPassage: ChamberPassageInfo[] =
+    (data?.chamberPassage as ChamberPassageInfo[] | undefined) ?? [];
+  const loading = isFetching && reps.length === 0;
 
   const handleSubmitAddress = () => {
     if (inputAddress.trim()) {
