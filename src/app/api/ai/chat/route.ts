@@ -20,6 +20,7 @@ import { recordSpend } from "@/lib/budget";
 import { assertUserRateLimit, RateLimitError } from "@/lib/rate-limit";
 import { getCachedResponse, setCachedResponse } from "@/lib/ai-cache";
 import { reportError } from "@/lib/error-reporting";
+import { formatStreamErrorForClient } from "@/lib/ai-chat-stream-errors";
 
 /** Max characters allowed in a single user message. */
 const MAX_MESSAGE_LENGTH = 2000;
@@ -307,6 +308,10 @@ export async function POST(request: NextRequest) {
         }
         return undefined;
       },
+      // Default is an opaque "An error occurred." — pass an actionable
+      // string so the client can surface the real cause (billing, auth,
+      // timeout, etc.) rather than a generic "Something went wrong".
+      onError: formatStreamErrorForClient,
     });
   } catch (error) {
     if (error instanceof RateLimitError) {
