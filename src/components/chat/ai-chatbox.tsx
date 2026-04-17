@@ -1,8 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+/* eslint-disable react-hooks/refs --
+ * The transport's body callback below reads conversationIdRef.current. It's
+ * invoked by the transport at request time, not during render — the
+ * react-hooks/refs rule doesn't follow callbacks and flags the whole useMemo
+ * call. Disabling file-scoped because the access is on a dedicated line and
+ * there's no render-time read anywhere else in this file.
+ */
+
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import { Maximize2, MessageSquare, Send } from "lucide-react";
+import { useChat } from "@ai-sdk/react";
+import {
+  DefaultChatTransport,
+  generateId,
+  isTextUIPart,
+  type UIMessage,
+} from "ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,16 +34,15 @@ import {
   mapErrorToState,
   type AiChatErrorState,
 } from "@/components/chat/ai-chat-error";
-import type { ConversationMessage } from "@/types";
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH_VW = 0.95;
 const DEFAULT_WIDTH = 640;
 const WIDTH_STORAGE_KEY = "govroll:ai-chat:width";
 
-// Abort the chat request before Vercel's function timeout (60s on Hobby) so
-// we surface a controlled error instead of a non-JSON platform error page.
-const CHAT_TIMEOUT_MS = 58_000;
+/** Message metadata streamed from the server with the `start` part. */
+type ChatMetadata = { conversationId?: string };
+type ChatMessage = UIMessage<ChatMetadata>;
 
 function AiMessageContent({ text }: { text: string }) {
   return (
@@ -56,6 +70,14 @@ function AiMessageContent({ text }: { text: string }) {
   );
 }
 
+/** Concatenate the text parts of a streamed assistant message. */
+function messageText(message: ChatMessage): string {
+  return message.parts
+    .filter(isTextUIPart)
+    .map((p) => p.text)
+    .join("");
+}
+
 export function AiChatbox({
   billId,
   onSignUp,
@@ -65,19 +87,21 @@ export function AiChatbox({
 }) {
   const { user } = useAuth();
   const userId = user?.id;
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<AiChatErrorState | null>(null);
+
+  // Latest server-assigned conversation id. Kept in a ref so the transport's
+  // body closure always sees the newest value without re-creating the hook.
+  const conversationIdRef = useRef<string | null>(null);
+
   const [aiPaused, setAiPaused] = useState<{
     incomeCents: number;
     spendCents: number;
   } | null>(null);
+  const [errorState, setErrorState] = useState<AiChatErrorState | null>(null);
   const [textTier, setTextTier] = useState<
     "full" | "summary" | "title-only" | null
   >(null);
   const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
   const [width, setWidth] = useState<number>(() => {
     if (typeof window === "undefined") return DEFAULT_WIDTH;
     const stored = localStorage.getItem(WIDTH_STORAGE_KEY);
@@ -88,23 +112,89 @@ export function AiChatbox({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sheetInputRef = useRef<HTMLInputElement>(null);
 
-  // Load existing conversation once per (billId, userId). Using `user?.id`
-  // instead of the `user` object keeps this stable across Supabase token
-  // refreshes, which otherwise re-fire the GET several times per session.
+  // The body callback is invoked by the transport at request time so it can
+  // read the latest conversationId without forcing the transport (and the
+  // whole chat) to rebuild whenever that id changes.
+  const buildBody = useCallback(
+    () => ({
+      billId,
+      conversationId: conversationIdRef.current,
+    }),
+    [billId],
+  );
+
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport<ChatMessage>({
+        api: "/api/ai/chat",
+        body: buildBody,
+      }),
+    [buildBody],
+  );
+
+  const { messages, setMessages, sendMessage, regenerate, status, clearError } =
+    useChat<ChatMessage>({
+      transport,
+      onFinish: ({ message }) => {
+        const id = (message.metadata as ChatMetadata | undefined)
+          ?.conversationId;
+        if (id) conversationIdRef.current = id;
+      },
+      onError: (err) => {
+        // Attempt to decode structured server errors (429/503/auth). On
+        // success-status streams the error will be a generic transport error
+        // and we fall back to the generic mapping.
+        const parsed = parseServerError(err);
+        if (parsed?.kind === "ai_disabled") {
+          setAiPaused({
+            incomeCents: parsed.incomeCents,
+            spendCents: parsed.spendCents,
+          });
+          // Drop the user's optimistic message — no answer is coming this month.
+          setMessages((prev) => prev.slice(0, -1));
+          return;
+        }
+        setErrorState(
+          mapErrorToState({
+            status: parsed?.status,
+            serverMessage: parsed?.message,
+            isNetworkError: !parsed,
+          }),
+        );
+      },
+    });
+
+  // Clear any lingering error banner when the user starts a fresh turn.
+  useEffect(() => {
+    if (status === "submitted" || status === "streaming") {
+      setErrorState(null);
+    }
+  }, [status]);
+
+  // Hydrate the most recent conversation for this bill on mount.
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
     fetch(`/api/ai/chat?billId=${billId}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (cancelled) return;
-        if (data?.messages) setMessages(data.messages);
+        if (cancelled || !data?.messages) return;
+        if (data.conversationId)
+          conversationIdRef.current = data.conversationId;
+        const hydrated: ChatMessage[] = data.messages.map(
+          (m: { sender: "user" | "ai"; text: string }) => ({
+            id: generateId(),
+            role: m.sender === "user" ? "user" : "assistant",
+            parts: [{ type: "text" as const, text: m.text }],
+          }),
+        );
+        setMessages(hydrated);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [billId, userId]);
+  }, [billId, userId, setMessages]);
 
   // Probe what AI context is actually available for this bill so we can
   // warn the user upfront if we only have a summary (or just the title).
@@ -122,127 +212,39 @@ export function AiChatbox({
     };
   }, [billId]);
 
-  // Auto-scroll to bottom on new message, thinking state, or error
+  // Auto-scroll to bottom as content changes
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages, loading, error]);
+  }, [messages, status, errorState]);
 
   // Focus input when sheet opens
   useEffect(() => {
     if (open) {
-      // Wait for the sheet animation to finish before focusing
       const t = setTimeout(() => sheetInputRef.current?.focus(), 220);
       return () => clearTimeout(t);
     }
   }, [open]);
 
-  const sendMessage = useCallback(
-    async (overrideText?: string) => {
+  const isBusy = status === "submitted" || status === "streaming";
+
+  const submit = useCallback(
+    (overrideText?: string) => {
       const text = (overrideText ?? input).trim();
-      if (!text || !user || loading) return;
-
+      if (!text || !user || isBusy) return;
       setInput("");
-      setError(null);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "user", text, createdAt: new Date().toISOString() },
-      ]);
-      setLoading(true);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        CHAT_TIMEOUT_MS,
-      );
-
-      try {
-        const res = await fetch("/api/ai/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            billId,
-            userMessage: text,
-            conversationId,
-          }),
-          signal: controller.signal,
-        });
-
-        // Read body as text first so we can handle non-JSON error pages
-        // (e.g. Vercel's "An error occurred" 504 body) without throwing.
-        const rawBody = await res.text();
-        let data: unknown = null;
-        let parseFailed = false;
-        if (rawBody) {
-          try {
-            data = JSON.parse(rawBody);
-          } catch {
-            parseFailed = true;
-          }
-        }
-        const parsed = (data ?? {}) as {
-          conversationId?: string;
-          aiAnswer?: string;
-          error?: string;
-          budget?: { incomeCents?: number; spendCents?: number };
-        };
-
-        if (res.ok && parsed.aiAnswer) {
-          if (parsed.conversationId) setConversationId(parsed.conversationId);
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: "ai",
-              text: parsed.aiAnswer as string,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
-          return;
-        }
-
-        // AI budget exhausted — show the paused panel and drop the
-        // optimistic user message since no response will ever arrive.
-        if (res.status === 503 && parsed.error === "ai_disabled") {
-          setAiPaused({
-            incomeCents: parsed.budget?.incomeCents ?? 0,
-            spendCents: parsed.budget?.spendCents ?? 0,
-          });
-          setMessages((prev) => prev.slice(0, -1));
-          return;
-        }
-
-        setError(
-          mapErrorToState({
-            status: res.status,
-            serverMessage: parsed.error,
-            isParseError: parseFailed,
-          }),
-        );
-      } catch (err) {
-        const isAbort =
-          err instanceof DOMException && err.name === "AbortError";
-        setError(
-          mapErrorToState({
-            isAbort,
-            isNetworkError: !isAbort,
-          }),
-        );
-      } finally {
-        clearTimeout(timeoutId);
-        setLoading(false);
-      }
+      setErrorState(null);
+      clearError();
+      void sendMessage({ text });
     },
-    [billId, conversationId, input, loading, user],
+    [input, user, isBusy, clearError, sendMessage],
   );
 
-  // Re-send the last user message without duplicating it in the thread.
   const retryLast = useCallback(() => {
-    const last = messages[messages.length - 1];
-    if (!last || last.sender !== "user") return;
-    setError(null);
-    setMessages((prev) => prev.slice(0, -1));
-    void sendMessage(last.text);
-  }, [messages, sendMessage]);
+    setErrorState(null);
+    clearError();
+    void regenerate();
+  }, [clearError, regenerate]);
 
   // Submit from the inline trigger → opens sheet AND sends the message
   const submitFromTrigger = useCallback(() => {
@@ -252,8 +254,8 @@ export function AiChatbox({
       return;
     }
     setOpen(true);
-    void sendMessage(text);
-  }, [input, sendMessage]);
+    submit(text);
+  }, [input, submit]);
 
   // Drag-to-resize the sheet
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -295,10 +297,13 @@ export function AiChatbox({
   }
 
   const hasHistory = messages.length > 0;
+  // Assistant slot is "thinking" only before the first token arrives.
+  const isThinking = status === "submitted";
+  // While streaming we're already rendering partial tokens via the last
+  // assistant message; no separate indicator needed.
 
   return (
     <>
-      {/* ── Compact inline trigger ─────────────────────────────────────── */}
       {aiPaused && (
         <AiPausedPanel
           incomeCents={aiPaused.incomeCents}
@@ -349,10 +354,8 @@ export function AiChatbox({
         )}
       </div>
 
-      {/* ── Slide-over sheet with full conversation ─────────────────────── */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent width={width}>
-          {/* Resize handle pinned to the left edge */}
           <div
             role="separator"
             aria-orientation="vertical"
@@ -390,7 +393,6 @@ export function AiChatbox({
             </SheetDescription>
           </SheetHeader>
 
-          {/* Scrollable message area */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5">
             {aiPaused ? (
               <div className="flex h-full items-center justify-center px-6">
@@ -399,7 +401,7 @@ export function AiChatbox({
                   spendCents={aiPaused.spendCents}
                 />
               </div>
-            ) : messages.length === 0 && !loading && !error ? (
+            ) : messages.length === 0 && !isBusy && !errorState ? (
               <div className="flex h-full flex-col items-center justify-center px-6 text-center">
                 <p className="text-foreground mb-1 text-sm font-medium">
                   Ask anything about this bill
@@ -408,9 +410,7 @@ export function AiChatbox({
                   Try{" "}
                   <button
                     type="button"
-                    onClick={() =>
-                      sendMessage("What does this bill actually do?")
-                    }
+                    onClick={() => submit("What does this bill actually do?")}
                     className="hover:text-foreground underline"
                   >
                     What does this bill actually do?
@@ -418,7 +418,7 @@ export function AiChatbox({
                   or{" "}
                   <button
                     type="button"
-                    onClick={() => sendMessage("Who is most affected?")}
+                    onClick={() => submit("Who is most affected?")}
                     className="hover:text-foreground underline"
                   >
                     Who is most affected?
@@ -427,31 +427,31 @@ export function AiChatbox({
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((msg, i) => (
+                {messages.map((msg) => (
                   <div
-                    key={i}
+                    key={msg.id}
                     className={`text-sm ${
-                      msg.sender === "user"
+                      msg.role === "user"
                         ? "flex justify-end"
                         : "flex justify-start"
                     }`}
                   >
                     <div
                       className={`max-w-[88%] rounded-2xl px-4 py-2.5 leading-relaxed ${
-                        msg.sender === "user"
+                        msg.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground"
                       }`}
                     >
-                      {msg.sender === "ai" ? (
-                        <AiMessageContent text={msg.text} />
+                      {msg.role === "assistant" ? (
+                        <AiMessageContent text={messageText(msg)} />
                       ) : (
-                        msg.text
+                        messageText(msg)
                       )}
                     </div>
                   </div>
                 ))}
-                {loading && (
+                {isThinking && (
                   <div
                     role="status"
                     aria-live="polite"
@@ -463,10 +463,10 @@ export function AiChatbox({
                     </div>
                   </div>
                 )}
-                {error && !loading && (
+                {errorState && !isBusy && (
                   <div className="flex justify-start">
                     <div className="max-w-[88%]">
-                      <AiChatError state={error} onRetry={retryLast} />
+                      <AiChatError state={errorState} onRetry={retryLast} />
                     </div>
                   </div>
                 )}
@@ -474,7 +474,6 @@ export function AiChatbox({
             )}
           </div>
 
-          {/* Input pinned to bottom */}
           <div className="bg-background border-t px-5 py-4">
             <div className="flex gap-2">
               <Input
@@ -485,14 +484,14 @@ export function AiChatbox({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    void sendMessage();
+                    submit();
                   }
                 }}
-                disabled={loading}
+                disabled={isBusy}
               />
               <Button
-                onClick={() => void sendMessage()}
-                disabled={loading || !input.trim()}
+                onClick={() => submit()}
+                disabled={isBusy || !input.trim()}
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -508,4 +507,38 @@ function clampWidth(n: number): number {
   const max =
     typeof window !== "undefined" ? window.innerWidth * MAX_WIDTH_VW : 1200;
   return Math.max(MIN_WIDTH, Math.min(max, n));
+}
+
+/**
+ * Attempt to parse the JSON body that accompanied a non-stream HTTP error.
+ * useChat surfaces such errors as `Error` with the body text stringified in
+ * `message`; this recovers the status + structured fields so the error bubble
+ * can show the right copy and budget-exhausted responses can route to the
+ * paused panel.
+ */
+function parseServerError(
+  err: unknown,
+):
+  | { kind: "ai_disabled"; incomeCents: number; spendCents: number }
+  | { kind: "http"; status?: number; message?: string }
+  | null {
+  if (!(err instanceof Error)) return null;
+  const match = err.message.match(/\{[\s\S]*\}$/);
+  if (!match) return { kind: "http", message: err.message };
+  try {
+    const parsed = JSON.parse(match[0]) as {
+      error?: string;
+      budget?: { incomeCents?: number; spendCents?: number };
+    };
+    if (parsed?.error === "ai_disabled") {
+      return {
+        kind: "ai_disabled",
+        incomeCents: parsed.budget?.incomeCents ?? 0,
+        spendCents: parsed.budget?.spendCents ?? 0,
+      };
+    }
+    return { kind: "http", message: parsed?.error };
+  } catch {
+    return { kind: "http", message: err.message };
+  }
 }
