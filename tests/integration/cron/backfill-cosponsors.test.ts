@@ -64,4 +64,64 @@ describe("GET /api/cron/backfill-cosponsors", () => {
     expect(rows[0].representativeId).toBe(rep.id);
     expect(rows[0].isOriginal).toBe(true);
   });
+
+  it("re-processes a bill whose existing cosponsor rows fall short of cosponsorCount", async () => {
+    // Pre-fix the cron used `cosponsors: { none: {} }` — once a bill had
+    // even one cosponsor row, it was skipped forever. A bill that stalled
+    // mid-pagination (e.g. 250/330 rows persisted) could never catch up.
+    const repA = await seedRepresentative({ bioguideId: "A000001" });
+    const repB = await seedRepresentative({ bioguideId: "B000001" });
+
+    const bill = await seedBill({
+      billId: "house_bill-77-119",
+      momentumTier: "ACTIVE",
+    });
+    await getTestPrisma().bill.update({
+      where: { id: bill.id },
+      data: { cosponsorCount: 2 },
+    });
+
+    // Seed ONLY repA — simulates a prior partial backfill.
+    await getTestPrisma().billCosponsor.create({
+      data: {
+        billId: bill.id,
+        representativeId: repA.id,
+        isOriginal: true,
+        sponsoredAt: new Date("2026-02-01"),
+      },
+    });
+
+    server.use(
+      http.get("https://api.congress.gov/v3/bill/119/hr/77/cosponsors", () =>
+        HttpResponse.json({
+          cosponsors: [
+            {
+              bioguideId: repA.bioguideId,
+              firstName: repA.firstName,
+              lastName: repA.lastName,
+              sponsorshipDate: "2026-02-01",
+              isOriginalCosponsor: true,
+            },
+            {
+              bioguideId: repB.bioguideId,
+              firstName: repB.firstName,
+              lastName: repB.lastName,
+              sponsorshipDate: "2026-02-10",
+              isOriginalCosponsor: false,
+            },
+          ],
+        }),
+      ),
+    );
+
+    const res = await invokeCron(GET);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.processed).toBe(1);
+
+    const rows = await getTestPrisma().billCosponsor.findMany({
+      where: { billId: bill.id },
+    });
+    expect(rows).toHaveLength(2);
+  });
 });

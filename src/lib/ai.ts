@@ -33,8 +33,26 @@ const SONNET_MODEL = "anthropic/claude-sonnet-4-20250514";
  *  diff summarization where hallucination risk is inherently low. */
 const HAIKU_MODEL = "anthropic/claude-haiku-4-5";
 
-/** Above this total section-text size we run a pre-pass to pick sections. */
-const LARGE_BILL_THRESHOLD = 100_000;
+/** Above this total section-text size we run a pre-pass to pick sections.
+ *  Sonnet 200K-token context ≈ 600K chars; we want the pre-filter to kick
+ *  in well before we hit the window, but not so eagerly that typical bills
+ *  get aggressively summarized. 400K leaves headroom for metadata, history,
+ *  and response tokens while still fitting mid-size legislation uncut. */
+const LARGE_BILL_THRESHOLD = 400_000;
+
+/** Cap on sections returned by the pre-filter pass. Raised from 15 because
+ *  omnibus bills (NDAA, appropriations) regularly have substantive provisions
+ *  spread across far more sections than that; 15 meant user questions about
+ *  a specific section frequently missed. */
+const MAX_FILTERED_SECTIONS = 60;
+
+/** Fallback section count when the pre-filter JSON parse fails. Raised from
+ *  30 for the same reason — keep the answer hit rate up. */
+const FALLBACK_SECTION_COUNT = 120;
+
+/** Chars per version passed to the diff-summary model. Raised from 30_000
+ *  so a 4 MB NDAA diff captures more than the first ~0.7% of each side. */
+const CHANGE_SUMMARY_CHARS = 120_000;
 
 const CITATION_INSTRUCTIONS = `When answering, quote directly from the bill text using markdown blockquotes when it helps. Attribute quotes to the section they came from:
 
@@ -164,7 +182,7 @@ Table of contents:
 ${index}
 
 Return ONLY a JSON array of section references that are relevant to the question. Example: ["Section 2", "Section 5(a)"]
-Return at most 15 sections. If unsure, include more rather than fewer.`;
+Return at most ${MAX_FILTERED_SECTIONS} sections. If unsure, include more rather than fewer.`;
 
   const result = await generateText({
     model: HAIKU_MODEL,
@@ -190,9 +208,12 @@ Return at most 15 sections. If unsure, include more rather than fewer.`;
     // Fall through to the fallback below
   }
 
-  // Fallback: return first 30 sections. Better than nothing, and keeps the
-  // main call inside a reasonable context budget.
-  return { sections: allSections.slice(0, 30), usage };
+  // Fallback: take the first FALLBACK_SECTION_COUNT sections. Better than
+  // nothing, and keeps the main call inside a reasonable context budget.
+  return {
+    sections: allSections.slice(0, FALLBACK_SECTION_COUNT),
+    usage,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -274,10 +295,10 @@ export async function generateChangeSummary(
   const userPrompt = `Bill: "${billTitle}"
 
 Previous version (${previousVersionType}):
-${previousText.slice(0, 30000)}
+${previousText.slice(0, CHANGE_SUMMARY_CHARS)}
 
 Current version (${currentVersionType}):
-${currentText.slice(0, 30000)}
+${currentText.slice(0, CHANGE_SUMMARY_CHARS)}
 
 Summarize the substantive changes between these two versions.`;
 

@@ -16,16 +16,21 @@ const prisma = createStandalonePrisma();
  * bills first so the listing page always shows enriched data on recent
  * legislation.
  *
- * `lastMetadataRefreshAt` is the cooldown: bills whose CRS summary Congress.gov
- * hasn't published yet would otherwise dominate the queue forever, since they
- * stay in `shortText IS NULL` permanently. The 14-day cooldown lets us re-check
- * occasionally without burning every cron slot on the same hopeless bills.
+ * Cooldown rules (see `SUMMARY_RETRY_DAYS` vs `NO_SUMMARY_RETRY_DAYS`):
+ * - If we fetched a CRS summary, stamp lastMetadataRefreshAt and skip the bill
+ *   for 14 days — we already have what we came for.
+ * - If the summary is still unpublished, *don't* stamp the clock. CRS often
+ *   publishes weeks after introduction, so under a single long cooldown the
+ *   bill gets locked out of the pool (that's how we ended up with 92% of
+ *   ACTIVE bills missing shortText pre-fix). The route's sponsor-nulls-first
+ *   ordering protects against re-hammering a single bill — once sponsor is
+ *   populated the bill falls to the tail of the queue behind truly new bills.
  */
-const REFRESH_COOLDOWN_DAYS = 14;
+const SUMMARY_RETRY_DAYS = 14;
 
 export async function refreshBillMetadataFunction(limit = 25) {
   const cooldownCutoff = new Date(
-    Date.now() - REFRESH_COOLDOWN_DAYS * 24 * 60 * 60 * 1000,
+    Date.now() - SUMMARY_RETRY_DAYS * 24 * 60 * 60 * 1000,
   );
 
   const bills = await prisma.bill.findMany({
@@ -74,6 +79,12 @@ export async function refreshBillMetadataFunction(limit = 25) {
         failed++;
         continue;
       }
+      // Only stamp the cooldown clock when the CRS summary actually arrived.
+      // Otherwise we'd lock a freshly-introduced bill out of the refresh pool
+      // for 14 days while its summary is still being drafted — that's how we
+      // ended up with 92% of ACTIVE bills missing shortText pre-fix.
+      const gotSummary =
+        meta.shortText != null && meta.shortText.trim().length > 0;
       await prisma.bill.update({
         where: { id: bill.id },
         data: {
@@ -86,7 +97,7 @@ export async function refreshBillMetadataFunction(limit = 25) {
             ? new Date(meta.latestActionDate)
             : null,
           shortText: meta.shortText,
-          lastMetadataRefreshAt: new Date(),
+          ...(gotSummary ? { lastMetadataRefreshAt: new Date() } : {}),
         },
       });
       ok++;

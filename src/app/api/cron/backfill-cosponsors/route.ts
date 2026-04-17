@@ -46,21 +46,25 @@ export async function GET(request: Request) {
   const started = Date.now();
   const deadline = started + TIMEOUT_MS;
 
-  // Select live bills that have aggregate cosponsors but no individual rows yet.
-  // Newest-first: current-congress bills are what users actually look at. A
-  // long tail of old bills whose only cosponsor is a former member (not in our
-  // Representative table) will never drain — they'd block the queue forever
-  // under ASC order. Pushing them to the tail keeps drain progress steady.
-  const batch = await prisma.bill.findMany({
-    where: {
-      momentumTier: { in: tiers },
-      cosponsorCount: { gt: 0 },
-      cosponsors: { none: {} },
-    },
-    orderBy: [{ currentStatusDate: "desc" }],
-    select: { billId: true },
-    take: limit,
-  });
+  // Select live bills whose stored cosponsor rows fall short of the aggregate
+  // count — either zero rows or a partial set from a prior truncated run. The
+  // earlier `cosponsors: { none: {} }` filter trapped bills that received
+  // even one row, so mid-pagination interruptions or the old 250-limit bug
+  // left ~126 live bills permanently stuck. Raw SQL lets us compare counts.
+  const batch = await prisma.$queryRaw<Array<{ billId: string }>>`
+    SELECT b."billId"
+    FROM "Bill" b
+    LEFT JOIN (
+      SELECT "billId", COUNT(*)::int AS actual
+      FROM "BillCosponsor"
+      GROUP BY "billId"
+    ) bc ON bc."billId" = b.id
+    WHERE b."momentumTier" = ANY(${tiers}::text[])
+      AND b."cosponsorCount" > 0
+      AND COALESCE(bc.actual, 0) < b."cosponsorCount"
+    ORDER BY b."currentStatusDate" DESC
+    LIMIT ${limit}
+  `;
 
   let processed = 0;
   let timedOut = false;
@@ -80,13 +84,19 @@ export async function GET(request: Request) {
     }
   }
 
-  const remaining = await prisma.bill.count({
-    where: {
-      momentumTier: { in: tiers },
-      cosponsorCount: { gt: 0 },
-      cosponsors: { none: {} },
-    },
-  });
+  const remainingRows = await prisma.$queryRaw<Array<{ n: bigint }>>`
+    SELECT COUNT(*)::bigint AS n
+    FROM "Bill" b
+    LEFT JOIN (
+      SELECT "billId", COUNT(*)::int AS actual
+      FROM "BillCosponsor"
+      GROUP BY "billId"
+    ) bc ON bc."billId" = b.id
+    WHERE b."momentumTier" = ANY(${tiers}::text[])
+      AND b."cosponsorCount" > 0
+      AND COALESCE(bc.actual, 0) < b."cosponsorCount"
+  `;
+  const remaining = Number(remainingRows[0]?.n ?? 0);
 
   const elapsedMs = Date.now() - started;
 
