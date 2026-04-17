@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import {
+  useQueryStates,
+  parseAsString,
+  parseAsStringLiteral,
+  parseAsBoolean,
+} from "nuqs";
 import { BillCard } from "./bill-card";
 import { TOPICS } from "@/lib/topic-mapping";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,6 +18,30 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
 ] as const;
 
+// Filter state lives in the URL so it survives back-nav from a bill detail
+// page, is shareable, and works with the bfcache reload in layout.tsx.
+// - history: "replace" keeps the back button semantic (back exits /bills,
+//   doesn't step through every filter click).
+// - clearOnDefault keeps the URL clean — /bills stays /bills until the user
+//   actually narrows the feed.
+// - throttleMs smooths search typing so we don't spam history.
+const filterParsers = {
+  search: parseAsString.withDefault(""),
+  chamber: parseAsStringLiteral(["both", "house", "senate"] as const).withDefault("both"),
+  status: parseAsString.withDefault(""),
+  momentum: parseAsStringLiteral(["live", "graveyard", "all"] as const).withDefault("live"),
+  sortBy: parseAsStringLiteral(["relevant", "latest", "newest"] as const).withDefault("relevant"),
+  topic: parseAsString.withDefault(""),
+  hideVoted: parseAsBoolean.withDefault(false),
+};
+
+const filterOptions = {
+  history: "replace" as const,
+  clearOnDefault: true,
+  shallow: true,
+  throttleMs: 300,
+};
+
 export function BillListClient() {
   const [bills, setBills] = useState<BillSummary[]>([]);
   const [total, setTotal] = useState(0);
@@ -20,15 +50,10 @@ export function BillListClient() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [chamber, setChamber] = useState("both");
-  const [status, setStatus] = useState("");
-  const [momentum, setMomentum] = useState("live");
-  const [sortBy, setSortBy] = useState("relevant");
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [filters, setFilters] = useQueryStates(filterParsers, filterOptions);
+  const { search, chamber, status, momentum, sortBy, topic, hideVoted } = filters;
   const [showFilters, setShowFilters] = useState(false);
   const [votedBillIds, setVotedBillIds] = useState<Set<number>>(new Set());
-  const [hideVoted, setHideVoted] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -47,7 +72,7 @@ export function BillListClient() {
   useEffect(() => {
     if (!user) {
       setVotedBillIds(new Set());
-      setHideVoted(false);
+      setFilters({ hideVoted: false });
       return;
     }
     fetch("/api/user/voted-bills", { cache: "no-store" })
@@ -58,7 +83,7 @@ export function BillListClient() {
         }
       })
       .catch(() => {});
-  }, [user]);
+  }, [user, setFilters]);
 
   const fetchBills = useCallback(
     async (pageNum: number, append: boolean = false) => {
@@ -74,8 +99,10 @@ export function BillListClient() {
       if (chamber !== "both") params.set("chamber", chamber);
       if (status) params.set("status", status);
       if (search) params.set("search", search);
-      if (selectedTopic) {
-        const topicInfo = TOPICS.find((t) => t.label === selectedTopic);
+      if (topic) {
+        // URL stores the user-facing label ("Environment"); the API wants the
+        // comma-joined CRS policy areas.
+        const topicInfo = TOPICS.find((t) => t.label === topic);
         if (topicInfo) {
           params.set("topic", topicInfo.policyAreas.join(","));
         }
@@ -94,7 +121,7 @@ export function BillListClient() {
       setLoading(false);
       setLoadingMore(false);
     },
-    [chamber, status, momentum, sortBy, search, selectedTopic]
+    [chamber, status, momentum, sortBy, search, topic]
   );
 
   useEffect(() => {
@@ -122,15 +149,21 @@ export function BillListClient() {
     return () => observer.disconnect();
   }, [loading, loadingMore, bills.length, total, page, fetchBills]);
 
+  // `resetTo` is what the pill reverts to when the user clicks it while
+  // already active. Chamber has no "none" value, so it reverts to "both"
+  // (the default); status treats "" as "any".
   const filterPill = (
     label: string,
     value: string,
     current: string,
-    setter: (v: string) => void
+    key: "chamber" | "status",
+    resetTo: string
   ) => (
     <button
       key={value}
-      onClick={() => setter(current === value ? "" : value)}
+      onClick={() =>
+        setFilters({ [key]: current === value ? resetTo : value } as Partial<typeof filters>)
+      }
       className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
         current === value
           ? "bg-navy text-white"
@@ -162,7 +195,7 @@ export function BillListClient() {
           <input
             placeholder="Search bills..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setFilters({ search: e.target.value })}
             className="w-full h-10 pl-9 pr-3 rounded-lg border border-border/60 bg-white text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/20"
           />
         </div>
@@ -170,7 +203,7 @@ export function BillListClient() {
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setSortBy(opt.value)}
+              onClick={() => setFilters({ sortBy: opt.value })}
               className={`px-2 py-1 rounded text-xs font-medium transition-all ${
                 sortBy === opt.value
                   ? "bg-navy/10 text-navy"
@@ -187,30 +220,28 @@ export function BillListClient() {
       <div className="flex items-center gap-2">
         <div className="flex-1 flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide -mx-1 px-1">
           <button
-            onClick={() => setSelectedTopic(null)}
+            onClick={() => setFilters({ topic: "" })}
             className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-              selectedTopic === null
+              topic === ""
                 ? "bg-navy text-white"
                 : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
             }`}
           >
             All Topics
           </button>
-          {TOPICS.map((topic) => (
+          {TOPICS.map((t) => (
             <button
-              key={topic.label}
+              key={t.label}
               onClick={() =>
-                setSelectedTopic(
-                  selectedTopic === topic.label ? null : topic.label
-                )
+                setFilters({ topic: topic === t.label ? "" : t.label })
               }
               className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                selectedTopic === topic.label
+                topic === t.label
                   ? "bg-navy text-white"
                   : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
               }`}
             >
-              {topic.label}
+              {t.label}
             </button>
           ))}
         </div>
@@ -248,23 +279,23 @@ export function BillListClient() {
       {showFilters && (
         <div className="flex flex-wrap items-center gap-3 pb-2 animate-fade-slide-up">
           <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
-            {filterPill("All", "both", chamber, setChamber)}
-            {filterPill("House", "house", chamber, setChamber)}
-            {filterPill("Senate", "senate", chamber, setChamber)}
+            {filterPill("All", "both", chamber, "chamber", "both")}
+            {filterPill("House", "house", chamber, "chamber", "both")}
+            {filterPill("Senate", "senate", chamber, "chamber", "both")}
           </div>
 
           <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
-            {filterPill("Any", "", status, setStatus)}
-            {filterPill("Introduced", "introduced", status, setStatus)}
-            {filterPill("In Progress", "in_progress", status, setStatus)}
-            {filterPill("Passed", "passed", status, setStatus)}
-            {filterPill("Enacted", "enacted", status, setStatus)}
-            {filterPill("Failed", "failed", status, setStatus)}
+            {filterPill("Any", "", status, "status", "")}
+            {filterPill("Introduced", "introduced", status, "status", "")}
+            {filterPill("In Progress", "in_progress", status, "status", "")}
+            {filterPill("Passed", "passed", status, "status", "")}
+            {filterPill("Enacted", "enacted", status, "status", "")}
+            {filterPill("Failed", "failed", status, "status", "")}
           </div>
 
           {user && votedBillIds.size > 0 && (
             <button
-              onClick={() => setHideVoted(!hideVoted)}
+              onClick={() => setFilters({ hideVoted: !hideVoted })}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
                 hideVoted
                   ? "bg-navy text-white border-navy"
@@ -306,7 +337,7 @@ export function BillListClient() {
               </span>
               {momentum === "live" && hiddenByMomentum > 0 && (
                 <button
-                  onClick={() => setMomentum("all")}
+                  onClick={() => setFilters({ momentum: "all" })}
                   className="text-muted-foreground/70 hover:text-navy underline decoration-dotted underline-offset-2 transition-colors"
                 >
                   ({hiddenByMomentum.toLocaleString()} dormant or dead hidden)
@@ -314,7 +345,7 @@ export function BillListClient() {
               )}
               {momentum === "all" && (
                 <button
-                  onClick={() => setMomentum("live")}
+                  onClick={() => setFilters({ momentum: "live" })}
                   className="text-muted-foreground/70 hover:text-navy underline decoration-dotted underline-offset-2 transition-colors"
                 >
                   (show active only)

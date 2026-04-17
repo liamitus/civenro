@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Gelasio, Roboto, Geist_Mono } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
 import { Footer } from "@/components/footer";
@@ -45,10 +46,12 @@ export default function RootLayout({
       className={`${roboto.variable} ${geistMono.variable} ${gelasio.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <BfcacheReload />
-        <NavBar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <NuqsAdapter>
+          <BfcacheReload />
+          <NavBar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </NuqsAdapter>
       </body>
     </html>
   );
