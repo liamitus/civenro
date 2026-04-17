@@ -67,4 +67,15 @@ describe("mapErrorToState", () => {
     const state = mapErrorToState({});
     expect(state.retryable).toBe(true);
   });
+
+  it("surfaces a server-provided message as the detail when no status matches", () => {
+    // Guards against hiding the real cause behind 'Try again in a moment.'
+    // when the server bubbles up an actionable message (e.g. gateway config,
+    // provider outage).
+    const state = mapErrorToState({
+      serverMessage: "AI service billing not configured.",
+    });
+    expect(state.detail).toContain("AI service billing not configured");
+    expect(state.retryable).toBe(true);
+  });
 });
