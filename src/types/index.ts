@@ -126,11 +126,23 @@ export interface VoteAggregation {
 }
 
 export interface UserVoteStatus {
-  vote: { voteType: VoteType; textVersionId: number | null; votedAt: string } | null;
+  vote: {
+    voteType: VoteType;
+    textVersionId: number | null;
+    votedAt: string;
+  } | null;
   isStale: boolean;
   staleInfo: {
-    votedOnVersion: { versionCode: string; versionType: string; versionDate: string } | null;
-    currentVersion: { versionCode: string; versionType: string; versionDate: string };
+    votedOnVersion: {
+      versionCode: string;
+      versionType: string;
+      versionDate: string;
+    } | null;
+    currentVersion: {
+      versionCode: string;
+      versionType: string;
+      versionDate: string;
+    };
     changeSummary: string | null;
   } | null;
   voteHistory: {

@@ -38,12 +38,10 @@ function Comment({
   };
 
   return (
-    <div className="border-l-2 border-border pl-3 py-2">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">{comment.username}</span>
-        <span>
-          {new Date(comment.date).toLocaleDateString()}
-        </span>
+    <div className="border-border border-l-2 py-2 pl-3">
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        <span className="text-foreground font-medium">{comment.username}</span>
+        <span>{new Date(comment.date).toLocaleDateString()}</span>
       </div>
 
       <p className="mt-1 text-sm">{comment.content}</p>
@@ -51,7 +49,7 @@ function Comment({
       <div className="mt-1 flex items-center gap-2">
         <button
           onClick={() => handleVote(1)}
-          className="text-xs text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground text-xs"
           disabled={!userId}
         >
           +
@@ -59,7 +57,7 @@ function Comment({
         <span className="text-xs font-medium">{comment.voteCount}</span>
         <button
           onClick={() => handleVote(-1)}
-          className="text-xs text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground text-xs"
           disabled={!userId}
         >
           -
@@ -67,7 +65,7 @@ function Comment({
         {userId && (
           <button
             onClick={() => setShowReply(!showReply)}
-            className="text-xs text-muted-foreground hover:text-foreground ml-2"
+            className="text-muted-foreground hover:text-foreground ml-2 text-xs"
           >
             Reply
           </button>
@@ -80,7 +78,7 @@ function Comment({
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             placeholder="Write a reply..."
-            className="text-sm min-h-[60px]"
+            className="min-h-[60px] text-sm"
           />
           <Button size="sm" onClick={handleReply} disabled={submitting}>
             {submitting ? "..." : "Reply"}
@@ -100,7 +98,13 @@ function Comment({
   );
 }
 
-export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp?: () => void }) {
+export function CommentsSection({
+  billId,
+  onSignUp,
+}: {
+  billId: number;
+  onSignUp?: () => void;
+}) {
   const { user } = useAuth();
   const [comments, setComments] = useState<CommentData[]>([]);
   const [total, setTotal] = useState(0);
@@ -111,7 +115,7 @@ export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp
 
   const fetchComments = useCallback(async () => {
     const res = await fetch(
-      `/api/comments/bill/${billId}?page=${page}&sort=${sort}`
+      `/api/comments/bill/${billId}?page=${page}&sort=${sort}`,
     );
     if (res.ok) {
       const data = await res.json();
@@ -147,7 +151,7 @@ export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm">
+        <h3 className="text-sm font-semibold">
           Comments{total > 0 ? ` (${total})` : ""}
         </h3>
         <div className="flex gap-1">
@@ -157,7 +161,7 @@ export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp
               variant={sort === s ? "default" : "ghost"}
               size="sm"
               onClick={() => setSort(s)}
-              className="text-xs h-7"
+              className="h-7 text-xs"
             >
               {s === "new" ? "New" : "Best"}
             </Button>
@@ -184,8 +188,8 @@ export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp
       )}
 
       {comments.length === 0 ? (
-        <div className="text-center py-8 space-y-1">
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-1 py-8 text-center">
+          <p className="text-muted-foreground text-sm">
             {user ? (
               "Start the conversation — share your perspective above."
             ) : (
@@ -194,11 +198,11 @@ export function CommentsSection({ billId, onSignUp }: { billId: number; onSignUp
                 <button
                   type="button"
                   onClick={onSignUp}
-                  className="underline underline-offset-2 hover:text-primary transition-colors font-medium"
+                  className="hover:text-primary font-medium underline underline-offset-2 transition-colors"
                 >
                   Sign up
-                </button>
-                {" "}to be the first to weigh in.
+                </button>{" "}
+                to be the first to weigh in.
               </>
             )}
           </p>

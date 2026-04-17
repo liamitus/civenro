@@ -39,8 +39,11 @@ export async function GET(request: Request) {
   } catch (error) {
     await reportError(error, { cron: "evaluate-budget" });
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
     );
   }
 }

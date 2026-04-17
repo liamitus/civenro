@@ -53,8 +53,7 @@ export async function getAuthenticatedUser(): Promise<AuthSuccess | AuthError> {
  * @deprecated Use getAuthenticatedUser() instead for Profile sync + username resolution.
  */
 export async function getAuthenticatedUserId(): Promise<
-  | { userId: string; error: null }
-  | { userId: null; error: NextResponse }
+  { userId: string; error: null } | { userId: null; error: NextResponse }
 > {
   const result = await getAuthenticatedUser();
   if (result.error) {

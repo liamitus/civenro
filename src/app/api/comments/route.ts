@@ -6,7 +6,9 @@ import { checkContentL2 } from "@/lib/moderation/layer2";
 import { assertUserRateLimit, RateLimitError } from "@/lib/rate-limit";
 
 function clientIp(request: NextRequest): string | undefined {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined
+  );
 }
 
 const COMMENTS_PER_USER_PER_HOUR = 30;
@@ -19,21 +21,24 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { billId, content, parentCommentId } = body;
 
   if (!billId || !content) {
     return NextResponse.json(
       { error: "billId and content are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (content.length > 10000) {
     return NextResponse.json(
       { error: "Comment is too long." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -50,7 +55,7 @@ export async function POST(request: NextRequest) {
   if (recentComment) {
     return NextResponse.json(
       { error: "Duplicate comment detected" },
-      { status: 429 }
+      { status: 429 },
     );
   }
 
@@ -64,8 +69,10 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     if (err instanceof RateLimitError) {
       return NextResponse.json(
-        { error: "You're posting too quickly. Please wait a bit and try again." },
-        { status: 429 }
+        {
+          error: "You're posting too quickly. Please wait a bit and try again.",
+        },
+        { status: 429 },
       );
     }
     throw err;
@@ -82,14 +89,17 @@ export async function POST(request: NextRequest) {
         error:
           "Your comment was flagged by our moderation system. Please revise it and try again.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (mod.error === "rate_limited") {
-    reportError(new Error("Moderation rate-limited — comment posted unscreened"), {
-      route: "POST /api/comments",
-      feature: "moderation_content",
-    });
+    reportError(
+      new Error("Moderation rate-limited — comment posted unscreened"),
+      {
+        route: "POST /api/comments",
+        feature: "moderation_content",
+      },
+    );
   }
 
   try {
@@ -110,11 +120,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(comment, { status: 201 });
   } catch (err) {
-    console.error(JSON.stringify({ event: "api_error", route: "POST /api/comments", error: err instanceof Error ? err.message : String(err) }));
+    console.error(
+      JSON.stringify({
+        event: "api_error",
+        route: "POST /api/comments",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
     reportError(err, { route: "POST /api/comments" });
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

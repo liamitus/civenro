@@ -17,13 +17,13 @@ function SubRowNavIndicator() {
       <span
         aria-busy="true"
         aria-label="Loading"
-        className="shrink-0 w-3.5 h-3.5 rounded-full border-2 border-navy/20 border-t-navy/70 animate-spin"
+        className="border-navy/20 border-t-navy/70 h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2"
       />
     );
   }
   return (
     <svg
-      className="shrink-0 w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-navy transition-colors"
+      className="text-muted-foreground/60 group-hover:text-navy h-3.5 w-3.5 shrink-0 transition-colors"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -78,9 +78,9 @@ export function BillGroupCard({
   const allVoted = votedCount === bills.length;
 
   return (
-    <div className="relative rounded-lg border border-border/50 bg-white hover:border-navy/25 hover:shadow-[0_2px_12px_rgba(10,31,68,0.1)] transition-all">
+    <div className="border-border/50 hover:border-navy/25 relative rounded-lg border bg-white transition-all hover:shadow-[0_2px_12px_rgba(10,31,68,0.1)]">
       <div
-        className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${
+        className={`absolute top-0 bottom-0 left-0 w-1 rounded-l-lg ${
           chamberIsHouse ? "bg-house/70" : "bg-senate/70"
         }`}
       />
@@ -89,17 +89,17 @@ export function BillGroupCard({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="w-full text-left px-5 py-4 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40"
+        className="focus-visible:ring-navy/40 w-full rounded-lg px-5 py-4 text-left focus-visible:ring-2 focus-visible:outline-none"
       >
         <div className="pl-3">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-sm font-medium leading-snug text-navy line-clamp-2 flex-1">
+            <h3 className="text-navy line-clamp-2 flex-1 text-sm leading-snug font-medium">
               {lead.title}
             </h3>
             {allVoted && (
-              <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-navy/8 text-navy/80 border border-navy/10">
+              <span className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase">
                 <svg
-                  className="w-2.5 h-2.5"
+                  className="h-2.5 w-2.5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -113,7 +113,7 @@ export function BillGroupCard({
               </span>
             )}
             <svg
-              className={`shrink-0 w-4 h-4 mt-0.5 text-muted-foreground/60 transition-transform ${
+              className={`text-muted-foreground/60 mt-0.5 h-4 w-4 shrink-0 transition-transform ${
                 expanded ? "rotate-180" : ""
               }`}
               viewBox="0 0 24 24"
@@ -137,19 +137,19 @@ export function BillGroupCard({
             </span>
             {topic && (
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${topic.color}`}
+                className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${topic.color}`}
               >
                 {topic.label}
               </span>
             )}
             <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${status.className}`}
+              className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${status.className}`}
             >
               {status.label}
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-navy/8 text-navy/80 border border-navy/10">
+            <span className="bg-navy/8 text-navy/80 border-navy/10 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs font-medium">
               <svg
-                className="w-3 h-3"
+                className="h-3 w-3"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -170,65 +170,68 @@ export function BillGroupCard({
               )}
             </span>
             {lead.sponsor && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 {lead.sponsor}
               </span>
             )}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {dayjs(displayDate).format("MMM D, YYYY")}
             </span>
           </div>
         </div>
       </button>
 
-      {expanded && (() => {
-        // When all sub-rows would show the same boilerplate summary (or all
-        // null), repeating it in every row adds noise without information.
-        // This is the common case for legally-identical-template resolutions
-        // like arms-sale disapprovals, where the CRS summary is identical
-        // across siblings. Hide the secondary line in that case.
-        const summaries = bills.map((b) => b.shortText ?? b.latestActionText ?? null);
-        const firstSummary = summaries[0];
-        const allSame = summaries.every((s) => s === firstSummary);
-        const showPerRowSummary = !allSame;
-        return (
-        <div className="border-t border-border/40 bg-muted/20 pl-6 pr-3 pt-2 pb-1.5 animate-fade-slide-up rounded-b-lg">
-          <p className="text-[11px] text-muted-foreground/80 px-2 pb-1.5 leading-relaxed">
-            Related bills filed together — tap any to see details.
-          </p>
-          <ul className="divide-y divide-border/30">
-            {bills.map((b) => {
-              const voted = votedBillIds.has(b.id);
-              const detail = b.shortText || b.latestActionText;
-              return (
-                <li key={b.id}>
-                  <Link
-                    href={`/bills/${b.id}`}
-                    className="group flex items-center gap-3 px-2 py-2.5 rounded-md hover:bg-white transition-colors"
-                  >
-                    <span className="text-xs font-mono font-semibold text-navy w-24 shrink-0">
-                      {formatBillNumber(b.billType, b.billId)}
-                    </span>
-                    {showPerRowSummary && (
-                      <span className="text-xs text-muted-foreground line-clamp-1 flex-1">
-                        {detail ?? "No summary available yet."}
-                      </span>
-                    )}
-                    {!showPerRowSummary && <span className="flex-1" />}
-                    {voted && (
-                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-navy/70">
-                        Voted
-                      </span>
-                    )}
-                    <SubRowNavIndicator />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        );
-      })()}
+      {expanded &&
+        (() => {
+          // When all sub-rows would show the same boilerplate summary (or all
+          // null), repeating it in every row adds noise without information.
+          // This is the common case for legally-identical-template resolutions
+          // like arms-sale disapprovals, where the CRS summary is identical
+          // across siblings. Hide the secondary line in that case.
+          const summaries = bills.map(
+            (b) => b.shortText ?? b.latestActionText ?? null,
+          );
+          const firstSummary = summaries[0];
+          const allSame = summaries.every((s) => s === firstSummary);
+          const showPerRowSummary = !allSame;
+          return (
+            <div className="border-border/40 bg-muted/20 animate-fade-slide-up rounded-b-lg border-t pt-2 pr-3 pb-1.5 pl-6">
+              <p className="text-muted-foreground/80 px-2 pb-1.5 text-[11px] leading-relaxed">
+                Related bills filed together — tap any to see details.
+              </p>
+              <ul className="divide-border/30 divide-y">
+                {bills.map((b) => {
+                  const voted = votedBillIds.has(b.id);
+                  const detail = b.shortText || b.latestActionText;
+                  return (
+                    <li key={b.id}>
+                      <Link
+                        href={`/bills/${b.id}`}
+                        className="group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-white"
+                      >
+                        <span className="text-navy w-24 shrink-0 font-mono text-xs font-semibold">
+                          {formatBillNumber(b.billType, b.billId)}
+                        </span>
+                        {showPerRowSummary && (
+                          <span className="text-muted-foreground line-clamp-1 flex-1 text-xs">
+                            {detail ?? "No summary available yet."}
+                          </span>
+                        )}
+                        {!showPerRowSummary && <span className="flex-1" />}
+                        {voted && (
+                          <span className="text-navy/70 shrink-0 text-[10px] font-semibold tracking-wider uppercase">
+                            Voted
+                          </span>
+                        )}
+                        <SubRowNavIndicator />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })()}
     </div>
   );
 }

@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   if (!sig || !webhookSecret) {
     return NextResponse.json(
       { error: "Missing signature or webhook secret." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        await handleCheckoutCompleted(
+          event.data.object as Stripe.Checkout.Session,
+        );
         break;
 
       case "invoice.payment_succeeded":
@@ -51,7 +53,9 @@ export async function POST(request: NextRequest) {
         break;
 
       case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        await handleSubscriptionDeleted(
+          event.data.object as Stripe.Subscription,
+        );
         break;
 
       case "invoice.payment_failed":
@@ -65,13 +69,24 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
-    console.error(JSON.stringify({ event: "webhook_error", route: "POST /api/stripe/webhook", eventType: event.type, error: msg, stack }));
-    reportError(err, { route: "POST /api/stripe/webhook", eventType: event.type });
+    console.error(
+      JSON.stringify({
+        event: "webhook_error",
+        route: "POST /api/stripe/webhook",
+        eventType: event.type,
+        error: msg,
+        stack,
+      }),
+    );
+    reportError(err, {
+      route: "POST /api/stripe/webhook",
+      eventType: event.type,
+    });
     // Expose the message to Stripe so it shows up in the Dashboard's response
     // body. This endpoint is only reachable with a valid Stripe signature.
     return NextResponse.json(
       { error: "Webhook handler failed.", detail: msg },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -115,13 +130,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Run moderation on display name
   const nameMod = await moderateName(
     displayMode === "NAMED" ? displayNameRaw : null,
-    ip
+    ip,
   );
 
   // Run moderation on tribute name separately
   const tributeMod = await moderateName(
     displayMode === "TRIBUTE" ? tributeNameRaw : null,
-    ip
+    ip,
   );
 
   // Use the worse moderation status between the two
@@ -132,7 +147,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         ? "FLAGGED"
         : "APPROVED";
 
-  const notes = [nameMod.notes, tributeMod.notes].filter(Boolean).join("; ") || null;
+  const notes =
+    [nameMod.notes, tributeMod.notes].filter(Boolean).join("; ") || null;
 
   // Extract region from billing address if available
   const regionCode = session.customer_details?.address?.state
@@ -178,9 +194,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       isRecurring,
       recurringStatus: isRecurring ? "ACTIVE" : null,
       displayMode,
-      displayName: finalStatus === "APPROVED" ? (nameMod.displayName ?? null) : null,
+      displayName:
+        finalStatus === "APPROVED" ? (nameMod.displayName ?? null) : null,
       displayNameRaw,
-      tributeName: finalStatus === "APPROVED" ? (tributeMod.displayName ?? null) : null,
+      tributeName:
+        finalStatus === "APPROVED" ? (tributeMod.displayName ?? null) : null,
       tributeNameRaw,
       moderationStatus: finalStatus,
       moderationNotes: notes,

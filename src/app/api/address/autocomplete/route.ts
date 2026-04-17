@@ -62,8 +62,11 @@ export async function GET(request: NextRequest) {
         const street = [p.housenumber, p.street || p.name]
           .filter(Boolean)
           .join(" ");
-        const parts = [street, p.city, [p.state, p.postcode].filter(Boolean).join(" ")]
-          .filter(Boolean);
+        const parts = [
+          street,
+          p.city,
+          [p.state, p.postcode].filter(Boolean).join(" "),
+        ].filter(Boolean);
 
         return { label: parts.join(", ") };
       });

@@ -45,7 +45,7 @@ export default function RootLayout({
       lang="en"
       className={`${roboto.variable} ${geistMono.variable} ${gelasio.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <NuqsAdapter>
           <BfcacheReload />
           <NavBar />

@@ -1,5 +1,9 @@
 import "dotenv/config";
-import { fetchGovTrackVoteVoters, fetchGovTrackBill, delay } from "../lib/govtrack";
+import {
+  fetchGovTrackVoteVoters,
+  fetchGovTrackBill,
+  delay,
+} from "../lib/govtrack";
 import { createStandalonePrisma } from "../lib/prisma-standalone";
 import dayjs from "dayjs";
 
@@ -41,7 +45,7 @@ export async function fetchVotesFunction(since?: Date) {
       });
 
       console.log(
-        `Fetched ${voteVoters.length} votes from ${currentDate.format("YYYY-MM-DD")}`
+        `Fetched ${voteVoters.length} votes from ${currentDate.format("YYYY-MM-DD")}`,
       );
 
       for (const voteVoter of voteVoters) {
@@ -62,7 +66,9 @@ export async function fetchVotesFunction(since?: Date) {
 
           let billData = billCache[relatedBillId];
           if (!billData) {
-            billData = (await fetchGovTrackBill(relatedBillId)) as GovTrackBillData;
+            billData = (await fetchGovTrackBill(
+              relatedBillId,
+            )) as GovTrackBillData;
             billCache[relatedBillId] = billData;
           }
 
@@ -106,7 +112,12 @@ export async function fetchVotesFunction(since?: Date) {
                 rollCallNumber,
               },
             },
-            update: { vote: voteVoter.option.value, chamber, votedAt, category },
+            update: {
+              vote: voteVoter.option.value,
+              chamber,
+              votedAt,
+              category,
+            },
             create: {
               representativeId: representative.id,
               billId: bill.id,

@@ -45,9 +45,11 @@ export async function getCachedResponse(
   if (!cached || cached.expiresAt < new Date()) {
     // Expired — clean up lazily
     if (cached) {
-      await prisma.aiResponseCache.delete({
-        where: { id: cached.id },
-      }).catch(() => {});
+      await prisma.aiResponseCache
+        .delete({
+          where: { id: cached.id },
+        })
+        .catch(() => {});
     }
     return null;
   }

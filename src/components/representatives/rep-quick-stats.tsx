@@ -7,16 +7,25 @@ interface RepQuickStatsProps {
   sponsoredBillsCount: number;
 }
 
-export function RepQuickStats({ stats, sponsoredBillsCount }: RepQuickStatsProps) {
+export function RepQuickStats({
+  stats,
+  sponsoredBillsCount,
+}: RepQuickStatsProps) {
   const attendancePct = 100 - stats.missedVotePct;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <StatCard
         value={`${attendancePct}%`}
         label="Attendance"
         sublabel={`${stats.missedVotes} missed`}
-        color={attendancePct >= 90 ? "text-vote-yea" : attendancePct >= 75 ? "text-vote-present" : "text-vote-nay"}
+        color={
+          attendancePct >= 90
+            ? "text-vote-yea"
+            : attendancePct >= 75
+              ? "text-vote-present"
+              : "text-vote-nay"
+        }
       />
       <StatCard
         value={stats.totalVotes.toLocaleString()}
@@ -52,10 +61,10 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded-lg border border-border/60 bg-white p-4 text-center">
+    <div className="border-border/60 rounded-lg border bg-white p-4 text-center">
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      <p className="text-xs font-medium text-navy/70 mt-1">{label}</p>
-      <p className="text-[10px] text-muted-foreground mt-0.5">{sublabel}</p>
+      <p className="text-navy/70 mt-1 text-xs font-medium">{label}</p>
+      <p className="text-muted-foreground mt-0.5 text-[10px]">{sublabel}</p>
     </div>
   );
 }

@@ -35,7 +35,10 @@ function displayChamber(billType: string): "house" | "senate" | null {
 
 // ── Replicate the API filter logic from /api/bills/route.ts ────────────
 
-function apiFilterMatches(billType: string, filterValue: "house" | "senate"): boolean {
+function apiFilterMatches(
+  billType: string,
+  filterValue: "house" | "senate",
+): boolean {
   // Mirrors: filters.billType = { startsWith: chamber.toLowerCase() }
   return billType.startsWith(filterValue);
 }

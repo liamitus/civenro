@@ -36,24 +36,24 @@ export function RepDetailInteractive({
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 rounded-lg bg-muted animate-pulse" />
+            <div key={i} className="bg-muted h-20 animate-pulse rounded-lg" />
           ))}
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
+            <div key={i} className="bg-muted h-16 animate-pulse rounded-lg" />
           ))}
         </div>
-        <div className="h-40 rounded-xl bg-muted animate-pulse" />
+        <div className="bg-muted h-40 animate-pulse rounded-xl" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+      <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-lg border p-4 text-sm">
         {error || "Something went wrong."}
       </div>
     );
@@ -90,12 +90,12 @@ export function RepDetailInteractive({
 
       {/* External links */}
       {data.representative.link && (
-        <div className="text-center pt-2 pb-4">
+        <div className="pt-2 pb-4 text-center">
           <a
             href={data.representative.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-navy transition-colors"
+            className="text-muted-foreground hover:text-navy text-sm transition-colors"
           >
             View full record on GovTrack &rarr;
           </a>

@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { PasswordStrengthIndicator, validatePassword } from "@/components/auth/password-strength";
+import {
+  PasswordStrengthIndicator,
+  validatePassword,
+} from "@/components/auth/password-strength";
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
@@ -47,9 +50,9 @@ export default function UpdatePasswordPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <Card className="p-6 space-y-4">
+      <Card className="space-y-4 p-6">
         <h1 className="text-xl font-semibold">Set New Password</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Enter your new password below.
         </p>
 

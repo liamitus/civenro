@@ -31,22 +31,22 @@ export default async function SupportPage() {
 
   const totalCostCents = totalMonthlyCostCents(
     snapshot.spendCents,
-    lastMonthSpend
+    lastMonthSpend,
   );
   const funded = snapshot.incomeCents >= totalCostCents;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 space-y-10">
+    <div className="mx-auto max-w-2xl space-y-10 px-4 py-10">
       {/* Hero */}
-      <header className="text-center space-y-3">
-        <p className="text-civic-gold text-sm tracking-widest uppercase star-accent">
+      <header className="space-y-3 text-center">
+        <p className="text-civic-gold star-accent text-sm tracking-widest uppercase">
           Citizen-Supported
         </p>
         <h1 className="text-3xl font-bold tracking-tight">
           Govroll is supported by citizens,{" "}
           <span className="text-navy-light">not lobbyists.</span>
         </h1>
-        <p className="text-muted-foreground max-w-lg mx-auto">
+        <p className="text-muted-foreground mx-auto max-w-lg">
           This site costs real money to run — hosting, database, AI&nbsp;APIs.
           No ads. No corporate sponsors. No paywalls. Just citizens chipping in
           to keep it free for everyone.
@@ -64,30 +64,27 @@ export default async function SupportPage() {
 
       {/* Context-sensitive message */}
       {funded ? (
-        <p className="text-center text-sm text-muted-foreground max-w-md mx-auto">
+        <p className="text-muted-foreground mx-auto max-w-md text-center text-sm">
           Govroll is funded this month — thank you! Extra contributions help me
           work on this full-time, but please don&apos;t feel obligated.
         </p>
       ) : (
-        <p className="text-center text-sm text-muted-foreground max-w-md mx-auto">
+        <p className="text-muted-foreground mx-auto max-w-md text-center text-sm">
           Donating is totally optional. When enough citizens chip in, AI
           features come back online for everyone — including you, for&nbsp;free.
         </p>
       )}
 
       {/* Donate form */}
-      <DonateForm
-        typicalDonationCents={typicalCents}
-        donorCount={donorCount}
-      />
+      <DonateForm typicalDonationCents={typicalCents} donorCount={donorCount} />
 
       {/* Social proof */}
       {donorCount > 0 && (
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-center text-sm">
           Join{" "}
           <Link
             href="/made-possible-by"
-            className="text-primary underline underline-offset-2 hover:text-navy"
+            className="text-primary hover:text-navy underline underline-offset-2"
           >
             {donorCount.toLocaleString()} citizen{donorCount !== 1 ? "s" : ""}
           </Link>{" "}
@@ -96,7 +93,7 @@ export default async function SupportPage() {
       )}
 
       {/* Legal disclosure */}
-      <footer className="border-t pt-6 space-y-2 text-xs text-muted-foreground leading-relaxed">
+      <footer className="text-muted-foreground space-y-2 border-t pt-6 text-xs leading-relaxed">
         <p>
           Contributions are processed by Stripe and received by Govroll.
           Contributions are <strong>not tax-deductible</strong> for U.S. federal
@@ -105,7 +102,10 @@ export default async function SupportPage() {
         <p>
           Refunds are available within 14 days for accidental or duplicate
           charges. Recurring contributions can be canceled at any time.{" "}
-          <Link href="/support/terms" className="underline hover:text-foreground">
+          <Link
+            href="/support/terms"
+            className="hover:text-foreground underline"
+          >
             Full terms
           </Link>
         </p>

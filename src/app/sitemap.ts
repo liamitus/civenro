@@ -15,7 +15,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/privacy`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/terms`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${base}/support`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/made-possible-by`, changeFrequency: "weekly", priority: 0.4 },
+    {
+      url: `${base}/made-possible-by`,
+      changeFrequency: "weekly",
+      priority: 0.4,
+    },
   ];
 
   // Build-time DB unavailability shouldn't fail the whole deploy. If Prisma

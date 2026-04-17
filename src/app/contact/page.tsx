@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 space-y-8">
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-10">
       <header className="space-y-3">
-        <p className="text-civic-gold text-sm tracking-widest uppercase star-accent">
+        <p className="text-civic-gold star-accent text-sm tracking-widest uppercase">
           Contact
         </p>
         <h1 className="text-3xl font-bold tracking-tight">Get in touch</h1>
@@ -22,9 +22,9 @@ export default function ContactPage() {
       </header>
 
       <div className="grid gap-6">
-        <section className="rounded-lg border p-5 space-y-2">
+        <section className="space-y-2 rounded-lg border p-5">
           <h2 className="font-semibold">Report a bug or inaccuracy</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-muted-foreground text-sm leading-relaxed">
             If something isn&apos;t working right or you&apos;ve spotted an
             inaccurate AI summary, bill status, or voting record, let us know.
             Include as much detail as you can — the bill, what looked wrong, and
@@ -40,9 +40,9 @@ export default function ContactPage() {
           </p>
         </section>
 
-        <section className="rounded-lg border p-5 space-y-2">
+        <section className="space-y-2 rounded-lg border p-5">
           <h2 className="font-semibold">General feedback</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Feature ideas, usability feedback, or thoughts on how Govroll can
             better serve you — all welcome.
           </p>
@@ -56,9 +56,9 @@ export default function ContactPage() {
           </p>
         </section>
 
-        <section className="rounded-lg border p-5 space-y-2">
+        <section className="space-y-2 rounded-lg border p-5">
           <h2 className="font-semibold">Account &amp; billing</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Questions about your account, contributions, refunds, or recurring
             billing? We typically respond within one business day.
           </p>
@@ -72,9 +72,9 @@ export default function ContactPage() {
           </p>
         </section>
 
-        <section className="rounded-lg border p-5 space-y-2">
+        <section className="space-y-2 rounded-lg border p-5">
           <h2 className="font-semibold">Privacy &amp; data requests</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-muted-foreground text-sm leading-relaxed">
             To exercise your data rights — access, correction, or deletion — or
             to ask a question about our{" "}
             <Link

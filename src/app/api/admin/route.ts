@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { action, billIds, billId } = body;
 
@@ -55,7 +58,9 @@ export async function POST(request: NextRequest) {
         });
 
       case "generate-change-summaries":
-        await generateChangeSummariesFunction(billId ? parseInt(billId) : undefined);
+        await generateChangeSummariesFunction(
+          billId ? parseInt(billId) : undefined,
+        );
         return NextResponse.json({
           message: "Change summaries generated.",
         });
@@ -63,17 +68,14 @@ export async function POST(request: NextRequest) {
       default:
         return NextResponse.json(
           { error: `Unknown action: ${action}` },
-          { status: 400 }
+          { status: 400 },
         );
     }
   } catch (error: unknown) {
     console.error(
       "Admin action error:",
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : error,
     );
-    return NextResponse.json(
-      { error: "Action failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Action failed" }, { status: 500 });
   }
 }

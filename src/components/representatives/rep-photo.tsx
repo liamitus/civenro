@@ -13,7 +13,7 @@ export function RepPhoto({ bioguideId, firstName, lastName }: RepPhotoProps) {
 
   if (failed) {
     return (
-      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-2xl font-medium">
+      <div className="text-muted-foreground flex h-full w-full items-center justify-center text-2xl font-medium">
         {firstName?.[0]}
         {lastName?.[0]}
       </div>
@@ -24,7 +24,7 @@ export function RepPhoto({ bioguideId, firstName, lastName }: RepPhotoProps) {
     <img
       src={`/api/photos/${bioguideId}`}
       alt={`${firstName} ${lastName}`}
-      className="w-full h-full object-cover object-top select-none pointer-events-none"
+      className="pointer-events-none h-full w-full object-cover object-top select-none"
       draggable={false}
       onError={() => setFailed(true)}
     />

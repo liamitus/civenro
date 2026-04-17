@@ -11,14 +11,17 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { address, billId } = body;
 
   if (!address || !billId) {
     return NextResponse.json(
       { error: "Address and billId are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -137,28 +140,41 @@ export async function POST(request: NextRequest) {
           // Pick the best vote: passage categories first, then
           // uncategorized (likely passage with missing metadata),
           // then anything else (amendments, procedural) as last resort
-          const passageCategories = ["passage", "passage_suspension", "veto_override"];
-          const amendmentCategories = ["amendment", "procedural", "cloture", "nomination"];
+          const passageCategories = [
+            "passage",
+            "passage_suspension",
+            "veto_override",
+          ];
+          const amendmentCategories = [
+            "amendment",
+            "procedural",
+            "cloture",
+            "nomination",
+          ];
 
           const passageVotes = allVotes.filter(
-            (v) => v.category && passageCategories.includes(v.category)
+            (v) => v.category && passageCategories.includes(v.category),
           );
           const uncategorizedVotes = allVotes.filter((v) => !v.category);
           const otherVotes = allVotes.filter(
-            (v) => v.category && !passageCategories.includes(v.category) && !amendmentCategories.includes(v.category)
+            (v) =>
+              v.category &&
+              !passageCategories.includes(v.category) &&
+              !amendmentCategories.includes(v.category),
           );
           const amendmentVotes = allVotes.filter(
-            (v) => v.category && amendmentCategories.includes(v.category)
+            (v) => v.category && amendmentCategories.includes(v.category),
           );
 
           // Prioritized: passage > uncategorized > other > amendment
-          const votes = passageVotes.length > 0
-            ? passageVotes
-            : uncategorizedVotes.length > 0
-              ? uncategorizedVotes
-              : otherVotes.length > 0
-                ? otherVotes
-                : amendmentVotes;
+          const votes =
+            passageVotes.length > 0
+              ? passageVotes
+              : uncategorizedVotes.length > 0
+                ? uncategorizedVotes
+                : otherVotes.length > 0
+                  ? otherVotes
+                  : amendmentVotes;
 
           const latestVote = votes[0];
 
@@ -178,14 +194,15 @@ export async function POST(request: NextRequest) {
             vote: latestVote?.vote || "No vote recorded",
             voteCategory: latestVote?.category || null,
             voteDate: latestVote?.votedAt?.toISOString() || null,
-            voteHistory: allVotes.length > 1
-              ? allVotes.map((v: any) => ({
-                  vote: v.vote,
-                  rollCallNumber: v.rollCallNumber,
-                  chamber: v.chamber,
-                  votedAt: v.votedAt?.toISOString() || null,
-                }))
-              : null,
+            voteHistory:
+              allVotes.length > 1
+                ? allVotes.map((v: any) => ({
+                    vote: v.vote,
+                    rollCallNumber: v.rollCallNumber,
+                    chamber: v.chamber,
+                    votedAt: v.votedAt?.toISOString() || null,
+                  }))
+                : null,
             cosponsorship: cosponsorRow
               ? {
                   sponsoredAt: cosponsorRow.sponsoredAt?.toISOString() || null,
@@ -215,12 +232,12 @@ export async function POST(request: NextRequest) {
           voteHistory: null,
           cosponsorship: null,
         };
-      })
+      }),
     );
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
     const filteredReps = repsWithVotes.filter((rep) =>
-      relevantChambers.includes(rep.chamber)
+      relevantChambers.includes(rep.chamber),
     );
 
     return NextResponse.json({
@@ -231,7 +248,7 @@ export async function POST(request: NextRequest) {
     console.error("Error fetching representatives:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

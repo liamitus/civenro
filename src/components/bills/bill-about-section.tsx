@@ -117,9 +117,12 @@ function momentumBanner(
 const BANNER_STYLES: Record<MomentumBanner["tone"], string> = {
   dead: "border-border/60 bg-muted/60 text-foreground/75",
   dormant: "border-border/60 bg-muted/40 text-foreground/80",
-  stalled: "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200",
-  advancing: "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200",
-  enacted: "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200",
+  stalled:
+    "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200",
+  advancing:
+    "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200",
+  enacted:
+    "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200",
 };
 
 export function BillAboutSection({
@@ -157,10 +160,8 @@ export function BillAboutSection({
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           className={`${
-            isInactive
-              ? "bg-muted text-foreground/60 border-0"
-              : statusStyle
-          } text-xs font-semibold px-2.5 py-0.5`}
+            isInactive ? "bg-muted text-foreground/60 border-0" : statusStyle
+          } px-2.5 py-0.5 text-xs font-semibold`}
         >
           {statusHeadline}
         </Badge>
@@ -168,79 +169,90 @@ export function BillAboutSection({
           {typeLabel}
         </Badge>
         {momentumTier === "DEAD" && (
-          <Badge className="bg-foreground/80 text-background text-[11px] border-0">
+          <Badge className="bg-foreground/80 text-background border-0 text-[11px]">
             Dead
           </Badge>
         )}
         {momentumTier === "DORMANT" && (
-          <Badge className="bg-muted-foreground/80 text-background text-[11px] border-0">
+          <Badge className="bg-muted-foreground/80 text-background border-0 text-[11px]">
             Dormant
           </Badge>
         )}
         {momentumTier === "STALLED" && (
-          <Badge className="bg-amber-500/80 text-white text-[11px] border-0">
+          <Badge className="border-0 bg-amber-500/80 text-[11px] text-white">
             Stalled
           </Badge>
         )}
       </div>
 
       {/* Title */}
-      <h1 className={`text-lg font-bold leading-tight ${isInactive ? "text-foreground/75" : ""}`}>
+      <h1
+        className={`text-lg leading-tight font-bold ${isInactive ? "text-foreground/75" : ""}`}
+      >
         {title}
       </h1>
 
       {/* Momentum banner — the highest-priority signal on this page when a
           bill is inactive. Tells the user what to actually believe about
           this bill's chances, regardless of structural status. */}
-      {banner && (banner.tone === "dead" || banner.tone === "dormant" || banner.tone === "stalled") && (
-        <div className={`rounded-lg border px-4 py-3 ${BANNER_STYLES[banner.tone]}`}>
-          <p className="text-sm font-semibold leading-tight">{banner.title}</p>
-          <p className="text-xs leading-relaxed mt-1 opacity-90">{banner.body}</p>
-        </div>
-      )}
+      {banner &&
+        (banner.tone === "dead" ||
+          banner.tone === "dormant" ||
+          banner.tone === "stalled") && (
+          <div
+            className={`rounded-lg border px-4 py-3 ${BANNER_STYLES[banner.tone]}`}
+          >
+            <p className="text-sm leading-tight font-semibold">
+              {banner.title}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed opacity-90">
+              {banner.body}
+            </p>
+          </div>
+        )}
 
       {/* Plain-language summary — always visible, with provenance label and
           amendment warning so users can judge how current the summary is. */}
       {shortText && (
         <div className="space-y-1.5">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <p className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
             Summary · Congressional Research Service (nonpartisan)
           </p>
           {longSummary ? (
             summaryExpanded ? (
               <div className="relative">
-                <div className="max-h-80 overflow-y-auto rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground leading-relaxed scroll-smooth">
+                <div className="border-border/40 bg-muted/20 text-muted-foreground max-h-80 overflow-y-auto scroll-smooth rounded-md border px-4 py-3 text-sm leading-relaxed">
                   {shortText}
                 </div>
                 <button
                   onClick={() => setSummaryExpanded(false)}
-                  className="mt-1.5 text-xs font-medium text-navy/70 hover:text-navy transition-colors"
+                  className="text-navy/70 hover:text-navy mt-1.5 text-xs font-medium transition-colors"
                 >
                   Show less
                 </button>
               </div>
             ) : (
               <div>
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
+                <p className="text-muted-foreground line-clamp-4 text-sm leading-relaxed">
                   {shortText}
                 </p>
                 <button
                   onClick={() => setSummaryExpanded(true)}
-                  className="mt-1.5 text-xs font-medium text-navy/70 hover:text-navy transition-colors"
+                  className="text-navy/70 hover:text-navy mt-1.5 text-xs font-medium transition-colors"
                 >
                   Show full summary
                 </button>
               </div>
             )
           ) : (
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {shortText}
             </p>
           )}
           {amendmentCount > 0 && (
             <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
               <svg
-                className="h-3.5 w-3.5 mt-0.5 shrink-0"
+                className="mt-0.5 h-3.5 w-3.5 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -255,7 +267,8 @@ export function BillAboutSection({
               </svg>
               <span className="leading-relaxed">
                 This summary describes the bill as introduced. It has been
-                amended {amendmentCount === 1 ? "once" : `${amendmentCount} times`}{" "}
+                amended{" "}
+                {amendmentCount === 1 ? "once" : `${amendmentCount} times`}{" "}
                 since — the current text may differ.
                 {link && (
                   <>
@@ -277,7 +290,7 @@ export function BillAboutSection({
       )}
 
       {/* Meta row — always visible */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         <span>Introduced {introducedDate}</span>
         {lastActionDate && <span>Last action {lastActionDate}</span>}
         {link && (
@@ -285,7 +298,7 @@ export function BillAboutSection({
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline inline-flex items-center gap-1"
+            className="text-primary inline-flex items-center gap-1 hover:underline"
           >
             GovTrack
             <svg
@@ -309,7 +322,7 @@ export function BillAboutSection({
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+          className="text-primary inline-flex cursor-pointer items-center gap-1 text-xs font-medium hover:underline"
         >
           Learn more about this bill
           <svg
@@ -319,33 +332,37 @@ export function BillAboutSection({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
       )}
 
       {/* Expanded content */}
       {open && (
-        <div className="rounded-xl border bg-card p-5 space-y-5 animate-fade-slide-up">
+        <div className="bg-card animate-fade-slide-up space-y-5 rounded-xl border p-5">
           {/* Journey stepper */}
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3">
+            <p className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
               Legislative Journey
             </p>
             <BillJourney steps={journeySteps} />
           </div>
 
           {/* Status explainer */}
-          <div className="rounded-lg border-l-4 border-l-civic-gold bg-civic-cream/50 dark:bg-accent/30 px-4 py-3 space-y-1.5">
+          <div className="border-l-civic-gold bg-civic-cream/50 dark:bg-accent/30 space-y-1.5 rounded-lg border-l-4 px-4 py-3">
             <p className="text-sm font-medium">{statusHeadline}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-muted-foreground text-xs leading-relaxed">
               {statusDetail}
             </p>
           </div>
 
           {/* Bill type */}
-          <div className="text-xs text-muted-foreground leading-relaxed">
-            <span className="font-medium text-foreground">
+          <div className="text-muted-foreground text-xs leading-relaxed">
+            <span className="text-foreground font-medium">
               What is a {typeLabel.toLowerCase()}?
             </span>{" "}
             {typeDescription}
@@ -354,7 +371,7 @@ export function BillAboutSection({
           {/* Hide details — at the bottom of expanded content */}
           <button
             onClick={() => setOpen(false)}
-            className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+            className="text-primary inline-flex cursor-pointer items-center gap-1 text-xs font-medium hover:underline"
           >
             Hide details
             <svg
@@ -364,7 +381,11 @@ export function BillAboutSection({
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
         </div>

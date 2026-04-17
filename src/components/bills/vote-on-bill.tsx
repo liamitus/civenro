@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { StaleVoteBanner } from "./stale-vote-banner";
 import { VoteHistorySection } from "./vote-history";
-import type { VoteType, VoteAggregation, UserVoteStatus, RollCallVote } from "@/types";
+import type {
+  VoteType,
+  VoteAggregation,
+  UserVoteStatus,
+  RollCallVote,
+} from "@/types";
 
 function VoteBar({
   segments,
@@ -16,14 +21,14 @@ function VoteBar({
 }) {
   if (total === 0) {
     return (
-      <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
-        <div className="h-full w-full bg-muted" />
+      <div className="bg-muted h-3 w-full overflow-hidden rounded-full">
+        <div className="bg-muted h-full w-full" />
       </div>
     );
   }
 
   return (
-    <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex">
+    <div className="bg-muted flex h-3 w-full overflow-hidden rounded-full">
       {segments.map(
         (seg) =>
           seg.count > 0 && (
@@ -56,8 +61,7 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
 
   const total = yea + nay + getCount("Present") + getCount("Not Voting");
 
-  const result =
-    yea > nay ? "Passed" : nay > yea ? "Failed" : "Tied";
+  const result = yea > nay ? "Passed" : nay > yea ? "Failed" : "Tied";
 
   const dateStr = rollCall.votedAt
     ? new Date(rollCall.votedAt).toLocaleDateString("en-US", {
@@ -70,11 +74,11 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-foreground">
+        <h4 className="text-foreground text-sm font-semibold">
           {inferChamber(rollCall)} Vote
         </h4>
         {dateStr && (
-          <span className="text-xs text-muted-foreground">{dateStr}</span>
+          <span className="text-muted-foreground text-xs">{dateStr}</span>
         )}
       </div>
 
@@ -82,8 +86,16 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
         segments={[
           { label: "Yes", count: yea, color: "bg-vote-yea" },
           { label: "No", count: nay, color: "bg-vote-nay" },
-          { label: "Present", count: getCount("Present"), color: "bg-vote-present" },
-          { label: "Not Voting", count: getCount("Not Voting"), color: "bg-vote-notvoting" },
+          {
+            label: "Present",
+            count: getCount("Present"),
+            color: "bg-vote-present",
+          },
+          {
+            label: "Not Voting",
+            count: getCount("Not Voting"),
+            color: "bg-vote-notvoting",
+          },
         ]}
         total={total}
       />
@@ -91,32 +103,32 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
       <div className="flex flex-wrap gap-3 text-sm">
         {yea > 0 && (
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-yea" />
+            <span className="bg-vote-yea inline-block h-2.5 w-2.5 rounded-full" />
             Yes: {yea}
           </span>
         )}
         {nay > 0 && (
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-nay" />
+            <span className="bg-vote-nay inline-block h-2.5 w-2.5 rounded-full" />
             No: {nay}
           </span>
         )}
         {getCount("Present") > 0 && (
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-present" />
+            <span className="bg-vote-present inline-block h-2.5 w-2.5 rounded-full" />
             Present: {getCount("Present")}
           </span>
         )}
         {getCount("Not Voting") > 0 && (
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-notvoting" />
+            <span className="bg-vote-notvoting inline-block h-2.5 w-2.5 rounded-full" />
             Not Voting: {getCount("Not Voting")}
           </span>
         )}
       </div>
 
       {total > 0 && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           {result} {yea}-{nay}
         </p>
       )}
@@ -124,11 +136,19 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
   );
 }
 
-export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: () => void }) {
+export function VoteOnBill({
+  billId,
+  onSignUp,
+}: {
+  billId: number;
+  onSignUp?: () => void;
+}) {
   const { user } = useAuth();
   const [votes, setVotes] = useState<VoteAggregation | null>(null);
   const [userVote, setUserVote] = useState<VoteType | null>(null);
-  const [userVoteStatus, setUserVoteStatus] = useState<UserVoteStatus | null>(null);
+  const [userVoteStatus, setUserVoteStatus] = useState<UserVoteStatus | null>(
+    null,
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const fetchVotes = useCallback(async () => {
@@ -176,7 +196,8 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
   const getCount = (type: string) =>
     votes?.publicVotes.find((v) => v.voteType === type)?.count || 0;
 
-  const publicTotal = getCount("For") + getCount("Against") + getCount("Abstain");
+  const publicTotal =
+    getCount("For") + getCount("Against") + getCount("Abstain");
 
   // Show only the latest vote per chamber
   const latestRollCalls = (() => {
@@ -185,7 +206,10 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
     for (const rc of votes.rollCalls) {
       const chamber = inferChamber(rc);
       const existing = byChamber.get(chamber);
-      if (!existing || (rc.votedAt && (!existing.votedAt || rc.votedAt > existing.votedAt))) {
+      if (
+        !existing ||
+        (rc.votedAt && (!existing.votedAt || rc.votedAt > existing.votedAt))
+      ) {
         byChamber.set(chamber, rc);
       }
     }
@@ -221,7 +245,7 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
       >
         {/* Public vote */}
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold text-muted-foreground">
+          <h3 className="text-muted-foreground text-xs font-semibold">
             Public Opinion
           </h3>
 
@@ -229,29 +253,41 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
             <>
               <VoteBar
                 segments={[
-                  { label: "For", count: getCount("For"), color: "bg-vote-for" },
-                  { label: "Against", count: getCount("Against"), color: "bg-vote-against" },
-                  { label: "Abstain", count: getCount("Abstain"), color: "bg-vote-abstain" },
+                  {
+                    label: "For",
+                    count: getCount("For"),
+                    color: "bg-vote-for",
+                  },
+                  {
+                    label: "Against",
+                    count: getCount("Against"),
+                    color: "bg-vote-against",
+                  },
+                  {
+                    label: "Abstain",
+                    count: getCount("Abstain"),
+                    color: "bg-vote-abstain",
+                  },
                 ]}
                 total={publicTotal}
               />
               <div className="flex gap-4 text-sm">
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-for" />
+                  <span className="bg-vote-for inline-block h-2.5 w-2.5 rounded-full" />
                   For: {getCount("For")}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-against" />
+                  <span className="bg-vote-against inline-block h-2.5 w-2.5 rounded-full" />
                   Against: {getCount("Against")}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-vote-abstain" />
+                  <span className="bg-vote-abstain inline-block h-2.5 w-2.5 rounded-full" />
                   Abstain: {getCount("Abstain")}
                 </span>
               </div>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground py-1">
+            <p className="text-muted-foreground py-1 text-sm">
               No votes yet — be the first to weigh in.
             </p>
           )}
@@ -277,7 +313,7 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
                   variant="outline"
                   disabled={submitting || !user}
                   onClick={() => submitVote(type)}
-                  className={`flex-1 h-10 font-semibold text-sm transition-all ${styles[type]}`}
+                  className={`h-10 flex-1 text-sm font-semibold transition-all ${styles[type]}`}
                 >
                   {type}
                 </Button>
@@ -286,18 +322,18 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
           </div>
 
           {!user && (
-            <div className="rounded-lg bg-muted/50 border border-dashed px-4 py-3 text-center">
-              <p className="text-sm font-medium text-foreground">
+            <div className="bg-muted/50 rounded-lg border border-dashed px-4 py-3 text-center">
+              <p className="text-foreground text-sm font-medium">
                 <button
                   type="button"
                   onClick={onSignUp}
-                  className="underline underline-offset-2 hover:text-primary transition-colors"
+                  className="hover:text-primary underline underline-offset-2 transition-colors"
                 >
                   Sign up
-                </button>
-                {" "}to cast your vote
+                </button>{" "}
+                to cast your vote
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-muted-foreground mt-0.5 text-xs">
                 Your voice matters — let representatives know where you stand.
               </p>
             </div>
@@ -312,7 +348,7 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
         {/* Congressional votes — grouped by roll call */}
         {hasRollCalls && (
           <div className="space-y-6">
-            <h3 className="text-xs font-semibold text-muted-foreground">
+            <h3 className="text-muted-foreground text-xs font-semibold">
               Official Votes
             </h3>
             {latestRollCalls.map((rc, i) => (
@@ -333,7 +369,7 @@ export function VoteOnBill({ billId, onSignUp }: { billId: number; onSignUp?: ()
               } as RollCallVote;
               return (
                 <>
-                  <h3 className="text-xs font-semibold text-muted-foreground">
+                  <h3 className="text-muted-foreground text-xs font-semibold">
                     {inferChamber(legacyRollCall)} Vote
                   </h3>
                   <RollCallCard rollCall={legacyRollCall} />

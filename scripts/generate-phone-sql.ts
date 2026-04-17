@@ -44,7 +44,9 @@ async function main() {
   lines.push("-- Bulk update Representative.phone from congress-legislators.");
   lines.push("-- Safe to re-run. Updates by bioguideId.");
   lines.push("");
-  lines.push('ALTER TABLE "Representative" ADD COLUMN IF NOT EXISTS "phone" TEXT;');
+  lines.push(
+    'ALTER TABLE "Representative" ADD COLUMN IF NOT EXISTS "phone" TEXT;',
+  );
   lines.push("");
   lines.push("WITH phone_data (bioguide_id, phone) AS (");
   lines.push("  VALUES");

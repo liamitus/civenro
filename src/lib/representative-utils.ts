@@ -2,12 +2,41 @@
 
 export function partyColor(party: string) {
   const p = party.toLowerCase();
-  if (p.includes("democrat")) return { bar: "party-bar-democrat", badge: "bg-dem text-white", dot: "bg-dem" };
-  if (p.includes("republican")) return { bar: "party-bar-republican", badge: "bg-rep text-white", dot: "bg-rep" };
-  if (p.includes("independent")) return { bar: "party-bar-independent", badge: "bg-ind text-white", dot: "bg-ind" };
-  if (p.includes("libertarian")) return { bar: "party-bar-libertarian", badge: "bg-lib/15 text-lib", dot: "bg-lib" };
-  if (p.includes("green")) return { bar: "party-bar-green", badge: "bg-green text-white", dot: "bg-green" };
-  return { bar: "party-bar-unknown", badge: "bg-gray-400 text-white", dot: "bg-gray-400" };
+  if (p.includes("democrat"))
+    return {
+      bar: "party-bar-democrat",
+      badge: "bg-dem text-white",
+      dot: "bg-dem",
+    };
+  if (p.includes("republican"))
+    return {
+      bar: "party-bar-republican",
+      badge: "bg-rep text-white",
+      dot: "bg-rep",
+    };
+  if (p.includes("independent"))
+    return {
+      bar: "party-bar-independent",
+      badge: "bg-ind text-white",
+      dot: "bg-ind",
+    };
+  if (p.includes("libertarian"))
+    return {
+      bar: "party-bar-libertarian",
+      badge: "bg-lib/15 text-lib",
+      dot: "bg-lib",
+    };
+  if (p.includes("green"))
+    return {
+      bar: "party-bar-green",
+      badge: "bg-green text-white",
+      dot: "bg-green",
+    };
+  return {
+    bar: "party-bar-unknown",
+    badge: "bg-gray-400 text-white",
+    dot: "bg-gray-400",
+  };
 }
 
 export function chamberLabel(chamber: string) {
@@ -37,7 +66,8 @@ function getElectionDay(year: number): Date {
   // First Monday in November
   const nov1 = new Date(year, 10, 1);
   const dayOfWeek = nov1.getDay();
-  const firstMonday = dayOfWeek <= 1 ? 1 + (1 - dayOfWeek) : 1 + (8 - dayOfWeek);
+  const firstMonday =
+    dayOfWeek <= 1 ? 1 + (1 - dayOfWeek) : 1 + (8 - dayOfWeek);
   // First Tuesday after first Monday
   return new Date(year, 10, firstMonday + 1);
 }

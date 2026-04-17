@@ -54,7 +54,7 @@ export async function fetchBillsFunction(billIds?: string[]) {
         });
 
         console.log(
-          `Fetched ${bills.length} bills from ${currentDate.format("YYYY-MM-DD")} to ${nextDate.format("YYYY-MM-DD")}`
+          `Fetched ${bills.length} bills from ${currentDate.format("YYYY-MM-DD")} to ${nextDate.format("YYYY-MM-DD")}`,
         );
 
         for (const bill of bills) {

@@ -26,16 +26,20 @@ function AiMessageContent({ text }: { text: string }) {
     <ReactMarkdown
       components={{
         blockquote: ({ children }) => (
-          <blockquote className="border-l-2 border-civic-gold/60 pl-3 my-2 text-muted-foreground italic">
+          <blockquote className="border-civic-gold/60 text-muted-foreground my-2 border-l-2 pl-3 italic">
             {children}
           </blockquote>
         ),
         p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
         strong: ({ children }) => (
-          <strong className="font-semibold text-foreground">{children}</strong>
+          <strong className="text-foreground font-semibold">{children}</strong>
         ),
-        ul: ({ children }) => <ul className="list-disc pl-5 my-2 space-y-1">{children}</ul>,
-        ol: ({ children }) => <ol className="list-decimal pl-5 my-2 space-y-1">{children}</ol>,
+        ul: ({ children }) => (
+          <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>
+        ),
+        ol: ({ children }) => (
+          <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>
+        ),
       }}
     >
       {text}
@@ -43,7 +47,13 @@ function AiMessageContent({ text }: { text: string }) {
   );
 }
 
-export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () => void }) {
+export function AiChatbox({
+  billId,
+  onSignUp,
+}: {
+  billId: number;
+  onSignUp?: () => void;
+}) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [input, setInput] = useState("");
@@ -53,7 +63,9 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
     incomeCents: number;
     spendCents: number;
   } | null>(null);
-  const [textTier, setTextTier] = useState<"full" | "summary" | "title-only" | null>(null);
+  const [textTier, setTextTier] = useState<
+    "full" | "summary" | "title-only" | null
+  >(null);
   const [open, setOpen] = useState(false);
   const [width, setWidth] = useState<number>(() => {
     if (typeof window === "undefined") return DEFAULT_WIDTH;
@@ -203,15 +215,15 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
 
   if (!user) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-muted-foreground text-sm">
         <button
           type="button"
           onClick={onSignUp}
-          className="underline underline-offset-2 hover:text-primary transition-colors font-medium"
+          className="hover:text-primary font-medium underline underline-offset-2 transition-colors"
         >
           Sign up
-        </button>
-        {" "}to ask questions about this bill.
+        </button>{" "}
+        to ask questions about this bill.
       </div>
     );
   }
@@ -262,7 +274,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
           >
             <MessageSquare className="h-3 w-3" />
             Continue conversation ({messages.length}{" "}
@@ -283,13 +295,13 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
             onPointerMove={onResizeMove}
             onPointerUp={onResizeEnd}
             onPointerCancel={onResizeEnd}
-            className="absolute inset-y-0 left-0 z-20 w-1.5 cursor-col-resize hover:bg-civic-gold/30 active:bg-civic-gold/60 transition-colors"
+            className="hover:bg-civic-gold/30 active:bg-civic-gold/60 absolute inset-y-0 left-0 z-20 w-1.5 cursor-col-resize transition-colors"
           />
 
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <svg
-                className="h-4 w-4 text-civic-gold"
+                className="text-civic-gold h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -313,10 +325,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
           </SheetHeader>
 
           {/* Scrollable message area */}
-          <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto px-5 py-5"
-          >
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5">
             {aiPaused ? (
               <div className="flex h-full items-center justify-center px-6">
                 <AiPausedPanel
@@ -325,16 +334,18 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
                 />
               </div>
             ) : messages.length === 0 && !loading ? (
-              <div className="flex h-full flex-col items-center justify-center text-center px-6">
-                <p className="text-sm font-medium text-foreground mb-1">
+              <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                <p className="text-foreground mb-1 text-sm font-medium">
                   Ask anything about this bill
                 </p>
-                <p className="text-xs text-muted-foreground max-w-sm">
+                <p className="text-muted-foreground max-w-sm text-xs">
                   Try{" "}
                   <button
                     type="button"
-                    onClick={() => sendMessage("What does this bill actually do?")}
-                    className="underline hover:text-foreground"
+                    onClick={() =>
+                      sendMessage("What does this bill actually do?")
+                    }
+                    className="hover:text-foreground underline"
                   >
                     What does this bill actually do?
                   </button>{" "}
@@ -342,7 +353,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
                   <button
                     type="button"
                     onClick={() => sendMessage("Who is most affected?")}
-                    className="underline hover:text-foreground"
+                    className="hover:text-foreground underline"
                   >
                     Who is most affected?
                   </button>
@@ -354,7 +365,9 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
                   <div
                     key={i}
                     className={`text-sm ${
-                      msg.sender === "user" ? "flex justify-end" : "flex justify-start"
+                      msg.sender === "user"
+                        ? "flex justify-end"
+                        : "flex justify-start"
                     }`}
                   >
                     <div
@@ -374,7 +387,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="rounded-2xl bg-muted px-4 py-2.5 text-sm text-muted-foreground">
+                    <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-2.5 text-sm">
                       Thinking…
                     </div>
                   </div>
@@ -384,7 +397,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
           </div>
 
           {/* Input pinned to bottom */}
-          <div className="border-t bg-background px-5 py-4">
+          <div className="bg-background border-t px-5 py-4">
             <div className="flex gap-2">
               <Input
                 ref={sheetInputRef}
@@ -414,6 +427,7 @@ export function AiChatbox({ billId, onSignUp }: { billId: number; onSignUp?: () 
 }
 
 function clampWidth(n: number): number {
-  const max = typeof window !== "undefined" ? window.innerWidth * MAX_WIDTH_VW : 1200;
+  const max =
+    typeof window !== "undefined" ? window.innerWidth * MAX_WIDTH_VW : 1200;
   return Math.max(MIN_WIDTH, Math.min(max, n));
 }

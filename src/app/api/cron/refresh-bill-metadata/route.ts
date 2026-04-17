@@ -44,10 +44,9 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[refresh-bill-metadata cron] failed:`, msg);
-    await reportError(
-      error instanceof Error ? error : new Error(msg),
-      { context: "refresh-bill-metadata cron" },
-    );
+    await reportError(error instanceof Error ? error : new Error(msg), {
+      context: "refresh-bill-metadata cron",
+    });
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

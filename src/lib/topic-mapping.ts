@@ -28,12 +28,19 @@ export const TOPICS: TopicInfo[] = [
   },
   {
     label: "Economy",
-    policyAreas: ["Economics and Public Finance", "Finance and Financial Sector"],
+    policyAreas: [
+      "Economics and Public Finance",
+      "Finance and Financial Sector",
+    ],
     color: "bg-emerald-100 text-emerald-700",
   },
   {
     label: "Environment",
-    policyAreas: ["Environmental Protection", "Public Lands and Natural Resources", "Water Resources Development"],
+    policyAreas: [
+      "Environmental Protection",
+      "Public Lands and Natural Resources",
+      "Water Resources Development",
+    ],
     color: "bg-green-100 text-green-700",
   },
   {
@@ -58,7 +65,10 @@ export const TOPICS: TopicInfo[] = [
   },
   {
     label: "Foreign Affairs",
-    policyAreas: ["International Affairs", "Foreign Trade and International Finance"],
+    policyAreas: [
+      "International Affairs",
+      "Foreign Trade and International Finance",
+    ],
     color: "bg-blue-100 text-blue-700",
   },
   {
@@ -112,7 +122,9 @@ for (const topic of TOPICS) {
 }
 
 /** Get the user-friendly topic for a CRS policyArea, or null if unmapped */
-export function getTopicForPolicyArea(policyArea: string | null): TopicInfo | null {
+export function getTopicForPolicyArea(
+  policyArea: string | null,
+): TopicInfo | null {
   if (!policyArea) return null;
   return policyAreaToTopic.get(policyArea) ?? null;
 }

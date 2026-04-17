@@ -27,10 +27,7 @@ function SheetClose(props: DialogPrimitive.Close.Props) {
   return <DialogPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
-function SheetOverlay({
-  className,
-  ...props
-}: DialogPrimitive.Backdrop.Props) {
+function SheetOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
   return (
     <DialogPrimitive.Backdrop
       data-slot="sheet-overlay"
@@ -63,8 +60,8 @@ const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
           data-slot="sheet-content"
           style={{ width: width ? `${width}px` : undefined, ...style }}
           className={cn(
-            "fixed inset-y-0 right-0 z-50 flex h-full flex-col bg-background shadow-2xl ring-1 ring-foreground/10 outline-none",
-            "min-w-[360px] max-w-[95vw]",
+            "bg-background ring-foreground/10 fixed inset-y-0 right-0 z-50 flex h-full flex-col shadow-2xl ring-1 outline-none",
+            "max-w-[95vw] min-w-[360px]",
             "duration-200",
             "data-open:animate-in data-open:slide-in-from-right",
             "data-closed:animate-out data-closed:slide-out-to-right",
@@ -108,7 +105,10 @@ function SheetTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="sheet-title"
-      className={cn("font-heading text-sm font-semibold leading-none", className)}
+      className={cn(
+        "font-heading text-sm leading-none font-semibold",
+        className,
+      )}
       {...props}
     />
   );
@@ -121,7 +121,7 @@ function SheetDescription({
   return (
     <DialogPrimitive.Description
       data-slot="sheet-description"
-      className={cn("text-xs text-muted-foreground", className)}
+      className={cn("text-muted-foreground text-xs", className)}
       {...props}
     />
   );

@@ -14,7 +14,7 @@ interface AlignmentScoreProps {
 
 function computeAlignment(
   votingRecord: RepVoteRecord[],
-  userVotes: Record<number, string> | null
+  userVotes: Record<number, string> | null,
 ) {
   if (!userVotes) return { aligned: 0, comparable: 0, pct: null };
 
@@ -46,12 +46,12 @@ function EmptyDonut() {
   return (
     <div className="relative flex-shrink-0">
       <div
-        className="w-36 h-36 rounded-full flex items-center justify-center"
+        className="flex h-36 w-36 items-center justify-center rounded-full"
         style={{
           background: "conic-gradient(#E5E7EB 0deg 360deg)",
         }}
       >
-        <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
+        <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white">
           <span className="text-2xl font-bold text-gray-300">—</span>
         </div>
       </div>
@@ -68,32 +68,32 @@ export function AlignmentScore({
   const [authOpen, setAuthOpen] = useState(false);
   const { aligned, comparable, pct } = computeAlignment(
     votingRecord,
-    userVotes
+    userVotes,
   );
 
   // Not logged in — show preview donut + sign in CTA
   if (!user) {
     return (
       <>
-        <div className="rounded-xl border border-border/60 bg-white p-8">
-          <div className="flex flex-col sm:flex-row items-center gap-8">
+        <div className="border-border/60 rounded-xl border bg-white p-8">
+          <div className="flex flex-col items-center gap-8 sm:flex-row">
             <EmptyDonut />
 
             <div className="text-center sm:text-left">
-              <p className="text-sm font-semibold tracking-[0.15em] uppercase text-navy/50 mb-2">
+              <p className="text-navy/50 mb-2 text-sm font-semibold tracking-[0.15em] uppercase">
                 Alignment Score
               </p>
-              <p className="text-lg font-bold text-navy mb-1">
+              <p className="text-navy mb-1 text-lg font-bold">
                 How well does {repName} represent you?
               </p>
-              <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+              <p className="text-muted-foreground mb-4 max-w-sm text-sm">
                 Sign in and vote on bills to see a personalized alignment score
                 comparing your positions with this representative&apos;s voting
                 record.
               </p>
               <button
                 onClick={() => setAuthOpen(true)}
-                className="inline-flex h-10 px-5 items-center rounded-md bg-navy text-white text-sm font-medium hover:bg-navy-light transition-colors"
+                className="bg-navy hover:bg-navy-light inline-flex h-10 items-center rounded-md px-5 text-sm font-medium text-white transition-colors"
               >
                 Sign in to see your score
               </button>
@@ -109,25 +109,25 @@ export function AlignmentScore({
   // Logged in but no overlapping votes
   if (pct === null) {
     return (
-      <div className="rounded-xl border border-border/60 bg-white p-8">
-        <div className="flex flex-col sm:flex-row items-center gap-8">
+      <div className="border-border/60 rounded-xl border bg-white p-8">
+        <div className="flex flex-col items-center gap-8 sm:flex-row">
           <EmptyDonut />
 
           <div className="text-center sm:text-left">
-            <p className="text-sm font-semibold tracking-[0.15em] uppercase text-navy/50 mb-2">
+            <p className="text-navy/50 mb-2 text-sm font-semibold tracking-[0.15em] uppercase">
               Alignment Score
             </p>
-            <p className="text-lg font-bold text-navy mb-1">
+            <p className="text-navy mb-1 text-lg font-bold">
               No alignment data yet
             </p>
-            <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-              Vote on bills to see how your positions compare with{" "}
-              {repName}&apos;s voting record. The more bills you vote on, the
-              more accurate your score.
+            <p className="text-muted-foreground mb-4 max-w-sm text-sm">
+              Vote on bills to see how your positions compare with {repName}
+              &apos;s voting record. The more bills you vote on, the more
+              accurate your score.
             </p>
             <Link
               href="/bills"
-              className="inline-flex h-10 px-5 items-center rounded-md bg-navy text-white text-sm font-medium hover:bg-navy-light transition-colors"
+              className="bg-navy hover:bg-navy-light inline-flex h-10 items-center rounded-md px-5 text-sm font-medium text-white transition-colors"
             >
               Browse bills to vote on
             </Link>
@@ -147,17 +147,17 @@ export function AlignmentScore({
         : "var(--color-vote-nay)";
 
   return (
-    <div className="rounded-xl border border-border/60 bg-white p-8">
-      <div className="flex flex-col sm:flex-row items-center gap-8">
+    <div className="border-border/60 rounded-xl border bg-white p-8">
+      <div className="flex flex-col items-center gap-8 sm:flex-row">
         {/* Donut */}
         <div className="relative flex-shrink-0">
           <div
-            className="w-36 h-36 rounded-full flex items-center justify-center"
+            className="flex h-36 w-36 items-center justify-center rounded-full"
             style={{
               background: `conic-gradient(${color} 0deg ${alignedDeg}deg, #E5E7EB ${alignedDeg}deg 360deg)`,
             }}
           >
-            <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white">
               <span className="text-3xl font-bold" style={{ color }}>
                 {pct}%
               </span>
@@ -167,11 +167,11 @@ export function AlignmentScore({
 
         {/* Text */}
         <div>
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-navy/50 mb-2">
+          <p className="text-navy/50 mb-2 text-sm font-semibold tracking-[0.15em] uppercase">
             Alignment Score
           </p>
-          <p className="text-xl font-bold text-navy mb-1">{pct}% Aligned</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-navy mb-1 text-xl font-bold">{pct}% Aligned</p>
+          <p className="text-muted-foreground text-sm">
             Out of {comparable} bill{comparable !== 1 ? "s" : ""} you&apos;ve
             both voted on, you agreed on {aligned}.
           </p>

@@ -37,7 +37,10 @@ export async function GET(request: Request) {
   // Each bill takes ~5-10s (congress.gov title + metadata + text, plus
   // GovInfo probes). 6 bills × ~8s = ~48s, safely within the 55s budget.
   // Larger batches hit FUNCTION_INVOCATION_TIMEOUT.
-  const limit = Math.min(15, parseInt(url.searchParams.get("limit") ?? "6", 10));
+  const limit = Math.min(
+    15,
+    parseInt(url.searchParams.get("limit") ?? "6", 10),
+  );
   const tiers = (url.searchParams.get("tiers") ?? "ACTIVE,ADVANCING,ENACTED")
     .split(",")
     .map((t) => t.trim())

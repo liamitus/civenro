@@ -103,38 +103,40 @@ export function SponsorCard({
   const inner = (
     <>
       <div className="flex items-center gap-3">
-        <div className="relative w-12 h-15 rounded-md overflow-hidden bg-muted flex-shrink-0">
+        <div className="bg-muted relative h-15 w-12 flex-shrink-0 overflow-hidden rounded-md">
           {rep?.bioguideId ? (
             <img
               src={`/api/photos/${rep.bioguideId}`}
               alt={displayName}
-              className="w-full h-full object-cover object-[center_20%] select-none pointer-events-none"
+              className="pointer-events-none h-full w-full object-cover object-[center_20%] select-none"
               draggable={false}
               loading="lazy"
               onError={(e) => {
                 const el = e.currentTarget;
                 el.style.display = "none";
-                el.parentElement!.querySelector("[data-fallback]")!.removeAttribute("hidden");
+                el.parentElement!.querySelector(
+                  "[data-fallback]",
+                )!.removeAttribute("hidden");
               }}
             />
           ) : null}
           <div
             data-fallback
             hidden={!!rep?.bioguideId}
-            className="w-full h-full flex items-center justify-center text-muted-foreground text-sm font-semibold"
+            className="text-muted-foreground flex h-full w-full items-center justify-center text-sm font-semibold"
           >
             {parsed.firstName[0]}
             {parsed.lastName[0]}
           </div>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-sm text-navy leading-snug">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-navy text-sm leading-snug font-semibold">
               {displayName}
             </p>
             <span
-              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${colors.badge}`}
+              className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ${colors.badge}`}
             >
               {parsed.party === "D"
                 ? "Democrat"
@@ -145,18 +147,26 @@ export function SponsorCard({
                     : parsed.party}
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-muted-foreground mt-0.5 text-[11px]">
             {chamberLabel} · {locationLabel}
           </p>
-          <p className="text-[11px] text-muted-foreground/80 mt-1">
+          <p className="text-muted-foreground/80 mt-1 text-[11px]">
             {coalition}
           </p>
         </div>
 
         {rep && (
-          <span className="hidden sm:inline-flex items-center text-xs text-muted-foreground group-hover:text-navy transition-colors">
+          <span className="text-muted-foreground group-hover:text-navy hidden items-center text-xs transition-colors sm:inline-flex">
             View profile
-            <svg className="w-3 h-3 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="ml-1 h-3 w-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="m9 18 6-6-6-6" />
             </svg>
           </span>
@@ -171,7 +181,7 @@ export function SponsorCard({
     return (
       <Link
         href={`/representatives/${rep.slug || rep.bioguideId}`}
-        className={`${baseClasses} group hover:shadow-md hover:border-navy/20 transition-all`}
+        className={`${baseClasses} group hover:border-navy/20 transition-all hover:shadow-md`}
       >
         {inner}
       </Link>

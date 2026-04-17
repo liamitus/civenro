@@ -119,7 +119,9 @@ async function backupAiOutputs(): Promise<AiOutputRecord[]> {
     }))
     .sort((a, b) => {
       const billCmp = a.billId.localeCompare(b.billId);
-      return billCmp !== 0 ? billCmp : a.versionCode.localeCompare(b.versionCode);
+      return billCmp !== 0
+        ? billCmp
+        : a.versionCode.localeCompare(b.versionCode);
     });
 }
 

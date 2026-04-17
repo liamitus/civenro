@@ -34,7 +34,10 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const limit = Math.min(30, parseInt(url.searchParams.get("limit") ?? "15", 10));
+  const limit = Math.min(
+    30,
+    parseInt(url.searchParams.get("limit") ?? "15", 10),
+  );
   const tiers = (url.searchParams.get("tiers") ?? "ACTIVE,ADVANCING,ENACTED")
     .split(",")
     .map((t) => t.trim())

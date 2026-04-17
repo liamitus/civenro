@@ -29,12 +29,12 @@ function CollapsibleCard({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="rounded-xl border bg-card" id={anchorId}>
-        <CollapsibleTrigger className="flex w-full items-center gap-2 px-6 py-4 text-sm font-semibold text-foreground hover:bg-accent/50 transition-colors rounded-xl">
+      <div className="bg-card rounded-xl border" id={anchorId}>
+        <CollapsibleTrigger className="text-foreground hover:bg-accent/50 flex w-full items-center gap-2 rounded-xl px-6 py-4 text-sm font-semibold transition-colors">
           {icon}
           {title}
           <svg
-            className={`ml-auto h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+            className={`text-muted-foreground ml-auto h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -63,10 +63,10 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
     <div className="space-y-4">
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
       {/* Ask AI FIRST — help users understand the bill before engaging */}
-      <section className="rounded-xl border border-civic-gold/40 bg-civic-cream/30 dark:bg-accent/20 p-6">
-        <h2 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+      <section className="border-civic-gold/40 bg-civic-cream/30 dark:bg-accent/20 rounded-xl border p-6">
+        <h2 className="text-foreground mb-1 flex items-center gap-2 text-sm font-semibold">
           <svg
-            className="h-4 w-4 text-civic-gold"
+            className="text-civic-gold h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -80,17 +80,17 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
           </svg>
           Ask AI About This Bill
         </h2>
-        <p className="text-xs text-muted-foreground mb-4">
+        <p className="text-muted-foreground mb-4 text-xs">
           Get plain-language answers with direct quotes from the bill text.
         </p>
         <AiChatbox billId={billId} onSignUp={openSignUp} />
       </section>
 
       {/* Your Representatives */}
-      <section className="rounded-xl border bg-card p-6">
-        <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+      <section className="bg-card rounded-xl border p-6">
+        <h2 className="text-foreground mb-4 flex items-center gap-2 text-sm font-semibold">
           <svg
-            className="h-4 w-4 text-muted-foreground"
+            className="text-muted-foreground h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -108,10 +108,10 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
       </section>
 
       {/* Votes — public opinion vs congress */}
-      <section className="rounded-xl border bg-card p-6">
-        <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+      <section className="bg-card rounded-xl border p-6">
+        <h2 className="text-foreground mb-4 flex items-center gap-2 text-sm font-semibold">
           <svg
-            className="h-4 w-4 text-muted-foreground"
+            className="text-muted-foreground h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -135,7 +135,7 @@ export function BillDetailInteractive({ billId }: { billId: number }) {
         anchorId="discussion"
         icon={
           <svg
-            className="h-4 w-4 text-muted-foreground"
+            className="text-muted-foreground h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

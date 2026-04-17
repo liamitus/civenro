@@ -1,6 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import type { RepresentativeInfo } from "@/types";
-import { partyColor, chamberLabel, nextElection } from "@/lib/representative-utils";
+import {
+  partyColor,
+  chamberLabel,
+  nextElection,
+} from "@/lib/representative-utils";
 import { RepPhoto } from "./rep-photo";
 
 interface RepHeroProps {
@@ -12,9 +16,9 @@ export function RepHero({ rep }: RepHeroProps) {
   const electionCountdown = nextElection(rep.chamber);
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 items-start">
+    <div className="flex flex-col items-start gap-6 sm:flex-row">
       {/* Photo */}
-      <div className="relative w-32 h-40 rounded-lg overflow-hidden bg-muted flex-shrink-0 shadow-sm">
+      <div className="bg-muted relative h-40 w-32 flex-shrink-0 overflow-hidden rounded-lg shadow-sm">
         <RepPhoto
           bioguideId={rep.bioguideId}
           firstName={rep.firstName}
@@ -25,10 +29,10 @@ export function RepHero({ rep }: RepHeroProps) {
       {/* Info */}
       <div className="space-y-3">
         <div>
-          <h1 className="font-gelasio text-2xl sm:text-3xl font-bold text-navy leading-tight">
+          <h1 className="font-gelasio text-navy text-2xl leading-tight font-bold sm:text-3xl">
             {rep.firstName} {rep.lastName}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             {chamberLabel(rep.chamber)}
             {rep.district ? `, ${rep.state}-${rep.district}` : `, ${rep.state}`}
           </p>
@@ -38,7 +42,7 @@ export function RepHero({ rep }: RepHeroProps) {
           <Badge className={colors.badge}>
             {rep.party.replace("Democratic", "Democrat")}
           </Badge>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-muted-foreground text-xs">
             Next election {electionCountdown}
           </span>
         </div>
@@ -46,9 +50,17 @@ export function RepHero({ rep }: RepHeroProps) {
         {rep.phone && (
           <a
             href={`tel:${rep.phone}`}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-navy transition-colors"
+            className="text-muted-foreground hover:text-navy inline-flex items-center gap-2 text-sm transition-colors"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
             {rep.phone}

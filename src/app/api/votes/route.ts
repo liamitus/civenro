@@ -11,14 +11,17 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
   const { billId, voteType } = body;
 
   if (!billId || !voteType) {
     return NextResponse.json(
       { error: "billId and voteType are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -65,11 +68,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(vote);
   } catch (error) {
-    console.error(JSON.stringify({ event: "api_error", route: "POST /api/votes", error: error instanceof Error ? error.message : String(error) }));
+    console.error(
+      JSON.stringify({
+        event: "api_error",
+        route: "POST /api/votes",
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
     reportError(error, { route: "POST /api/votes" });
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

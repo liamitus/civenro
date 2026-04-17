@@ -160,7 +160,9 @@ export function AddressAutocomplete({
   }, []);
 
   const showDropdown =
-    !dismissed && phase !== "idle" && (phase === "loading" || suggestions.length > 0 || phase === "done");
+    !dismissed &&
+    phase !== "idle" &&
+    (phase === "loading" || suggestions.length > 0 || phase === "done");
 
   return (
     <div ref={containerRef} className="relative">
@@ -185,13 +187,13 @@ export function AddressAutocomplete({
       {showDropdown && (
         <ul
           role="listbox"
-          className="absolute z-50 top-[calc(100%+6px)] left-0 right-0 bg-white border border-border/80 rounded-xl shadow-xl overflow-hidden py-1"
+          className="border-border/80 absolute top-[calc(100%+6px)] right-0 left-0 z-50 overflow-hidden rounded-xl border bg-white py-1 shadow-xl"
         >
           {phase === "loading" && suggestions.length === 0 ? (
             [0, 1, 2].map((i) => (
               <li key={i} className="px-4 py-3" role="presentation">
                 <div
-                  className="h-4 bg-muted/60 rounded-md animate-pulse"
+                  className="bg-muted/60 h-4 animate-pulse rounded-md"
                   style={{ width: `${75 - i * 15}%` }}
                 />
               </li>
@@ -205,14 +207,12 @@ export function AddressAutocomplete({
                 aria-selected={i === activeIndex}
                 onMouseDown={() => handleSelect(s)}
                 onMouseEnter={() => setActiveIndex(i)}
-                className={`flex items-center gap-3 px-4 py-3 text-sm cursor-pointer transition-colors ${
-                  i === activeIndex
-                    ? "bg-navy/[0.06]"
-                    : "hover:bg-muted/40"
+                className={`flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                  i === activeIndex ? "bg-navy/[0.06]" : "hover:bg-muted/40"
                 }`}
               >
                 <svg
-                  className="w-4 h-4 text-navy/30 flex-shrink-0"
+                  className="text-navy/30 h-4 w-4 flex-shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -227,7 +227,7 @@ export function AddressAutocomplete({
               </li>
             ))
           ) : (
-            <li className="px-4 py-3 text-sm text-muted-foreground">
+            <li className="text-muted-foreground px-4 py-3 text-sm">
               No addresses found — try adding more detail
             </li>
           )}

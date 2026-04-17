@@ -71,8 +71,16 @@ describe("groupBills", () => {
   });
 
   it("does not group bills introduced on different days", () => {
-    const a = bill({ id: 1, title: "Same", introducedDate: "2026-03-18T00:00:00.000Z" });
-    const b = bill({ id: 2, title: "Same", introducedDate: "2026-03-19T00:00:00.000Z" });
+    const a = bill({
+      id: 1,
+      title: "Same",
+      introducedDate: "2026-03-18T00:00:00.000Z",
+    });
+    const b = bill({
+      id: 2,
+      title: "Same",
+      introducedDate: "2026-03-19T00:00:00.000Z",
+    });
     const out = groupBills([a, b]);
     expect(out).toHaveLength(2);
     expect(out.every((x) => x.kind === "single")).toBe(true);
@@ -133,17 +141,25 @@ describe("groupBills", () => {
 describe("formatBillNumber", () => {
   it("formats a senate joint resolution", () => {
     expect(
-      formatBillNumber("senate_joint_resolution", "senate_joint_resolution-137-119"),
+      formatBillNumber(
+        "senate_joint_resolution",
+        "senate_joint_resolution-137-119",
+      ),
     ).toBe("S.J.Res. 137");
   });
 
   it("formats a house bill", () => {
-    expect(formatBillNumber("house_bill", "house_bill-1234-119")).toBe("H.R. 1234");
+    expect(formatBillNumber("house_bill", "house_bill-1234-119")).toBe(
+      "H.R. 1234",
+    );
   });
 
   it("formats a senate concurrent resolution", () => {
     expect(
-      formatBillNumber("senate_concurrent_resolution", "senate_concurrent_resolution-12-119"),
+      formatBillNumber(
+        "senate_concurrent_resolution",
+        "senate_concurrent_resolution-12-119",
+      ),
     ).toBe("S.Con.Res. 12");
   });
 

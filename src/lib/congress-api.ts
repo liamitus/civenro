@@ -3,8 +3,7 @@ import dayjs from "dayjs";
 import { parseStringPromise } from "xml2js";
 import { BillXmlParser, type ParsedChunk } from "./bill-xml-parser";
 
-const CONGRESS_API_KEY =
-  process.env.CONGRESS_DOT_GOV_API_KEY || "DEMO_KEY";
+const CONGRESS_API_KEY = process.env.CONGRESS_DOT_GOV_API_KEY || "DEMO_KEY";
 
 /**
  * Retry wrapper with linear backoff for transient API failures.
@@ -57,7 +56,9 @@ export async function fetchAllTextVersions(
 ): Promise<TextVersionMeta[]> {
   try {
     const response = await withRetry(() =>
-      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/text`),
+      congressApiClient.get(
+        `/bill/${congress}/${apiBillType}/${billNumber}/text`,
+      ),
     );
 
     const versions = response.data?.textVersions as TextVersionMeta[];
@@ -85,11 +86,13 @@ export async function fetchAllTextVersions(
 export async function fetchLatestTextVersion(
   congress: number,
   apiBillType: string,
-  billNumber: number
+  billNumber: number,
 ): Promise<TextVersion | null> {
   try {
     const response = await withRetry(() =>
-      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/text`),
+      congressApiClient.get(
+        `/bill/${congress}/${apiBillType}/${billNumber}/text`,
+      ),
     );
 
     const textVersions = response.data?.textVersions as TextVersion[];
@@ -97,15 +100,13 @@ export async function fetchLatestTextVersion(
 
     const sorted = textVersions
       .filter((tv) => !!tv.date)
-      .sort(
-        (a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf()
-      );
+      .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
 
     return sorted.length > 0 ? sorted[0] : textVersions[0];
   } catch (error: unknown) {
     console.error(
       "Failed to fetch text versions:",
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : error,
     );
     return null;
   }
@@ -116,13 +117,13 @@ export async function fetchLatestTextVersion(
  */
 export async function downloadTextFormats(
   latestVersion: TextVersion,
-  billId: string
+  billId: string,
 ): Promise<{ rawXml: string | null; rawText: string | null }> {
   const xmlFormat = latestVersion.formats.find(
-    (fmt) => fmt.type === "Formatted XML"
+    (fmt) => fmt.type === "Formatted XML",
   );
   const textFormat = latestVersion.formats.find(
-    (fmt) => fmt.type === "Formatted Text"
+    (fmt) => fmt.type === "Formatted Text",
   );
 
   if (!xmlFormat?.url) {
@@ -131,7 +132,9 @@ export async function downloadTextFormats(
   }
 
   try {
-    const { data: rawXml } = await axios.get(xmlFormat.url, { timeout: 15_000 });
+    const { data: rawXml } = await axios.get(xmlFormat.url, {
+      timeout: 15_000,
+    });
     let rawText: string | null = null;
     if (textFormat?.url) {
       const { data } = await axios.get(textFormat.url, { timeout: 15_000 });
@@ -144,7 +147,7 @@ export async function downloadTextFormats(
   } catch (error: unknown) {
     console.error(
       `Error downloading text for ${billId}:`,
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : error,
     );
     return { rawXml: null, rawText: null };
   }
@@ -168,24 +171,33 @@ export async function fetchBillActions(
 ): Promise<CongressAction[] | null> {
   try {
     const response = await withRetry(() =>
-      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/actions`, {
-        params: { limit: 250 },
-      }),
+      congressApiClient.get(
+        `/bill/${congress}/${apiBillType}/${billNumber}/actions`,
+        {
+          params: { limit: 250 },
+        },
+      ),
     );
 
     const actions = response.data?.actions;
     if (!Array.isArray(actions)) return null;
 
     return actions.map(
-      (a: { actionDate?: string; text?: string; type?: string; sourceSystem?: { name?: string } }) => ({
+      (a: {
+        actionDate?: string;
+        text?: string;
+        type?: string;
+        sourceSystem?: { name?: string };
+      }) => ({
         actionDate: a.actionDate ?? "",
         text: a.text ?? "",
         type: a.type ?? null,
-        chamber: a.sourceSystem?.name === "Senate"
-          ? "Senate"
-          : a.sourceSystem?.name?.includes("House")
-            ? "House"
-            : null,
+        chamber:
+          a.sourceSystem?.name === "Senate"
+            ? "Senate"
+            : a.sourceSystem?.name?.includes("House")
+              ? "House"
+              : null,
       }),
     );
   } catch (error: unknown) {
@@ -226,7 +238,7 @@ export async function fetchOfficialBillTitle(
  * Fetched on-demand from Congress.gov.
  */
 export interface BillMetadata {
-  sponsor: string | null;          // "Sen. Rick Scott (R-FL)"
+  sponsor: string | null; // "Sen. Rick Scott (R-FL)"
   cosponsorCount: number | null;
   cosponsorPartySplit: string | null; // "5 D, 3 R"
   policyArea: string | null;
@@ -275,7 +287,8 @@ export async function fetchBillCosponsors(
     const raw: Array<Record<string, unknown>> = res.data?.cosponsors ?? [];
     return raw
       .map((c) => {
-        const bioguideId = typeof c.bioguideId === "string" ? c.bioguideId : null;
+        const bioguideId =
+          typeof c.bioguideId === "string" ? c.bioguideId : null;
         if (!bioguideId) return null;
         return {
           bioguideId,
@@ -344,10 +357,15 @@ async function fetchBillSummary(
 ): Promise<string | null> {
   try {
     const res = await withRetry(() =>
-      congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/summaries`),
+      congressApiClient.get(
+        `/bill/${congress}/${apiBillType}/${billNumber}/summaries`,
+      ),
     );
-    const summaries: Array<{ text?: string; updateDate?: string; actionDate?: string }> =
-      res.data?.summaries ?? [];
+    const summaries: Array<{
+      text?: string;
+      updateDate?: string;
+      actionDate?: string;
+    }> = res.data?.summaries ?? [];
     if (summaries.length === 0) return null;
 
     // Pick the most recent summary by updateDate (falls back to actionDate).
@@ -377,9 +395,12 @@ export async function fetchBillMetadata(
         congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}`),
       ),
       withRetry(() =>
-        congressApiClient.get(`/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`, {
-          params: { limit: 250 },
-        }),
+        congressApiClient.get(
+          `/bill/${congress}/${apiBillType}/${billNumber}/cosponsors`,
+          {
+            params: { limit: 250 },
+          },
+        ),
       ).catch(() => null),
       fetchBillSummary(congress, apiBillType, billNumber),
     ]);
@@ -409,8 +430,7 @@ export async function fetchBillMetadata(
 
     return {
       sponsor,
-      cosponsorCount:
-        bill.cosponsors?.count ?? cosponsorList.length ?? null,
+      cosponsorCount: bill.cosponsors?.count ?? cosponsorList.length ?? null,
       cosponsorPartySplit: partySplit,
       policyArea: bill.policyArea?.name ?? null,
       latestActionDate: bill.latestAction?.actionDate ?? null,
@@ -430,7 +450,7 @@ export async function fetchBillMetadata(
  * Parse XML into structured sections using BillXmlParser.
  */
 export async function parseXmlIntoSections(
-  rawXml: string
+  rawXml: string,
 ): Promise<ParsedChunk[]> {
   const xmlObj = await parseStringPromise(rawXml, {
     preserveChildrenOrder: true,

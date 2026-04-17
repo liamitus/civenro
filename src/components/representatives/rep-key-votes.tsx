@@ -14,10 +14,10 @@ export function RepKeyVotes({ keyVotes, repFirstName }: RepKeyVotesProps) {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold tracking-[0.15em] uppercase text-navy/70">
+      <h2 className="text-navy/70 text-sm font-semibold tracking-[0.15em] uppercase">
         Key Votes
       </h2>
-      <p className="text-xs text-muted-foreground -mt-1">
+      <p className="text-muted-foreground -mt-1 text-xs">
         How {repFirstName} voted on final passage of bills
       </p>
 
@@ -25,26 +25,26 @@ export function RepKeyVotes({ keyVotes, repFirstName }: RepKeyVotesProps) {
         {keyVotes.map((vote) => (
           <div
             key={`${vote.billId}-${vote.date}`}
-            className="flex items-center gap-3 rounded-lg border border-border/60 bg-white p-3 sm:p-4"
+            className="border-border/60 flex items-center gap-3 rounded-lg border bg-white p-3 sm:p-4"
           >
             <Badge
               className={
                 vote.repVote === "Yea"
-                  ? "bg-vote-yea text-white flex-shrink-0"
-                  : "bg-vote-nay text-white flex-shrink-0"
+                  ? "bg-vote-yea flex-shrink-0 text-white"
+                  : "bg-vote-nay flex-shrink-0 text-white"
               }
             >
               {vote.repVote === "Yea" ? "YES" : "NO"}
             </Badge>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <Link
                 href={`/bills/${vote.billId}`}
-                className="text-sm font-medium text-navy hover:underline leading-snug line-clamp-2"
+                className="text-navy line-clamp-2 text-sm leading-snug font-medium hover:underline"
               >
                 {vote.title}
               </Link>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-muted-foreground mt-0.5 text-xs">
                 {new Date(vote.date).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   if (!billId) {
     return NextResponse.json(
       { error: "Missing required query parameter: billId." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -39,22 +39,24 @@ export async function GET(request: NextRequest) {
     if (!conversation) {
       return NextResponse.json(
         { error: "Conversation not found." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    const messages = conversation.messages.map(({ sender, text, createdAt }) => ({
-      sender,
-      text,
-      createdAt,
-    }));
+    const messages = conversation.messages.map(
+      ({ sender, text, createdAt }) => ({
+        sender,
+        text,
+        createdAt,
+      }),
+    );
 
     return NextResponse.json({ createdAt: conversation.createdAt, messages });
   } catch (error) {
     console.error("Error retrieving conversation:", error);
     return NextResponse.json(
       { error: "Internal server error." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -64,21 +66,23 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { billId, userMessage, conversationId } =
-      await request.json();
+    const { billId, userMessage, conversationId } = await request.json();
 
     if (!billId || !userMessage) {
       return NextResponse.json(
         { error: "Missing required fields." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Input length guard — reject oversized prompts before they burn tokens.
-    if (typeof userMessage !== "string" || userMessage.length > MAX_MESSAGE_LENGTH) {
+    if (
+      typeof userMessage !== "string" ||
+      userMessage.length > MAX_MESSAGE_LENGTH
+    ) {
       return NextResponse.json(
         { error: `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
       if (!conversation || conversation.userId !== userId) {
         return NextResponse.json(
           { error: "Conversation not found." },
-          { status: 404 }
+          { status: 404 },
         );
       }
     } else {
@@ -218,7 +222,12 @@ export async function POST(request: NextRequest) {
     if (isFirstTurn) {
       try {
         const modelUsed = aiResult.usage[0]?.model ?? "unknown";
-        await setCachedResponse(numericBillId, userMessage, aiResult.content, modelUsed);
+        await setCachedResponse(
+          numericBillId,
+          userMessage,
+          aiResult.content,
+          modelUsed,
+        );
       } catch {
         // Non-critical — cache write failure shouldn't break the response.
       }
@@ -244,11 +253,17 @@ export async function POST(request: NextRequest) {
     if (error instanceof AiDisabledError) {
       return NextResponse.json(error.toJSON(), { status: 503 });
     }
-    console.error(JSON.stringify({ event: "api_error", route: "POST /api/ai/chat", error: error instanceof Error ? error.message : String(error) }));
+    console.error(
+      JSON.stringify({
+        event: "api_error",
+        route: "POST /api/ai/chat",
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
     reportError(error, { route: "POST /api/ai/chat" });
     return NextResponse.json(
       { error: "Internal server error." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

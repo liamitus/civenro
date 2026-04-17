@@ -63,10 +63,7 @@ export function DonationHistory({ userId }: { userId: string }) {
         <h2 className="font-semibold">
           Your Contributions ({donations.length})
         </h2>
-        <Link
-          href="/support"
-          className="text-xs text-primary hover:underline"
-        >
+        <Link href="/support" className="text-primary text-xs hover:underline">
           Support again
         </Link>
       </div>
@@ -79,7 +76,7 @@ export function DonationHistory({ userId }: { userId: string }) {
                   ${(d.amountCents / 100).toFixed(2)}
                 </span>
                 {d.isRecurring && (
-                  <Badge variant="outline" className="text-[10px] px-1.5">
+                  <Badge variant="outline" className="px-1.5 text-[10px]">
                     {d.recurringStatus === "ACTIVE"
                       ? "Monthly"
                       : d.recurringStatus === "GRACE"
@@ -90,17 +87,17 @@ export function DonationHistory({ userId }: { userId: string }) {
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {d.displayMode === "ANONYMOUS"
                   ? "Anonymous"
                   : d.displayMode === "TRIBUTE"
                     ? `In honor of ${d.tributeName}`
-                    : d.displayName ?? "Anonymous"}
+                    : (d.displayName ?? "Anonymous")}
                 {d.hiddenAt && " (hidden from public page)"}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 {new Date(d.createdAt).toLocaleDateString()}
               </span>
               {d.displayMode !== "ANONYMOUS" && !d.hiddenAt && (
@@ -108,7 +105,7 @@ export function DonationHistory({ userId }: { userId: string }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs h-6 px-2"
+                    className="h-6 px-2 text-xs"
                     onClick={() => handleMakeAnonymous(d.id)}
                   >
                     Make anonymous
@@ -116,7 +113,7 @@ export function DonationHistory({ userId }: { userId: string }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs h-6 px-2 text-muted-foreground"
+                    className="text-muted-foreground h-6 px-2 text-xs"
                     onClick={() => handleHide(d.id)}
                   >
                     Hide

@@ -1,0 +1,21 @@
+node_modules
+.next
+out
+build
+coverage
+dist
+playwright-report
+test-results
+
+# Prisma
+prisma/migrations/**/migration.sql
+src/generated
+
+# Lockfiles
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+
+# Claude
+.claude

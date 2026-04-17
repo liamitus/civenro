@@ -29,10 +29,22 @@ const SORT_OPTIONS = [
 // - throttleMs smooths search typing so we don't spam history.
 const filterParsers = {
   search: parseAsString.withDefault(""),
-  chamber: parseAsStringLiteral(["both", "house", "senate"] as const).withDefault("both"),
+  chamber: parseAsStringLiteral([
+    "both",
+    "house",
+    "senate",
+  ] as const).withDefault("both"),
   status: parseAsString.withDefault(""),
-  momentum: parseAsStringLiteral(["live", "graveyard", "all"] as const).withDefault("live"),
-  sortBy: parseAsStringLiteral(["relevant", "latest", "newest"] as const).withDefault("relevant"),
+  momentum: parseAsStringLiteral([
+    "live",
+    "graveyard",
+    "all",
+  ] as const).withDefault("live"),
+  sortBy: parseAsStringLiteral([
+    "relevant",
+    "latest",
+    "newest",
+  ] as const).withDefault("relevant"),
   topic: parseAsString.withDefault(""),
   hideVoted: parseAsBoolean.withDefault(false),
 };
@@ -53,7 +65,8 @@ export function BillListClient() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useQueryStates(filterParsers, filterOptions);
-  const { search, chamber, status, momentum, sortBy, topic, hideVoted } = filters;
+  const { search, chamber, status, momentum, sortBy, topic, hideVoted } =
+    filters;
   const [showFilters, setShowFilters] = useState(false);
   const [votedBillIds, setVotedBillIds] = useState<Set<number>>(new Set());
   const observerRef = useRef<HTMLDivElement>(null);
@@ -124,7 +137,7 @@ export function BillListClient() {
       setLoading(false);
       setLoadingMore(false);
     },
-    [chamber, status, momentum, sortBy, search, topic]
+    [chamber, status, momentum, sortBy, search, topic],
   );
 
   useEffect(() => {
@@ -146,7 +159,7 @@ export function BillListClient() {
           fetchBills(nextPage, true);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
     if (observerRef.current) observer.observe(observerRef.current);
     return () => observer.disconnect();
@@ -160,14 +173,16 @@ export function BillListClient() {
     value: string,
     current: string,
     key: "chamber" | "status",
-    resetTo: string
+    resetTo: string,
   ) => (
     <button
       key={value}
       onClick={() =>
-        setFilters({ [key]: current === value ? resetTo : value } as Partial<typeof filters>)
+        setFilters({ [key]: current === value ? resetTo : value } as Partial<
+          typeof filters
+        >)
       }
-      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+      className={`rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-all ${
         current === value
           ? "bg-navy text-white"
           : "text-muted-foreground hover:text-navy hover:bg-navy/5"
@@ -183,31 +198,27 @@ export function BillListClient() {
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+            className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <circle cx="11" cy="11" r="8" strokeWidth="2" />
-            <path
-              d="m21 21-4.35-4.35"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
+            <path d="m21 21-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <input
             placeholder="Search bills..."
             value={search}
             onChange={(e) => setFilters({ search: e.target.value })}
-            className="w-full h-10 pl-9 pr-3 rounded-lg border border-border/60 bg-white text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/20"
+            className="border-border/60 placeholder:text-muted-foreground focus:ring-navy/20 focus:border-navy/20 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
-        <div className="flex items-center gap-0.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-0.5">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setFilters({ sortBy: opt.value })}
-              className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+              className={`rounded px-2 py-1 text-xs font-medium transition-all ${
                 sortBy === opt.value
                   ? "bg-navy/10 text-navy"
                   : "text-muted-foreground hover:text-navy"
@@ -221,10 +232,10 @@ export function BillListClient() {
 
       {/* Row 2 — Topics + Filters toggle */}
       <div className="flex items-center gap-2">
-        <div className="flex-1 flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide -mx-1 px-1">
+        <div className="scrollbar-hide -mx-1 flex flex-1 gap-1.5 overflow-x-auto px-1 pb-0.5">
           <button
             onClick={() => setFilters({ topic: "" })}
-            className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
               topic === ""
                 ? "bg-navy text-white"
                 : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
@@ -238,7 +249,7 @@ export function BillListClient() {
               onClick={() =>
                 setFilters({ topic: topic === t.label ? "" : t.label })
               }
-              className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
                 topic === t.label
                   ? "bg-navy text-white"
                   : "bg-muted/50 text-muted-foreground hover:text-navy hover:bg-navy/5"
@@ -251,27 +262,24 @@ export function BillListClient() {
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
+          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
             showFilters || activeFilterCount > 0
               ? "border-navy/20 bg-navy/5 text-navy"
               : "border-border/50 text-muted-foreground hover:text-navy hover:border-navy/20"
           }`}
         >
           <svg
-            className="w-3.5 h-3.5"
+            className="h-3.5 w-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
             strokeWidth="2"
           >
-            <path
-              strokeLinecap="round"
-              d="M3 6h18M7 12h10M10 18h4"
-            />
+            <path strokeLinecap="round" d="M3 6h18M7 12h10M10 18h4" />
           </svg>
           Filters
           {activeFilterCount > 0 && (
-            <span className="w-4 h-4 rounded-full bg-navy text-white text-[10px] flex items-center justify-center leading-none">
+            <span className="bg-navy flex h-4 w-4 items-center justify-center rounded-full text-[10px] leading-none text-white">
               {activeFilterCount}
             </span>
           )}
@@ -280,14 +288,14 @@ export function BillListClient() {
 
       {/* Expandable filter row */}
       {showFilters && (
-        <div className="flex flex-wrap items-center gap-3 pb-2 animate-fade-slide-up">
-          <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
+        <div className="animate-fade-slide-up flex flex-wrap items-center gap-3 pb-2">
+          <div className="border-border/50 flex items-center gap-0.5 rounded-full border px-1 py-0.5">
             {filterPill("All", "both", chamber, "chamber", "both")}
             {filterPill("House", "house", chamber, "chamber", "both")}
             {filterPill("Senate", "senate", chamber, "chamber", "both")}
           </div>
 
-          <div className="flex items-center gap-0.5 rounded-full border border-border/50 px-1 py-0.5">
+          <div className="border-border/50 flex items-center gap-0.5 rounded-full border px-1 py-0.5">
             {filterPill("Any", "", status, "status", "")}
             {filterPill("Introduced", "introduced", status, "status", "")}
             {filterPill("In Progress", "in_progress", status, "status", "")}
@@ -299,13 +307,21 @@ export function BillListClient() {
           {user && votedBillIds.size > 0 && (
             <button
               onClick={() => setFilters({ hideVoted: !hideVoted })}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                 hideVoted
-                  ? "bg-navy text-white border-navy"
+                  ? "bg-navy border-navy text-white"
                   : "border-border/50 text-muted-foreground hover:text-navy hover:border-navy/20"
               }`}
             >
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="h-3 w-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 {hideVoted ? (
                   <>
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -325,11 +341,11 @@ export function BillListClient() {
       )}
 
       {/* Count + hidden bills link */}
-      <div className="flex items-center justify-between min-h-[24px]">
-        <p className="text-xs text-muted-foreground flex items-center gap-2">
+      <div className="flex min-h-[24px] items-center justify-between">
+        <p className="text-muted-foreground flex items-center gap-2 text-xs">
           {loading && (
-            <span className="inline-flex items-center gap-1.5 text-navy/70">
-              <span className="w-3 h-3 rounded-full border-2 border-navy/15 border-t-navy/70 animate-spin" />
+            <span className="text-navy/70 inline-flex items-center gap-1.5">
+              <span className="border-navy/15 border-t-navy/70 h-3 w-3 animate-spin rounded-full border-2" />
               Updating…
             </span>
           )}
@@ -367,12 +383,15 @@ export function BillListClient() {
       {/* Bill list */}
       <div
         className={`space-y-2 transition-opacity duration-150 ${
-          loading && bills.length > 0 ? "opacity-40 pointer-events-none" : ""
+          loading && bills.length > 0 ? "pointer-events-none opacity-40" : ""
         }`}
         aria-busy={loading}
       >
         {feedItems.map((item, i) => {
-          const key = item.kind === "single" ? `bill-${item.bill.id}` : `group-${item.key}`;
+          const key =
+            item.kind === "single"
+              ? `bill-${item.bill.id}`
+              : `group-${item.key}`;
           return (
             <div
               key={key}
@@ -380,7 +399,10 @@ export function BillListClient() {
               style={{ animationDelay: `${Math.min(i, 10) * 30}ms` }}
             >
               {item.kind === "single" ? (
-                <BillCard bill={item.bill} voted={votedBillIds.has(item.bill.id)} />
+                <BillCard
+                  bill={item.bill}
+                  voted={votedBillIds.has(item.bill.id)}
+                />
               ) : (
                 <BillGroupCard bills={item.bills} votedBillIds={votedBillIds} />
               )}
@@ -396,18 +418,24 @@ export function BillListClient() {
             // Respects prefers-reduced-motion automatically via motion-safe:.
             <div
               key={i}
-              className="relative rounded-lg border border-border/50 bg-white px-5 py-4 overflow-hidden"
+              className="border-border/50 relative overflow-hidden rounded-lg border bg-white px-5 py-4"
               aria-hidden
             >
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-muted" />
-              <div className="pl-3 space-y-2.5">
-                <div className="h-4 bg-muted/60 rounded motion-safe:animate-pulse" style={{ width: `${70 - i * 3}%` }} />
-                <div className="h-3 bg-muted/40 rounded motion-safe:animate-pulse" style={{ width: `${55 - i * 2}%` }} />
+              <div className="bg-muted absolute top-0 bottom-0 left-0 w-1 rounded-l-lg" />
+              <div className="space-y-2.5 pl-3">
+                <div
+                  className="bg-muted/60 h-4 rounded motion-safe:animate-pulse"
+                  style={{ width: `${70 - i * 3}%` }}
+                />
+                <div
+                  className="bg-muted/40 h-3 rounded motion-safe:animate-pulse"
+                  style={{ width: `${55 - i * 2}%` }}
+                />
                 <div className="flex items-center gap-2 pt-1">
-                  <div className="h-3 w-10 bg-muted/50 rounded motion-safe:animate-pulse" />
-                  <div className="h-4 w-16 bg-muted/40 rounded motion-safe:animate-pulse" />
-                  <div className="h-4 w-14 bg-muted/40 rounded motion-safe:animate-pulse" />
-                  <div className="h-3 w-20 bg-muted/30 rounded motion-safe:animate-pulse" />
+                  <div className="bg-muted/50 h-3 w-10 rounded motion-safe:animate-pulse" />
+                  <div className="bg-muted/40 h-4 w-16 rounded motion-safe:animate-pulse" />
+                  <div className="bg-muted/40 h-4 w-14 rounded motion-safe:animate-pulse" />
+                  <div className="bg-muted/30 h-3 w-20 rounded motion-safe:animate-pulse" />
                 </div>
               </div>
             </div>
@@ -417,19 +445,19 @@ export function BillListClient() {
 
       {loadingMore && (
         <div className="flex justify-center py-6">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <div className="w-4 h-4 rounded-full border-2 border-navy/15 border-t-navy/60 animate-spin" />
+          <div className="text-muted-foreground flex items-center gap-2 text-xs">
+            <div className="border-navy/15 border-t-navy/60 h-4 w-4 animate-spin rounded-full border-2" />
             Loading more…
           </div>
         </div>
       )}
 
       {error && (
-        <div className="rounded-lg border border-border/60 bg-muted/30 p-6 text-center space-y-3">
-          <p className="text-sm text-muted-foreground">{error}</p>
+        <div className="border-border/60 bg-muted/30 space-y-3 rounded-lg border p-6 text-center">
+          <p className="text-muted-foreground text-sm">{error}</p>
           <button
             onClick={() => fetchBills(1)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-navy bg-white border border-border/60 rounded-md hover:bg-navy/5 transition-colors"
+            className="text-navy border-border/60 hover:bg-navy/5 inline-flex items-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors"
           >
             Try again
           </button>
@@ -438,7 +466,7 @@ export function BillListClient() {
 
       {!loading && !error && bills.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             No bills found matching your filters.
           </p>
         </div>

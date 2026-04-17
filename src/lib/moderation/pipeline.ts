@@ -26,7 +26,7 @@ export type ModerationResult = {
  */
 export async function moderateName(
   rawName: string | null | undefined,
-  ip?: string
+  ip?: string,
 ): Promise<ModerationResult> {
   // No name provided — anonymous donation, no moderation needed
   if (!rawName || rawName.trim().length === 0) {

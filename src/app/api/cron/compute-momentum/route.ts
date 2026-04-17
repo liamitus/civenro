@@ -40,7 +40,10 @@ export async function GET(request: Request) {
 
   const start = Date.now();
   try {
-    const result = await computeMomentumFunction(limit, full ? "full" : "incremental");
+    const result = await computeMomentumFunction(
+      limit,
+      full ? "full" : "incremental",
+    );
     const ms = Date.now() - start;
     console.log(
       `[compute-momentum cron] ok=${result.ok} failed=${result.failed} in ${ms}ms (full=${full})`,
@@ -49,10 +52,9 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[compute-momentum cron] failed:`, msg);
-    await reportError(
-      error instanceof Error ? error : new Error(msg),
-      { context: "compute-momentum cron" },
-    );
+    await reportError(error instanceof Error ? error : new Error(msg), {
+      context: "compute-momentum cron",
+    });
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

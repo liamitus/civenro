@@ -24,16 +24,23 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="min-h-screen flex items-center justify-center bg-white">
-        <div className="max-w-md px-4 text-center space-y-6">
-          <p className="text-sm tracking-widest uppercase" style={{ color: "#B8860B" }}>
+      <body className="flex min-h-screen items-center justify-center bg-white">
+        <div className="max-w-md space-y-6 px-4 text-center">
+          <p
+            className="text-sm tracking-widest uppercase"
+            style={{ color: "#B8860B" }}
+          >
             Something Went Wrong
           </p>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ color: "#0A1F44" }}>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ color: "#0A1F44" }}
+          >
             Unexpected Error
           </h1>
           <p className="text-gray-500">
-            We hit an unexpected problem. Please try again, or head back to the homepage.
+            We hit an unexpected problem. Please try again, or head back to the
+            homepage.
           </p>
           <div className="flex justify-center gap-4 pt-4">
             <button
@@ -43,6 +50,9 @@ export default function GlobalError({
             >
               Try again
             </button>
+            {/* global-error.tsx is the last-resort boundary — React state is
+                broken, so next/link can't be relied on. Use a plain anchor. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/"
               className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium transition-colors"

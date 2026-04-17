@@ -16,7 +16,9 @@ export async function generateChangeSummariesFunction(
 ) {
   console.log(
     "Generating change summaries for:",
-    targetBillId ? `bill ${targetBillId}` : `up to ${limit} bills with missing summaries`,
+    targetBillId
+      ? `bill ${targetBillId}`
+      : `up to ${limit} bills with missing summaries`,
   );
 
   // Gate on budget — AI features can be paused when funding runs low.
@@ -77,9 +79,13 @@ export async function generateChangeSummariesFunction(
         if (i === 0) {
           await prisma.billTextVersion.update({
             where: { id: version.id },
-            data: { changeSummary: "Initial version of the bill as introduced." },
+            data: {
+              changeSummary: "Initial version of the bill as introduced.",
+            },
           });
-          console.log(`  ${version.versionCode.toUpperCase()} — baseline (no AI)`);
+          console.log(
+            `  ${version.versionCode.toUpperCase()} — baseline (no AI)`,
+          );
           continue;
         }
 
@@ -87,12 +93,15 @@ export async function generateChangeSummariesFunction(
 
         // Need text from both versions to generate a meaningful summary
         if (!previous.fullText || !version.fullText) {
-          const msg = "Text comparison unavailable — one or both versions are missing full text.";
+          const msg =
+            "Text comparison unavailable — one or both versions are missing full text.";
           await prisma.billTextVersion.update({
             where: { id: version.id },
             data: { changeSummary: msg },
           });
-          console.log(`  ${version.versionCode.toUpperCase()} — no text available`);
+          console.log(
+            `  ${version.versionCode.toUpperCase()} — no text available`,
+          );
           continue;
         }
 

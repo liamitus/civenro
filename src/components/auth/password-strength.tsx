@@ -53,7 +53,7 @@ export function PasswordStrengthIndicator({ password }: { password: string }) {
         {requirements.map((req) => (
           <li
             key={req.label}
-            className={`text-xs flex items-center gap-1.5 ${
+            className={`flex items-center gap-1.5 text-xs ${
               req.met ? "text-green-600" : "text-muted-foreground"
             }`}
           >

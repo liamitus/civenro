@@ -35,10 +35,9 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[fetch-representatives cron] failed:`, msg);
-    await reportError(
-      error instanceof Error ? error : new Error(msg),
-      { context: "fetch-representatives cron" },
-    );
+    await reportError(error instanceof Error ? error : new Error(msg), {
+      context: "fetch-representatives cron",
+    });
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

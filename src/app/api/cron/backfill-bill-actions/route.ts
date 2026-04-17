@@ -36,7 +36,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   // Actions are ~1s each (one API call). Batch of 20 fits in ~30s with overhead.
-  const limit = Math.min(30, parseInt(url.searchParams.get("limit") ?? "20", 10));
+  const limit = Math.min(
+    30,
+    parseInt(url.searchParams.get("limit") ?? "20", 10),
+  );
   const tiers = (url.searchParams.get("tiers") ?? "ACTIVE,ADVANCING,ENACTED")
     .split(",")
     .map((t) => t.trim())

@@ -76,7 +76,9 @@ export function getCongressEndDate(congress: number): Date {
 /**
  * Parse "X D, Y R" cosponsor split into { d, r } counts. Returns null if unparsable.
  */
-function parsePartySplit(split: string | null): { d: number; r: number } | null {
+function parsePartySplit(
+  split: string | null,
+): { d: number; r: number } | null {
   if (!split) return null;
   const d = /(\d+)\s*D/i.exec(split)?.[1];
   const r = /(\d+)\s*R/i.exec(split)?.[1];
@@ -125,7 +127,9 @@ export function computeMomentum(
   currentCongress: number,
   now: Date = new Date(),
 ): MomentumResult {
-  const lastActionTs = (inputs.latestActionDate ?? inputs.currentStatusDate).getTime();
+  const lastActionTs = (
+    inputs.latestActionDate ?? inputs.currentStatusDate
+  ).getTime();
   const daysSinceLastAction = Math.max(
     0,
     Math.floor((now.getTime() - lastActionTs) / DAY_MS),
@@ -172,7 +176,12 @@ export function computeMomentum(
     };
   }
   if (inputs.currentStatus === "vetoed_pocket") {
-    return { score: 0, tier: "DEAD", daysSinceLastAction, deathReason: "VETOED" };
+    return {
+      score: 0,
+      tier: "DEAD",
+      daysSinceLastAction,
+      deathReason: "VETOED",
+    };
   }
 
   // Long silence: no action in 365+ days is effectively dead for a live-Congress bill.
@@ -222,7 +231,12 @@ export function computeMomentum(
   const floorContribution = Math.min(40, floor);
 
   const rawScore =
-    floorContribution + recency + textIteration + cosponsorScore + civicScore - endPenalty;
+    floorContribution +
+    recency +
+    textIteration +
+    cosponsorScore +
+    civicScore -
+    endPenalty;
   const score = Math.max(0, Math.min(100, Math.round(rawScore)));
 
   // --- Tier derivation ---

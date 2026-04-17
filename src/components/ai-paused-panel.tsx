@@ -18,7 +18,7 @@ export function AiPausedPanel({
 
   return (
     <div
-      className={`rounded-lg border border-red-200 bg-red-50 p-4 space-y-3 text-center ${className}`}
+      className={`space-y-3 rounded-lg border border-red-200 bg-red-50 p-4 text-center ${className}`}
     >
       <p className="text-sm font-medium text-red-800">
         AI features are paused this month
@@ -36,7 +36,7 @@ export function AiPausedPanel({
       </p>
       <Link
         href="/support"
-        className="inline-flex items-center gap-2 bg-navy text-white px-4 py-2 rounded-md text-xs font-semibold tracking-wide hover:bg-navy-light transition-colors"
+        className="bg-navy hover:bg-navy-light inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-semibold tracking-wide text-white transition-colors"
       >
         Help bring them back
       </Link>

@@ -19,7 +19,10 @@ export async function refreshBillMetadataFunction(limit = 25) {
   const bills = await prisma.bill.findMany({
     where: { OR: [{ sponsor: null }, { shortText: null }] },
     select: { id: true, billId: true },
-    orderBy: [{ sponsor: { sort: "asc", nulls: "first" } }, { introducedDate: "desc" }],
+    orderBy: [
+      { sponsor: { sort: "asc", nulls: "first" } },
+      { introducedDate: "desc" },
+    ],
     take: limit,
   });
 

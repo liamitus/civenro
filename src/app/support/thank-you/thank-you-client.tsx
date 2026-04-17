@@ -75,28 +75,28 @@ export function ThankYouClient() {
   );
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-16 text-center space-y-8">
-      <p className="text-civic-gold text-sm tracking-widest uppercase star-accent">
+    <div className="mx-auto max-w-lg space-y-8 px-4 py-16 text-center">
+      <p className="text-civic-gold star-accent text-sm tracking-widest uppercase">
         Thank You
       </p>
-      <h1 className="font-gelasio text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+      <h1 className="font-gelasio text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
         You&apos;re keeping civic
         <br />
         transparency alive.
       </h1>
 
       {citizenCount != null && citizenCount > 0 && (
-        <div className="rounded-lg border border-civic-gold/30 bg-civic-cream/40 px-6 py-5 animate-fade-slide-up">
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-civic-gold/80 mb-1">
+        <div className="border-civic-gold/30 bg-civic-cream/40 animate-fade-slide-up rounded-lg border px-6 py-5">
+          <p className="text-civic-gold/80 mb-1 text-[11px] font-semibold tracking-widest uppercase">
             Made Possible By
           </p>
-          <p className="font-gelasio text-3xl font-bold text-navy tabular-nums">
+          <p className="font-gelasio text-navy text-3xl font-bold tabular-nums">
             {displayCount.toLocaleString()}
-            <span className="text-base font-normal text-muted-foreground ml-2">
+            <span className="text-muted-foreground ml-2 text-base font-normal">
               {citizenCount === 1 ? "citizen" : "citizens"}
             </span>
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             {citizenCount === 1
               ? "You’re the first — thank you for starting this."
               : "and counting"}
@@ -110,26 +110,38 @@ export function ThankYouClient() {
       </p>
 
       <div className="space-y-3 pt-2">
-        <p className="text-[11px] font-semibold tracking-widest uppercase text-muted-foreground">
+        <p className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
           Spread the word
         </p>
-        <div className="flex justify-center gap-2 flex-wrap">
+        <div className="flex flex-wrap justify-center gap-2">
           <a
             href={`https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-border/60 bg-white px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 transition-colors"
+            className="border-border/60 text-navy hover:bg-navy/5 inline-flex items-center gap-2 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors"
           >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
             Post on X
           </a>
           <a
             href={`https://bsky.app/intent/compose?text=${shareText}%20${encodeURIComponent(shareUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-border/60 bg-white px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 transition-colors"
+            className="border-border/60 text-navy hover:bg-navy/5 inline-flex items-center gap-2 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors"
           >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078 2.67.296 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"/></svg>
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078 2.67.296 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z" />
+            </svg>
             Post on Bluesky
           </a>
         </div>
@@ -138,14 +150,14 @@ export function ThankYouClient() {
       <div className="flex justify-center gap-4 pt-2 text-sm">
         <Link
           href="/made-possible-by"
-          className="text-navy/70 underline underline-offset-2 hover:text-navy"
+          className="text-navy/70 hover:text-navy underline underline-offset-2"
         >
           See who makes Govroll possible
         </Link>
         <span className="text-muted-foreground">·</span>
         <Link
           href="/bills"
-          className="text-navy/70 underline underline-offset-2 hover:text-navy"
+          className="text-navy/70 hover:text-navy underline underline-offset-2"
         >
           Back to bills
         </Link>

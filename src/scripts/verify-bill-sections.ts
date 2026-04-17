@@ -78,7 +78,10 @@ async function testParsedFormatRealBill() {
 
   // Section index
   const index = buildSectionIndex(sections);
-  assert(index.includes(sections[0].sectionRef), "buildSectionIndex includes refs");
+  assert(
+    index.includes(sections[0].sectionRef),
+    "buildSectionIndex includes refs",
+  );
 
   // Filter helper
   const firstRef = sections[0].sectionRef;
@@ -131,7 +134,10 @@ There is authorized to be appropriated such sums as may be necessary.
 </pre></body></html>`;
 
   const sections = parseSectionsFromFullText(synthHtml);
-  assert(sections.length >= 3, `synthetic HTML extracts 3+ sections (got ${sections.length})`);
+  assert(
+    sections.length >= 3,
+    `synthetic HTML extracts 3+ sections (got ${sections.length})`,
+  );
   assert(
     sections.some((s) => s.sectionRef === "Section 1"),
     "extracts Section 1 ref",
@@ -145,22 +151,33 @@ There is authorized to be appropriated such sums as may be necessary.
     "preserves DEFINITIONS heading",
   );
   assert(
-    !sections.some((s) => s.content.includes("<pre>") || s.content.includes("</pre>")),
+    !sections.some(
+      (s) => s.content.includes("<pre>") || s.content.includes("</pre>"),
+    ),
     "tags fully stripped",
   );
 
   // HTML with no SEC pattern → single block fallback
   const blob = `<html><body><pre>Just a paragraph with no section markers at all.</pre></body></html>`;
   const blobSections = parseSectionsFromFullText(blob);
-  assert(blobSections.length === 1, "no-section HTML falls back to single block");
-  assert(blobSections[0].sectionRef === "Full Text", "fallback uses 'Full Text' ref");
+  assert(
+    blobSections.length === 1,
+    "no-section HTML falls back to single block",
+  );
+  assert(
+    blobSections[0].sectionRef === "Full Text",
+    "fallback uses 'Full Text' ref",
+  );
 }
 
 function testEmptyAndEdgeCases() {
   console.log("\n[3] Empty / null / edge cases");
 
   assert(parseSectionsFromFullText("").length === 0, "empty string → []");
-  assert(parseSectionsFromFullText("   \n\n  ").length === 0, "whitespace-only → []");
+  assert(
+    parseSectionsFromFullText("   \n\n  ").length === 0,
+    "whitespace-only → []",
+  );
 
   // Orphan text before any heading
   const orphan = "Some intro text\n\nSection 1. Title\nbody";
@@ -175,7 +192,8 @@ function testEmptyAndEdgeCases() {
   );
 
   // Hierarchical heading with " > "
-  const nested = "Section 2. Definitions > (a) In general\nThe term means stuff.";
+  const nested =
+    "Section 2. Definitions > (a) In general\nThe term means stuff.";
   const nestedSections = parseSectionsFromFullText(nested);
   assert(
     nestedSections[0]?.sectionRef === "Section 2(a)",

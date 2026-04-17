@@ -21,16 +21,16 @@ on:
     # is usually within a few minutes of the scheduled time but can be
     # delayed under heavy GitHub load. Don't design anything that needs
     # sub-15-min precision here — add overlap into the endpoint window.
-    - cron: "*/30 * * * *"   # fetch-votes                (every 30m)
-    - cron: "15 * * * *"     # compute-momentum           (hourly)
-    - cron: "45 * * * *"     # backfill-bill-text         (hourly, small batch)
-    - cron: "10 */2 * * *"   # backfill-bill-actions      (every 2h)
-    - cron: "40 */2 * * *"   # backfill-cosponsors        (every 2h)
-    - cron: "0 */3 * * *"    # fetch-bills                (every 3h)
-    - cron: "20 */4 * * *"   # generate-change-summaries  (every 4h, budget-gated)
-    - cron: "30 */6 * * *"   # refresh-bill-metadata      (every 6h)
-    - cron: "0 0 * * *"      # evaluate-budget            (daily midnight UTC)
-    - cron: "0 10 * * 1"     # fetch-representatives      (weekly, Mon 10:00 UTC)
+    - cron: "*/30 * * * *" # fetch-votes                (every 30m)
+    - cron: "15 * * * *" # compute-momentum           (hourly)
+    - cron: "45 * * * *" # backfill-bill-text         (hourly, small batch)
+    - cron: "10 */2 * * *" # backfill-bill-actions      (every 2h)
+    - cron: "40 */2 * * *" # backfill-cosponsors        (every 2h)
+    - cron: "0 */3 * * *" # fetch-bills                (every 3h)
+    - cron: "20 */4 * * *" # generate-change-summaries  (every 4h, budget-gated)
+    - cron: "30 */6 * * *" # refresh-bill-metadata      (every 6h)
+    - cron: "0 0 * * *" # evaluate-budget            (daily midnight UTC)
+    - cron: "0 10 * * 1" # fetch-representatives      (weekly, Mon 10:00 UTC)
 
   workflow_dispatch:
     inputs:

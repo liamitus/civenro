@@ -86,10 +86,7 @@ export async function assertGlobalDailyLimit(
  */
 const ipCounts = new Map<string, { count: number; resetAt: number }>();
 
-export function assertIpRateLimit(
-  ip: string,
-  maxPerHour: number,
-): void {
+export function assertIpRateLimit(ip: string, maxPerHour: number): void {
   const now = Date.now();
   const entry = ipCounts.get(ip);
   if (!entry || now > entry.resetAt) {

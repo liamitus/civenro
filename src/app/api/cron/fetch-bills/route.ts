@@ -36,10 +36,9 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[fetch-bills cron] failed:`, msg);
-    await reportError(
-      error instanceof Error ? error : new Error(msg),
-      { context: "fetch-bills cron" },
-    );
+    await reportError(error instanceof Error ? error : new Error(msg), {
+      context: "fetch-bills cron",
+    });
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

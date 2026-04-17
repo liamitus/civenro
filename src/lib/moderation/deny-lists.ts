@@ -11,17 +11,43 @@
 export const PROFANITY: ReadonlySet<string> = new Set([
   // Racial slurs (abbreviated/hashed representations omitted — kept as
   // normalized lowercase full words for matching)
-  "nigger", "nigga", "chink", "spic", "kike", "wetback", "gook",
-  "beaner", "coon", "darkie", "jigaboo", "raghead", "towelhead",
-  "cracker", "honky", "gringo",
+  "nigger",
+  "nigga",
+  "chink",
+  "spic",
+  "kike",
+  "wetback",
+  "gook",
+  "beaner",
+  "coon",
+  "darkie",
+  "jigaboo",
+  "raghead",
+  "towelhead",
+  "cracker",
+  "honky",
+  "gringo",
   // Gendered slurs
-  "bitch", "cunt", "whore", "slut",
+  "bitch",
+  "cunt",
+  "whore",
+  "slut",
   // Homophobic slurs
-  "faggot", "fag", "dyke", "tranny",
+  "faggot",
+  "fag",
+  "dyke",
+  "tranny",
   // General profanity that shouldn't be a display name
-  "fuck", "shit", "asshole", "dickhead", "motherfucker",
+  "fuck",
+  "shit",
+  "asshole",
+  "dickhead",
+  "motherfucker",
   // Troll names
-  "hitler", "adolf hitler", "osama bin laden", "bin laden",
+  "hitler",
+  "adolf hitler",
+  "osama bin laden",
+  "bin laden",
 ]);
 
 /**
@@ -33,28 +59,41 @@ export const PROFANITY: ReadonlySet<string> = new Set([
  */
 export const PUBLIC_FIGURES: ReadonlySet<string> = new Set([
   // Presidents (living + recent)
-  "donald trump", "trump",
-  "joe biden", "biden",
-  "barack obama", "obama",
-  "george w bush", "george bush",
-  "bill clinton", "clinton",
-  "jimmy carter", "carter",
+  "donald trump",
+  "trump",
+  "joe biden",
+  "biden",
+  "barack obama",
+  "obama",
+  "george w bush",
+  "george bush",
+  "bill clinton",
+  "clinton",
+  "jimmy carter",
+  "carter",
   // Vice Presidents (recent)
-  "kamala harris", "harris",
-  "mike pence", "pence",
-  "jd vance", "vance",
+  "kamala harris",
+  "harris",
+  "mike pence",
+  "pence",
+  "jd vance",
+  "vance",
   // 2024+ prominent candidates / political figures
-  "ron desantis", "desantis",
+  "ron desantis",
+  "desantis",
   "nikki haley",
   "vivek ramaswamy",
-  "robert f kennedy", "rfk",
+  "robert f kennedy",
+  "rfk",
   "bernie sanders",
   "elizabeth warren",
-  "alexandria ocasio-cortez", "aoc",
+  "alexandria ocasio-cortez",
+  "aoc",
   "ted cruz",
   "marco rubio",
   "mitch mcconnell",
-  "nancy pelosi", "pelosi",
+  "nancy pelosi",
+  "pelosi",
   "chuck schumer",
   "kevin mccarthy",
   "mike johnson",
@@ -69,19 +108,26 @@ export const PUBLIC_FIGURES: ReadonlySet<string> = new Set([
   "amy coney barrett",
   "ketanji brown jackson",
   // Tech/media figures commonly used for trolling
-  "elon musk", "musk",
-  "mark zuckerberg", "zuckerberg",
-  "jeff bezos", "bezos",
+  "elon musk",
+  "musk",
+  "mark zuckerberg",
+  "zuckerberg",
+  "jeff bezos",
+  "bezos",
   "bill gates",
   // Foreign leaders
-  "vladimir putin", "putin",
+  "vladimir putin",
+  "putin",
   "xi jinping",
   "kim jong un",
-  "volodymyr zelensky", "zelensky",
+  "volodymyr zelensky",
+  "zelensky",
   // Historical figures commonly trolled
   "adolf hitler",
-  "joseph stalin", "stalin",
-  "benito mussolini", "mussolini",
+  "joseph stalin",
+  "stalin",
+  "benito mussolini",
+  "mussolini",
   "osama bin laden",
   "saddam hussein",
 ]);
@@ -94,8 +140,8 @@ export const SPAM_PATTERNS: RegExp[] = [
   /https?:\/\//i,
   /www\./i,
   /\.com|\.org|\.net|\.io|\.co|\.gov/i,
-  /@/,                        // email or social handle
-  /#\w/,                      // hashtag
-  /\.(jpg|png|gif|pdf)/i,     // file extensions
+  /@/, // email or social handle
+  /#\w/, // hashtag
+  /\.(jpg|png|gif|pdf)/i, // file extensions
   /\b(buy|sell|discount|free|click|subscribe|promo)\b/i,
 ];

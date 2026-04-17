@@ -46,8 +46,10 @@ export async function POST(request: NextRequest) {
       amountCents > MAX_AMOUNT_CENTS
     ) {
       return NextResponse.json(
-        { error: `Amount must be between $${MIN_AMOUNT_CENTS / 100} and $${MAX_AMOUNT_CENTS / 100}.` },
-        { status: 400 }
+        {
+          error: `Amount must be between $${MIN_AMOUNT_CENTS / 100} and $${MAX_AMOUNT_CENTS / 100}.`,
+        },
+        { status: 400 },
       );
     }
 
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (!["ANONYMOUS", "NAMED", "TRIBUTE"].includes(displayMode)) {
       return NextResponse.json(
         { error: "Invalid display mode." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
       if (!check.ok) {
         return NextResponse.json(
           { error: check.reason, field: "displayName" },
-          { status: 422 }
+          { status: 422 },
         );
       }
     }
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
       if (!check.ok) {
         return NextResponse.json(
           { error: check.reason, field: "tributeName" },
-          { status: 422 }
+          { status: 422 },
         );
       }
     }
@@ -84,19 +86,21 @@ export async function POST(request: NextRequest) {
     if (displayMode === "NAMED" && !displayName?.trim()) {
       return NextResponse.json(
         { error: "A display name is required.", field: "displayName" },
-        { status: 422 }
+        { status: 422 },
       );
     }
     if (displayMode === "TRIBUTE" && !tributeName?.trim()) {
       return NextResponse.json(
         { error: "An honoree name is required.", field: "tributeName" },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
     const stripe = getStripe();
     const origin = request.nextUrl.origin;
-    const successUrl = body.successUrl || `${origin}/support/thank-you?session_id={CHECKOUT_SESSION_ID}`;
+    const successUrl =
+      body.successUrl ||
+      `${origin}/support/thank-you?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = body.cancelUrl || `${origin}/support`;
 
     // Metadata passed through to the webhook for donation creation
@@ -177,7 +181,7 @@ export async function POST(request: NextRequest) {
     console.error("Stripe checkout error:", error);
     return NextResponse.json(
       { error: "Failed to create checkout session." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

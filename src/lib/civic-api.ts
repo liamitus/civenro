@@ -17,7 +17,9 @@ interface GeocodingResult {
  * Geocode an address to get state abbreviation and congressional district.
  * Uses the free US Census Bureau geocoding API.
  */
-async function geocodeAddress(address: string): Promise<GeocodingResult | null> {
+async function geocodeAddress(
+  address: string,
+): Promise<GeocodingResult | null> {
   try {
     const encoded = encodeURIComponent(address);
     const url = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${encoded}&benchmark=Public_AR_Current&vintage=Current_Current&layers=54&format=json`;
@@ -36,7 +38,7 @@ async function geocodeAddress(address: string): Promise<GeocodingResult | null> 
     // Get congressional district from geographies
     let district: string | null = null;
     const cdKey = Object.keys(geographies || {}).find((k) =>
-      k.toLowerCase().includes("congressional")
+      k.toLowerCase().includes("congressional"),
     );
     if (cdKey && geographies[cdKey]?.[0]) {
       const cd = geographies[cdKey][0].CD || geographies[cdKey][0].BASENAME;
@@ -59,7 +61,9 @@ export async function getRepresentativesByAddress(address: string) {
   const geo = await geocodeAddress(address);
 
   if (!geo) {
-    throw new Error("Could not geocode address. Please check the address and try again.");
+    throw new Error(
+      "Could not geocode address. Please check the address and try again.",
+    );
   }
 
   // Find senators for the state (always 2)
@@ -109,7 +113,12 @@ export async function getRepresentativesByAddress(address: string) {
       phone: s.phone,
       id: s.id,
     })),
-    ...(houseReps.length > 0 ? houseReps : allReps.length <= 3 ? allReps : []).map((r) => ({
+    ...(houseReps.length > 0
+      ? houseReps
+      : allReps.length <= 3
+        ? allReps
+        : []
+    ).map((r) => ({
       name: `${r.firstName} ${r.lastName}`,
       party: r.party,
       bioguideId: r.bioguideId,

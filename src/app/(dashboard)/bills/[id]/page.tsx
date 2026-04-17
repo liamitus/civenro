@@ -26,8 +26,9 @@ export async function generateMetadata({
   });
 
   const title = bill ? `${bill.title} — Govroll` : "Bill — Govroll";
-  const description = bill?.shortText
-    ?? "Track this bill, see how your representatives voted, and share your opinion.";
+  const description =
+    bill?.shortText ??
+    "Track this bill, see how your representatives voted, and share your opinion.";
 
   return {
     title,
@@ -65,8 +66,11 @@ export default async function BillDetailPage({
       where: { billId },
       orderBy: { versionDate: "asc" },
       select: {
-        versionCode: true, versionType: true, versionDate: true,
-        changeSummary: true, isSubstantive: true,
+        versionCode: true,
+        versionType: true,
+        versionDate: true,
+        changeSummary: true,
+        isSubstantive: true,
       },
     }),
   ]);
@@ -85,24 +89,44 @@ export default async function BillDetailPage({
           lastName: parsedSponsor.lastName,
           state: parsedSponsor.state,
           party: { in: partyCodeToNames(parsedSponsor.party) },
-          firstName: { startsWith: parsedSponsor.firstName, mode: "insensitive" },
+          firstName: {
+            startsWith: parsedSponsor.firstName,
+            mode: "insensitive",
+          },
         },
-        select: { bioguideId: true, slug: true, firstName: true, lastName: true },
+        select: {
+          bioguideId: true,
+          slug: true,
+          firstName: true,
+          lastName: true,
+        },
       })
     : null;
 
   const typeInfo = getBillTypeInfo(bill.billType);
   const effectiveStatus = getEffectiveStatus(
-    bill.billType, bill.currentStatus, actions, textVersions,
+    bill.billType,
+    bill.currentStatus,
+    actions,
+    textVersions,
   );
   // Count substantive versions after the introduced version. The CRS summary
   // shown on this page describes only the introduced text, so any substantive
   // amendments mean the summary may no longer reflect current bill content.
-  const substantiveVersionCount = textVersions.filter((v) => v.isSubstantive).length;
+  const substantiveVersionCount = textVersions.filter(
+    (v) => v.isSubstantive,
+  ).length;
   const amendmentCount = Math.max(0, substantiveVersionCount - 1);
-  const journeySteps = actions.length > 0
-    ? buildDynamicJourney(bill.billType, bill.currentStatus, actions, textVersions, effectiveStatus)
-    : getJourneySteps(bill.billType, effectiveStatus);
+  const journeySteps =
+    actions.length > 0
+      ? buildDynamicJourney(
+          bill.billType,
+          bill.currentStatus,
+          actions,
+          textVersions,
+          effectiveStatus,
+        )
+      : getJourneySteps(bill.billType, effectiveStatus);
   const statusExplanation = getStatusExplanation(
     bill.billType,
     effectiveStatus,
@@ -119,7 +143,7 @@ export default async function BillDetailPage({
     effectiveStatus.startsWith("prov_kill_");
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8 space-y-5">
+    <div className="mx-auto max-w-3xl space-y-5 px-6 py-8">
       {/* ── Title + expandable about section (title, journey, explainer, AI chat) ── */}
       <BillAboutSection
         title={bill.title}
@@ -159,7 +183,7 @@ export default async function BillDetailPage({
       {/* ── Who's behind this bill ── */}
       {parsedSponsor && (
         <section aria-label="Bill sponsor" className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+          <h2 className="text-muted-foreground text-xs font-semibold tracking-[0.15em] uppercase">
             Who introduced this
           </h2>
           <SponsorCard
