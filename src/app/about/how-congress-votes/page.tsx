@@ -74,6 +74,48 @@ export default function HowCongressVotesPage() {
         </p>
       </section>
 
+      <section id="procedural" className="scroll-mt-24 space-y-3">
+        <h2 className="text-lg font-semibold">Procedural votes</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Before (or instead of) a final passage vote, the chamber often records
+          votes on procedural steps:
+        </p>
+        <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm leading-relaxed">
+          <li>
+            <strong className="text-foreground">Motion to proceed</strong> —
+            &quot;let&apos;s start debating this bill.&quot; A Yes is a signal
+            the member wants the bill taken up.
+          </li>
+          <li>
+            <strong className="text-foreground">Motion to discharge</strong> —
+            &quot;pull this bill out of committee and onto the floor.&quot; Used
+            when a committee is sitting on a bill. A Yes is a direct signal the
+            member wants the bill to get a vote.
+          </li>
+          <li>
+            <strong className="text-foreground">Cloture</strong> — &quot;end the
+            filibuster so we can actually vote.&quot; Needs 60 Senate votes. A
+            Yes is a signal the member wants to move to final passage.
+          </li>
+          <li>
+            <strong className="text-foreground">Motion to table</strong> —
+            &quot;set this aside, effectively killing it.&quot; A Yes is
+            effectively a No on the bill.
+          </li>
+          <li>
+            <strong className="text-foreground">Motion to recommit</strong> —
+            &quot;send it back to committee for changes.&quot; Usually a delay
+            or kill tactic from the minority party.
+          </li>
+        </ul>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Because each procedural motion means something different, Govroll
+          labels these votes as &quot;on a procedural step&quot; rather than
+          guessing what the motion implied. The vote itself is real — it&apos;s
+          the interpretation that needs care.
+        </p>
+      </section>
+
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Why this matters</h2>
         <p className="text-muted-foreground text-sm leading-relaxed">

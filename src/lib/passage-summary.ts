@@ -147,11 +147,16 @@ export function summarizeChamberPassage(
     if (!chamberIsRelevant(chamber, bill)) continue;
 
     if (!chamberHasPassed(chamber, bill)) {
+      // A chamber can be "pending" on passage while still having
+      // recorded procedural votes (motion to discharge, motion to
+      // proceed, cloture, etc.). Those are often the clearest signal
+      // a citizen gets on where their reps stand, so surface the count.
+      const { procedural } = rollCalls[chamber];
       results.push({
         chamber,
         status: "pending",
         passageRollCallCount: 0,
-        proceduralRollCallCount: 0,
+        proceduralRollCallCount: procedural,
       });
       continue;
     }

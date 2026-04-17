@@ -94,6 +94,23 @@ describe("summarizeChamberPassage", () => {
     );
   });
 
+  it("pending chamber preserves procedural roll call count", () => {
+    // S.J.Res. 32 style: still "introduced" but a motion to discharge
+    // has already been voted on. The procedural count must not be
+    // zeroed out — the UI uses it to surface per-rep procedural votes.
+    const out = summarizeChamberPassage(
+      { billType: "senate_joint_resolution", currentStatus: "introduced" },
+      {
+        house: { passage: 0, procedural: 0 },
+        senate: { passage: 0, procedural: 1 },
+      },
+    );
+    const senate = out.find((c) => c.chamber === "senate");
+    expect(senate?.status).toBe("pending");
+    expect(senate?.proceduralRollCallCount).toBe(1);
+    expect(senate?.passageRollCallCount).toBe(0);
+  });
+
   it("introduced bill — origin chamber relevant but pending", () => {
     const out = summarizeChamberPassage(
       { billType: "house_bill", currentStatus: "introduced" },

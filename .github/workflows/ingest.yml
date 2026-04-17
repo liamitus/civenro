@@ -1,0 +1,147 @@
+name: ingest
+
+# Scheduled ingestion for govroll's legislative data pipeline.
+#
+# Why GitHub Actions (not Vercel cron):
+#   Vercel Hobby caps cron at once-per-day. GitHub Actions cron is free,
+#   has no frequency limit (min 5 min), and has its own run history.
+#   Each schedule below pings one idempotent endpoint on govroll.com.
+#
+# Setup (one-time):
+#   1. Repo secret:   CRON_SECRET       — matches env var on Vercel
+#   2. Repo variable: GOVROLL_BASE_URL  — e.g. https://govroll.com
+#                                         (no trailing slash)
+#
+# Manual trigger: use the "Run workflow" button on the Actions tab —
+# choose the endpoint from the dropdown to invoke it on demand.
+
+on:
+  schedule:
+    # Times are UTC. Hobby cron would drift ±59min; GH Actions cron
+    # is usually within a few minutes of the scheduled time but can be
+    # delayed under heavy GitHub load. Don't design anything that needs
+    # sub-15-min precision here — add overlap into the endpoint window.
+    - cron: "*/30 * * * *" # fetch-votes                (every 30m)
+    - cron: "15 * * * *" # compute-momentum           (hourly)
+    - cron: "45 * * * *" # backfill-bill-text         (hourly, small batch)
+    - cron: "10 */2 * * *" # backfill-bill-actions      (every 2h)
+    - cron: "40 */2 * * *" # backfill-cosponsors        (every 2h)
+    - cron: "0 */3 * * *" # fetch-bills                (every 3h)
+    - cron: "20 */4 * * *" # generate-change-summaries  (every 4h, budget-gated)
+    - cron: "30 */6 * * *" # refresh-bill-metadata      (every 6h)
+    - cron: "0 0 * * *" # evaluate-budget            (daily midnight UTC)
+    - cron: "0 10 * * 1" # fetch-representatives      (weekly, Mon 10:00 UTC)
+
+  workflow_dispatch:
+    inputs:
+      endpoint:
+        description: "Which /api/cron/* endpoint to invoke"
+        required: true
+        type: choice
+        options:
+          - fetch-votes
+          - compute-momentum
+          - backfill-bill-text
+          - backfill-bill-actions
+          - backfill-cosponsors
+          - fetch-bills
+          - generate-change-summaries
+          - refresh-bill-metadata
+          - evaluate-budget
+          - fetch-representatives
+
+# The whole workflow doesn't need write scopes — we only call an
+# authenticated HTTP endpoint on govroll.com.
+permissions:
+  contents: read
+
+# If a scheduled run is still in flight when the next one fires (rare,
+# most runs are <60s), let them overlap rather than queue. The endpoints
+# are idempotent.
+concurrency:
+  group: ingest-${{ github.event.schedule || github.event.inputs.endpoint || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Invoke ingest endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resolve endpoint
+        id: route
+        env:
+          MANUAL_ENDPOINT: ${{ github.event.inputs.endpoint }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          set -euo pipefail
+          if [ -n "${MANUAL_ENDPOINT:-}" ]; then
+            echo "endpoint=${MANUAL_ENDPOINT}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "${SCHEDULE}" in
+            "*/30 * * * *")  echo "endpoint=fetch-votes"               >> "$GITHUB_OUTPUT" ;;
+            "15 * * * *")    echo "endpoint=compute-momentum"          >> "$GITHUB_OUTPUT" ;;
+            "45 * * * *")    echo "endpoint=backfill-bill-text"        >> "$GITHUB_OUTPUT" ;;
+            "10 */2 * * *")  echo "endpoint=backfill-bill-actions"     >> "$GITHUB_OUTPUT" ;;
+            "40 */2 * * *")  echo "endpoint=backfill-cosponsors"       >> "$GITHUB_OUTPUT" ;;
+            "0 */3 * * *")   echo "endpoint=fetch-bills"               >> "$GITHUB_OUTPUT" ;;
+            "20 */4 * * *")  echo "endpoint=generate-change-summaries" >> "$GITHUB_OUTPUT" ;;
+            "30 */6 * * *")  echo "endpoint=refresh-bill-metadata"     >> "$GITHUB_OUTPUT" ;;
+            "0 0 * * *")     echo "endpoint=evaluate-budget"           >> "$GITHUB_OUTPUT" ;;
+            "0 10 * * 1")    echo "endpoint=fetch-representatives"     >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "::error::No endpoint mapped for schedule '${SCHEDULE}'"
+              exit 1
+              ;;
+          esac
+
+      - name: Validate configuration
+        env:
+          BASE_URL: ${{ vars.GOVROLL_BASE_URL }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::Repo variable GOVROLL_BASE_URL is not set."
+            exit 1
+          fi
+          if [ -z "${SECRET:-}" ]; then
+            echo "::error::Repo secret CRON_SECRET is not set."
+            exit 1
+          fi
+
+      - name: Invoke ${{ steps.route.outputs.endpoint }}
+        env:
+          BASE_URL: ${{ vars.GOVROLL_BASE_URL }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+          ENDPOINT: ${{ steps.route.outputs.endpoint }}
+        run: |
+          set -euo pipefail
+          URL="${BASE_URL%/}/api/cron/${ENDPOINT}"
+          echo "Calling $URL"
+
+          # --fail-with-body so non-2xx responses still print the body,
+          # --max-time 65 gives Vercel's 60s function plus 5s of slack.
+          http_code=$(
+            curl --silent --show-error --fail-with-body \
+              --max-time 65 \
+              --retry 2 --retry-delay 5 --retry-connrefused \
+              -H "Authorization: Bearer ${SECRET}" \
+              -H "Accept: application/json" \
+              -o response.json \
+              -w "%{http_code}" \
+              "$URL"
+          )
+
+          echo "HTTP $http_code"
+          echo "--- body ---"
+          cat response.json || true
+          echo
+          echo "--- end ---"
+
+          # curl --fail-with-body exits non-zero on non-2xx, so reaching
+          # here means success. Belt-and-suspenders status check anyway.
+          if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+            echo "::error::Endpoint returned HTTP ${http_code}"
+            exit 1
+          fi

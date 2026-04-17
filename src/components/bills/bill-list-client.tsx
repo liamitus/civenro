@@ -8,8 +8,10 @@ import {
   parseAsBoolean,
 } from "nuqs";
 import { BillCard } from "./bill-card";
+import { BillGroupCard } from "./bill-group-card";
 import { TOPICS } from "@/lib/topic-mapping";
 import { useAuth } from "@/hooks/use-auth";
+import { groupBills } from "@/lib/bill-grouping";
 import type { BillSummary } from "@/types";
 
 const SORT_OPTIONS = [
@@ -80,6 +82,7 @@ export function BillListClient() {
     [bills, hideVoted, votedBillIds],
   );
   const hiddenByVoteCount = hideVoted ? bills.length - visibleBills.length : 0;
+  const feedItems = useMemo(() => groupBills(visibleBills), [visibleBills]);
 
   // Load the set of bills the current user has voted on.
   useEffect(() => {
@@ -384,15 +387,28 @@ export function BillListClient() {
         }`}
         aria-busy={loading}
       >
-        {visibleBills.map((bill, i) => (
-          <div
-            key={bill.id}
-            className="animate-fade-slide-up"
-            style={{ animationDelay: `${Math.min(i, 10) * 30}ms` }}
-          >
-            <BillCard bill={bill} voted={votedBillIds.has(bill.id)} />
-          </div>
-        ))}
+        {feedItems.map((item, i) => {
+          const key =
+            item.kind === "single"
+              ? `bill-${item.bill.id}`
+              : `group-${item.key}`;
+          return (
+            <div
+              key={key}
+              className="animate-fade-slide-up"
+              style={{ animationDelay: `${Math.min(i, 10) * 30}ms` }}
+            >
+              {item.kind === "single" ? (
+                <BillCard
+                  bill={item.bill}
+                  voted={votedBillIds.has(item.bill.id)}
+                />
+              ) : (
+                <BillGroupCard bills={item.bills} votedBillIds={votedBillIds} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {loading && bills.length === 0 && (
