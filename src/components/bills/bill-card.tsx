@@ -19,7 +19,8 @@ export function voteChipStyle(voteType: VoteType): {
   if (voteType === "Against")
     return {
       label: "Voted Against",
-      className: "bg-vote-against-soft text-vote-against border-vote-against/25",
+      className:
+        "bg-vote-against-soft text-vote-against border-vote-against/25",
     };
   return {
     label: "Abstained",

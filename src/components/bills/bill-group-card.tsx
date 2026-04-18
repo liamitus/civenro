@@ -87,7 +87,9 @@ export function BillGroupCard({
         return bills.every((b) => userVotes.get(b.id) === first) ? first : null;
       })()
     : null;
-  const leadChip = unanimousDirection ? voteChipStyle(unanimousDirection) : null;
+  const leadChip = unanimousDirection
+    ? voteChipStyle(unanimousDirection)
+    : null;
 
   return (
     <div className="border-border/50 hover:border-navy/25 relative rounded-lg border bg-white transition-all hover:shadow-[0_2px_12px_rgba(10,31,68,0.1)]">
@@ -115,8 +117,7 @@ export function BillGroupCard({
             {allVoted && (
               <span
                 className={`inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase ${
-                  leadChip?.className ??
-                  "bg-navy/8 text-navy/80 border-navy/10"
+                  leadChip?.className ?? "bg-navy/8 text-navy/80 border-navy/10"
                 }`}
               >
                 <svg
