@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 interface Suggestion {
   label: string;
+  isRawInput?: boolean;
 }
 
 interface AddressAutocompleteProps {
@@ -38,6 +39,16 @@ export function AddressAutocomplete({
       return;
     }
 
+    // Photon/OSM often lacks house-level data for specific residential
+    // addresses (e.g. "33 Royal St, Providence RI") and returns same-
+    // house-number-different-street matches instead. If the user typed a
+    // house number + a street name that Photon doesn't have an exact match
+    // for, we offer their raw query as a selectable option — the backend
+    // geocoder (Geocodio) resolves these correctly even when Photon can't.
+    const queryMatch = query.trim().match(/^(\d+(?:-\d+)?[a-z]?)\s+([a-z]+)/i);
+    const userHouseNumber = queryMatch?.[1].toLowerCase();
+    const userStreetHint = queryMatch?.[2].toLowerCase();
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -71,7 +82,7 @@ export function AddressAutocomplete({
       }
       const data: { features: PhotonFeature[] } = await res.json();
 
-      const results = data.features
+      const results: Suggestion[] = data.features
         .filter((f) => f.properties.countrycode?.toLowerCase() === "us")
         .map((f) => {
           const p = f.properties;
@@ -85,6 +96,27 @@ export function AddressAutocomplete({
           ].filter(Boolean);
           return { label: parts.join(", ") };
         });
+
+      // Prepend raw query when no Photon result matches both the typed house
+      // number AND the typed street. Clicking it submits as-typed to the
+      // backend geocoder, which handles addresses Photon/OSM doesn't index.
+      const photonHasExactMatch =
+        userHouseNumber &&
+        userStreetHint &&
+        data.features.some((f) => {
+          if (f.properties.countrycode?.toLowerCase() !== "us") return false;
+          if (f.properties.housenumber?.toLowerCase() !== userHouseNumber)
+            return false;
+          const street = (
+            f.properties.street ||
+            f.properties.name ||
+            ""
+          ).toLowerCase();
+          return new RegExp(`\\b${userStreetHint}\\b`).test(street);
+        });
+      if (userHouseNumber && userStreetHint && !photonHasExactMatch) {
+        results.unshift({ label: query.trim(), isRawInput: true });
+      }
 
       setSuggestions(results);
       setPhase("done");
@@ -213,19 +245,45 @@ export function AddressAutocomplete({
                   i === activeIndex ? "bg-navy/[0.06]" : "hover:bg-muted/40"
                 }`}
               >
-                <svg
-                  className="text-navy/30 h-4 w-4 flex-shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span className="text-foreground">{s.label}</span>
+                {s.isRawInput ? (
+                  <svg
+                    className="text-navy/30 h-4 w-4 flex-shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                ) : (
+                  <svg
+                    className="text-navy/30 h-4 w-4 flex-shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                )}
+                <span className="text-foreground">
+                  {s.isRawInput ? (
+                    <>
+                      Search{" "}
+                      <span className="font-medium">
+                        &ldquo;{s.label}&rdquo;
+                      </span>
+                    </>
+                  ) : (
+                    s.label
+                  )}
+                </span>
               </li>
             ))
           ) : (
