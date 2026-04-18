@@ -56,6 +56,11 @@ model Bill {
   // Used to avoid re-fetching bills whose CRS summary hasn't been
   // published yet — without it the cron loops over ~12k bills forever.
   lastMetadataRefreshAt DateTime?
+  // Set whenever fetch-bill-text runs against a bill (success OR failure).
+  // The text backfill cron orders by this ascending NULLS FIRST so bills we
+  // can't get text for (genuinely unpublished, withdrawn, etc.) rotate to
+  // the back of the queue instead of blocking all other bills behind them.
+  textFetchAttemptedAt DateTime?
   votes             RepresentativeVote[]
   publicVotes       Vote[]
   comments          Comment[]
@@ -67,6 +72,10 @@ model Bill {
 
   @@index([momentumTier, momentumScore(sort: Desc)])
   @@index([congressNumber])
+  // Partial index on textFetchAttemptedAt (WHERE fullText IS NULL) lives in
+  // the 20260418150000 migration — Prisma schema can't express partial
+  // indexes, and a full-table index would waste space on the bills that
+  // already have text.
 }
 
 model BillCosponsor {

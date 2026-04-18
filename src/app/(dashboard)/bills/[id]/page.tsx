@@ -12,6 +12,7 @@ import { BillAboutSection } from "@/components/bills/bill-about-section";
 import { SponsorCard } from "@/components/bills/sponsor-card";
 import { BillDetailInteractive } from "./interactive";
 import { parseSponsorString, partyCodeToNames } from "@/lib/sponsor";
+import { maybeFetchBillTextInBackground } from "@/lib/on-demand-bill-text";
 import type { MomentumTier, DeathReason } from "@/types";
 
 export async function generateMetadata({
@@ -93,6 +94,18 @@ export default async function BillDetailPage({
   const cosponsors = cosponsorRows.map((c) => c.representative);
 
   if (!bill) notFound();
+
+  // If this bill has no text and the cron hasn't tried recently, kick off
+  // a background fetch so the user gets text on their next load instead
+  // of waiting for the hourly backfill to reach their bill. No-op when
+  // text is already present; atomic claim inside prevents N duplicate
+  // fetches from N concurrent page loads.
+  maybeFetchBillTextInBackground({
+    id: bill.id,
+    billId: bill.billId,
+    fullText: bill.fullText,
+    textFetchAttemptedAt: bill.textFetchAttemptedAt,
+  });
 
   // Resolve the sponsor to a Representative row so the card can show a
   // real photo + link to the rep's profile. Best-effort — we fall back

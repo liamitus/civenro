@@ -64,19 +64,43 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
     console.log(`Found ${bills.length} bills to process.`);
 
     for (const bill of bills) {
+      // Mark this bill as attempted regardless of what happens below — a
+      // parse failure, network error, or just "no text available yet" all
+      // count as attempts. Without this, the backfill cursor re-picks the
+      // same stuck bills forever and new-bill ingestion starves.
+      let attemptRecorded = false;
+      const recordAttempt = async () => {
+        if (attemptRecorded) return;
+        attemptRecorded = true;
+        await prisma.bill.update({
+          where: { id: bill.id },
+          data: { textFetchAttemptedAt: new Date() },
+        });
+      };
+
       try {
         const { congress, apiBillType, billNumber } = parseBillId(bill.billId);
         if (!congress || !apiBillType || !billNumber) {
           console.warn(`Skipping bill ${bill.billId} — invalid parse.`);
+          await recordAttempt();
           continue;
         }
 
-        // Pull official title + metadata from Congress.gov (authoritative source).
-        // The title cross-check catches GovTrack stale data; metadata feeds AI chat.
-        const [officialTitle, metadata] = await Promise.all([
-          fetchOfficialBillTitle(congress, apiBillType, billNumber),
-          fetchBillMetadata(congress, apiBillType, billNumber),
-        ]);
+        // Fire every network call in parallel — title, metadata, Congress.gov
+        // /text, and the GovInfo probe. Previously these ran serially: title
+        // + metadata → then /text → then (if empty) GovInfo. Running GovInfo
+        // speculatively adds ~1s of network when Congress.gov has the text,
+        // but saves ~1-2s on the common case where Congress.gov /text returns
+        // an empty array for a bill GovInfo has fully published. Given that
+        // ~90% of our backlog has empty Congress.gov /text responses, the
+        // net effect is fewer seconds per bill and a much higher hit rate.
+        const [officialTitle, metadata, allVersions, govInfoResult] =
+          await Promise.all([
+            fetchOfficialBillTitle(congress, apiBillType, billNumber),
+            fetchBillMetadata(congress, apiBillType, billNumber),
+            fetchAllTextVersions(congress, apiBillType, billNumber),
+            fetchBillTextFromGovInfo(congress, apiBillType, billNumber),
+          ]);
 
         const updates: Record<string, unknown> = {};
         if (
@@ -105,25 +129,18 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
           if (updates.title) bill.title = updates.title as string;
         }
 
-        const allVersions = await fetchAllTextVersions(
-          congress,
-          apiBillType,
-          billNumber,
-        );
         if (allVersions.length === 0) {
-          // Fallback: try GovInfo bulk data directly. The congress.gov API's
-          // /text endpoint is inconsistent — many published bills return an
-          // empty textVersions array even though the XML is available at
-          // https://www.govinfo.gov/content/pkg/BILLS-*/xml/*.xml.
-          const gi = await fetchBillTextFromGovInfo(
-            congress,
-            apiBillType,
-            billNumber,
-          );
+          // Congress.gov /text returned empty — fall through to the GovInfo
+          // result we fetched speculatively above. The congress.gov API's
+          // /text endpoint is inconsistent — many published bills return
+          // an empty textVersions array even though the XML is available
+          // at https://www.govinfo.gov/content/pkg/BILLS-*/xml/*.xml.
+          const gi = govInfoResult;
           if (!gi) {
             console.warn(
               `No text versions found for ${bill.billId} on Congress.gov or GovInfo.`,
             );
+            await recordAttempt();
             continue;
           }
 
@@ -150,6 +167,7 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
 
           if (!fullText) {
             console.warn(`GovInfo XML parsed empty for ${bill.billId}.`);
+            await recordAttempt();
             continue;
           }
 
@@ -176,8 +194,9 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
           });
           await prisma.bill.update({
             where: { id: bill.id },
-            data: { fullText },
+            data: { fullText, textFetchAttemptedAt: new Date() },
           });
+          attemptRecorded = true;
           console.log(
             `${bill.billId}: recovered via GovInfo (${gi.versionCode.toUpperCase()}, ${fullText.length} chars).`,
           );
@@ -239,13 +258,16 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
-        // Update Bill.fullText with the latest version's text
-        if (latestFullText) {
-          await prisma.bill.update({
-            where: { id: bill.id },
-            data: { fullText: latestFullText },
-          });
-        }
+        // Update Bill.fullText with the latest version's text, and stamp
+        // the attempt timestamp in the same write to avoid a second update.
+        await prisma.bill.update({
+          where: { id: bill.id },
+          data: {
+            ...(latestFullText ? { fullText: latestFullText } : {}),
+            textFetchAttemptedAt: new Date(),
+          },
+        });
+        attemptRecorded = true;
 
         console.log(
           `${bill.billId}: ${allVersions.length} versions total, ${newVersionsCount} new.`,
@@ -255,6 +277,9 @@ export async function fetchBillTextFunction(targetBillId?: string, limit = 10) {
           `Error processing bill ${bill.billId}:`,
           error instanceof Error ? error.message : error,
         );
+        // Still stamp the attempt so a permanently-broken bill (bad billId,
+        // congress.gov 5xx, XML parse crash) doesn't block the queue.
+        await recordAttempt().catch(() => {});
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
