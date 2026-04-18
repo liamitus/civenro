@@ -28,7 +28,7 @@ export function NavBar() {
           <span className="text-civic-gold text-sm tracking-widest">
             &#9733;
           </span>
-          <span className="font-heading text-base font-semibold tracking-wide text-white uppercase">
+          <span className="font-heading text-lg font-semibold tracking-wide text-white uppercase">
             Govroll
           </span>
           <span className="text-civic-gold text-sm tracking-widest">
@@ -59,7 +59,7 @@ export function NavBar() {
             >
               {user && (
                 <>
-                  <div className="text-muted-foreground max-w-[200px] truncate px-1.5 py-1 text-xs font-medium">
+                  <div className="text-muted-foreground max-w-[200px] truncate px-1.5 py-1 text-sm font-medium">
                     {user.email}
                   </div>
                   <DropdownMenuItem render={<Link href="/account" />}>

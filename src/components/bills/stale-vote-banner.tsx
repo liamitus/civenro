@@ -51,11 +51,11 @@ export function StaleVoteBanner({
           />
         </svg>
         <div className="min-w-0 space-y-2">
-          <p className="text-foreground text-sm font-semibold">
+          <p className="text-foreground text-base font-semibold">
             This bill has been updated since your vote
           </p>
 
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             You voted{" "}
             <span className="text-foreground font-semibold">{currentVote}</span>
             {votedOnVersion ? (
@@ -72,14 +72,14 @@ export function StaleVoteBanner({
           </p>
 
           {changeSummary ? (
-            <div className="text-muted-foreground border-civic-gold/40 border-l-2 pl-3 text-xs">
+            <div className="text-muted-foreground border-civic-gold/40 border-l-2 pl-3 text-sm">
               <span className="text-foreground/80 font-medium">
                 What changed:{" "}
               </span>
               {changeSummary}
             </div>
           ) : (
-            <p className="text-muted-foreground text-xs italic">
+            <p className="text-muted-foreground text-sm italic">
               A summary of changes is being prepared.
             </p>
           )}
@@ -90,7 +90,7 @@ export function StaleVoteBanner({
         <button
           onClick={onConfirm}
           disabled={submitting}
-          className="bg-navy hover:bg-navy-light rounded-md px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
+          className="bg-navy hover:bg-navy-light rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors disabled:opacity-50"
         >
           Keep My Vote: {currentVote}
         </button>
@@ -99,7 +99,7 @@ export function StaleVoteBanner({
             key={option}
             onClick={() => onReVote(option)}
             disabled={submitting}
-            className="border-border/60 text-muted-foreground hover:text-foreground hover:border-navy/30 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+            className="border-border/60 text-muted-foreground hover:text-foreground hover:border-navy/30 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50"
           >
             Change to {option}
           </button>

@@ -19,14 +19,14 @@ export function VoteHistorySection({
 
   return (
     <div className="border-border/30 border-t pt-3">
-      <p className="text-muted-foreground mb-1.5 text-[11px] font-medium tracking-wider uppercase">
+      <p className="text-muted-foreground mb-1.5 text-xs font-medium tracking-wider uppercase">
         Your vote history
       </p>
       <div className="space-y-1">
         {history.map((entry, i) => (
           <div
             key={i}
-            className="text-muted-foreground flex items-center gap-2 text-xs"
+            className="text-muted-foreground flex items-center gap-2 text-sm"
           >
             <span className="tabular-nums">
               {dayjs(entry.createdAt).format("MMM D, YYYY")}

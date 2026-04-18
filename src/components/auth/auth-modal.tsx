@@ -127,12 +127,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               <DialogTitle>Check Your Email</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-base">
                 We sent a confirmation link to{" "}
                 <span className="text-foreground font-medium">{email}</span>.
                 Click the link in the email to continue.
               </p>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-sm">
                 Didn&apos;t receive it? Check your spam folder or try again.
               </p>
               <Button
@@ -150,7 +150,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               <DialogTitle>Reset Password</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleForgotPassword} className="space-y-4">
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-base">
                 Enter your email and we&apos;ll send you a link to reset your
                 password.
               </p>
@@ -171,7 +171,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 {submitting ? "Sending..." : "Send Reset Link"}
               </Button>
 
-              <p className="text-muted-foreground text-center text-sm">
+              <p className="text-muted-foreground text-center text-base">
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
@@ -238,7 +238,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     <button
                       type="button"
                       onClick={() => switchMode("forgot")}
-                      className="text-muted-foreground hover:text-primary text-xs underline"
+                      className="text-muted-foreground hover:text-primary text-sm underline"
                     >
                       Forgot password?
                     </button>
@@ -268,7 +268,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               </Button>
 
               {mode === "register" && (
-                <p className="text-muted-foreground text-center text-xs leading-relaxed">
+                <p className="text-muted-foreground text-center text-sm leading-relaxed">
                   By creating an account, you agree to our{" "}
                   <Link
                     href="/terms"
@@ -289,7 +289,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 </p>
               )}
 
-              <p className="text-muted-foreground text-center text-sm">
+              <p className="text-muted-foreground text-center text-base">
                 {mode === "login" ? (
                   <>
                     Don&apos;t have an account?{" "}

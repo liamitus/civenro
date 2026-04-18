@@ -66,10 +66,10 @@ export function DonationHistory({ userId }: { userId: string }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">
+        <h2 className="text-xl font-semibold">
           Your Contributions ({donations.length})
         </h2>
-        <Link href="/support" className="text-primary text-xs hover:underline">
+        <Link href="/support" className="text-primary text-sm hover:underline">
           Support again
         </Link>
       </div>
@@ -78,11 +78,11 @@ export function DonationHistory({ userId }: { userId: string }) {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
+                <span className="text-base font-medium">
                   ${(d.amountCents / 100).toFixed(2)}
                 </span>
                 {d.isRecurring && (
-                  <Badge variant="outline" className="px-1.5 text-[10px]">
+                  <Badge variant="outline" className="px-1.5 text-xs">
                     {d.recurringStatus === "ACTIVE"
                       ? "Monthly"
                       : d.recurringStatus === "GRACE"
@@ -93,7 +93,7 @@ export function DonationHistory({ userId }: { userId: string }) {
                   </Badge>
                 )}
               </div>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-sm">
                 {d.displayMode === "ANONYMOUS"
                   ? "Anonymous"
                   : d.displayMode === "TRIBUTE"
@@ -103,7 +103,7 @@ export function DonationHistory({ userId }: { userId: string }) {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs">
+              <span className="text-muted-foreground text-sm">
                 {new Date(d.createdAt).toLocaleDateString()}
               </span>
               {d.displayMode !== "ANONYMOUS" && !d.hiddenAt && (

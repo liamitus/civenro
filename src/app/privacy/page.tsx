@@ -11,18 +11,18 @@ export default function PrivacyPage() {
   return (
     <article className="mx-auto max-w-3xl px-6 py-12 sm:py-16">
       <header className="border-border/40 space-y-3 border-b pb-10">
-        <p className="text-navy/70 text-[11px] font-semibold tracking-[0.25em] uppercase">
+        <p className="text-navy/70 text-xs font-semibold tracking-[0.25em] uppercase">
           Legal
         </p>
-        <h1 className="text-navy text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="text-navy text-4xl font-bold tracking-tight sm:text-5xl">
           Privacy Policy
         </h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Last updated: April 15, 2026
         </p>
       </header>
 
-      <div className="text-muted-foreground space-y-14 pt-10 text-[15px] leading-7">
+      <div className="text-muted-foreground space-y-14 pt-10 text-base leading-7">
         <p>
           Govroll (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;)
           operates the website at{" "}
@@ -443,8 +443,8 @@ function Section({
 }) {
   return (
     <section className="scroll-mt-24 space-y-4">
-      <h2 className="text-navy flex items-baseline gap-3 text-xl font-semibold tracking-tight">
-        <span className="text-navy/40 text-[11px] font-semibold tracking-[0.2em] tabular-nums">
+      <h2 className="text-navy flex items-baseline gap-3 text-2xl font-semibold tracking-tight">
+        <span className="text-navy/40 text-xs font-semibold tracking-[0.2em] tabular-nums">
           {number.padStart(2, "0")}
         </span>
         <span>{title}</span>
@@ -463,7 +463,7 @@ function Sub({
 }) {
   return (
     <div className="space-y-3 pt-2">
-      <h3 className="text-navy/80 text-[13px] font-semibold tracking-[0.15em] uppercase">
+      <h3 className="text-navy/80 text-sm font-semibold tracking-[0.15em] uppercase">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>

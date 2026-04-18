@@ -17,7 +17,7 @@ export function RepKeyVotes({ keyVotes, repFirstName }: RepKeyVotesProps) {
       <h2 className="text-navy/70 text-sm font-semibold tracking-[0.15em] uppercase">
         Key Votes
       </h2>
-      <p className="text-muted-foreground -mt-1 text-xs">
+      <p className="text-muted-foreground -mt-1 text-sm">
         How {repFirstName} voted on final passage of bills
       </p>
 
@@ -40,11 +40,11 @@ export function RepKeyVotes({ keyVotes, repFirstName }: RepKeyVotesProps) {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/bills/${vote.billId}`}
-                className="text-navy line-clamp-2 text-sm leading-snug font-medium hover:underline"
+                className="text-navy line-clamp-2 text-base leading-snug font-semibold hover:underline"
               >
                 {vote.title}
               </Link>
-              <p className="text-muted-foreground mt-0.5 text-xs">
+              <p className="text-muted-foreground mt-0.5 text-sm">
                 {new Date(vote.date).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",

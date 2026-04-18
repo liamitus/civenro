@@ -110,7 +110,7 @@ export function VoteComparisonFeed({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-muted-foreground py-4 text-center text-sm">
+        <p className="text-muted-foreground py-4 text-center text-base">
           No votes to display.
         </p>
       ) : (
@@ -134,11 +134,11 @@ export function VoteComparisonFeed({
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/bills/${bill.billId}`}
-                      className="text-navy line-clamp-2 text-sm leading-snug font-medium hover:underline"
+                      className="text-navy line-clamp-2 text-base leading-snug font-semibold hover:underline"
                     >
                       {bill.title}
                     </Link>
-                    <p className="text-muted-foreground mt-1 text-xs">
+                    <p className="text-muted-foreground mt-1 text-sm">
                       {new Date(bill.date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -149,7 +149,7 @@ export function VoteComparisonFeed({
 
                   <div className="flex flex-shrink-0 items-center gap-3">
                     <div className="text-center">
-                      <p className="text-muted-foreground mb-1 text-[10px] tracking-wider uppercase">
+                      <p className="text-muted-foreground mb-1 text-xs tracking-wider uppercase">
                         Rep
                       </p>
                       <Badge className={repVoteBadgeClass(bill.repVote)}>
@@ -160,7 +160,7 @@ export function VoteComparisonFeed({
                     {userVotes && (
                       <>
                         <div className="text-center">
-                          <p className="text-muted-foreground mb-1 text-[10px] tracking-wider uppercase">
+                          <p className="text-muted-foreground mb-1 text-xs tracking-wider uppercase">
                             You
                           </p>
                           {userVote ? (

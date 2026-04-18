@@ -283,7 +283,7 @@ export function AiChatbox({
 
   if (!user) {
     return (
-      <div className="text-muted-foreground text-sm">
+      <div className="text-muted-foreground text-base">
         <button
           type="button"
           onClick={onSignUp}
@@ -345,7 +345,7 @@ export function AiChatbox({
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
           >
             <MessageSquare className="h-3 w-3" />
             Continue conversation ({messages.length}{" "}
@@ -403,10 +403,10 @@ export function AiChatbox({
               </div>
             ) : messages.length === 0 && !isBusy && !errorState ? (
               <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                <p className="text-foreground mb-1 text-sm font-medium">
+                <p className="text-foreground mb-1 text-base font-medium">
                   Ask anything about this bill
                 </p>
-                <p className="text-muted-foreground max-w-sm text-xs">
+                <p className="text-muted-foreground max-w-sm text-sm">
                   Try{" "}
                   <button
                     type="button"
@@ -430,7 +430,7 @@ export function AiChatbox({
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`text-sm ${
+                    className={`text-base ${
                       msg.role === "user"
                         ? "flex justify-end"
                         : "flex justify-start"
@@ -457,7 +457,7 @@ export function AiChatbox({
                     aria-live="polite"
                     className="flex justify-start"
                   >
-                    <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-2.5 text-sm">
+                    <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-2.5 text-base">
                       <span className="sr-only">Assistant is thinking. </span>
                       <span aria-hidden="true">Thinking…</span>
                     </div>

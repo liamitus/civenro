@@ -120,7 +120,7 @@ export default async function MadePossibleByPage() {
         </p>
         {totalCount === 0 ? (
           <>
-            <h1 className="text-3xl font-bold tracking-tight">Be the first.</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Be the first.</h1>
             <p className="text-muted-foreground mx-auto max-w-lg">
               Govroll is just getting started. No ads, no corporate sponsors —
               every citizen who chips in shows up here.
@@ -128,7 +128,7 @@ export default async function MadePossibleByPage() {
           </>
         ) : (
           <>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-4xl font-bold tracking-tight">
               {totalCount.toLocaleString()}{" "}
               {totalCount === 1 ? "citizen keeps" : "citizens keep"} Govroll
               running.
@@ -148,7 +148,7 @@ export default async function MadePossibleByPage() {
       {shuffledSustainers.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">Sustainers</h2>
+            <h2 className="text-xl font-semibold">Sustainers</h2>
             <span className="bg-civic-gold/10 text-civic-gold rounded-full px-2 py-0.5 text-xs font-medium">
               Monthly
             </span>
@@ -160,7 +160,7 @@ export default async function MadePossibleByPage() {
       {/* Named one-time supporters */}
       {shuffledSupporters.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Supporters</h2>
+          <h2 className="text-xl font-semibold">Supporters</h2>
           <DonorGrid donors={shuffledSupporters} />
         </section>
       )}
@@ -168,7 +168,7 @@ export default async function MadePossibleByPage() {
       {/* Tributes */}
       {shuffledTributes.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold">In Honor Of</h2>
+          <h2 className="text-xl font-semibold">In Honor Of</h2>
           <div className="grid gap-2">
             {shuffledTributes.map((d) => (
               <div key={d.id} className="text-muted-foreground text-sm italic">

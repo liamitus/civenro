@@ -178,12 +178,12 @@ export function BillCard({
 
         <div className="pl-3">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-navy group-hover:text-navy-light line-clamp-2 flex-1 text-sm leading-snug font-medium transition-colors">
+            <h3 className="text-navy group-hover:text-navy-light line-clamp-2 flex-1 text-base leading-snug font-semibold transition-colors">
               {bill.title}
             </h3>
             {voted && (
               <span
-                className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
+                className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase"
                 title="You've voted on this bill"
               >
                 <svg
@@ -203,7 +203,7 @@ export function BillCard({
           </div>
 
           {bill.shortText && (
-            <p className="text-muted-foreground mt-1 line-clamp-1 text-xs leading-relaxed">
+            <p className="text-muted-foreground mt-1 line-clamp-1 text-sm leading-relaxed">
               {bill.shortText}
             </p>
           )}

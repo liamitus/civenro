@@ -62,9 +62,9 @@ function StatCard({
 }) {
   return (
     <div className="border-border/60 rounded-lg border bg-white p-4 text-center">
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      <p className="text-navy/70 mt-1 text-xs font-medium">{label}</p>
-      <p className="text-muted-foreground mt-0.5 text-[10px]">{sublabel}</p>
+      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      <p className="text-navy/70 mt-1 text-sm font-medium">{label}</p>
+      <p className="text-muted-foreground mt-0.5 text-xs">{sublabel}</p>
     </div>
   );
 }

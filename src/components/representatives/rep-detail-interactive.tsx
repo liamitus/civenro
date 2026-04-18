@@ -53,7 +53,7 @@ export function RepDetailInteractive({
 
   if (error || !data) {
     return (
-      <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-lg border p-4 text-sm">
+      <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-lg border p-4 text-base">
         {error || "Something went wrong."}
       </div>
     );
@@ -95,7 +95,7 @@ export function RepDetailInteractive({
             href={data.representative.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-navy text-sm transition-colors"
+            className="text-muted-foreground hover:text-navy text-base transition-colors"
           >
             View full record on GovTrack &rarr;
           </a>

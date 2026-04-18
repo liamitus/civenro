@@ -20,10 +20,10 @@ export function AiPausedPanel({
     <div
       className={`space-y-3 rounded-lg border border-red-200 bg-red-50 p-4 text-center ${className}`}
     >
-      <p className="text-sm font-medium text-red-800">
+      <p className="text-base font-medium text-red-800">
         AI features are paused this month
       </p>
-      <p className="text-xs text-red-700/80">
+      <p className="text-sm text-red-700/80">
         Govroll&apos;s AI summaries and chat are funded entirely by citizens.
         {hasNumbers && (
           <>
@@ -36,7 +36,7 @@ export function AiPausedPanel({
       </p>
       <Link
         href="/support"
-        className="bg-navy hover:bg-navy-light inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-semibold tracking-wide text-white transition-colors"
+        className="bg-navy hover:bg-navy-light inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold tracking-wide text-white transition-colors"
       >
         Help bring them back
       </Link>
