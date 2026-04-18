@@ -230,7 +230,9 @@ export function AddressAutocomplete({
             ))
           ) : (
             <li className="text-muted-foreground px-4 py-3 text-sm">
-              No addresses found — try adding more detail
+              No suggestions — press{" "}
+              <span className="text-navy font-medium">Look up</span> to search
+              this address anyway
             </li>
           )}
         </ul>
