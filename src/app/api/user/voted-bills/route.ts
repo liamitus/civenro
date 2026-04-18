@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import type { VoteType } from "@/types";
 
 /**
  * GET /api/user/voted-bills
  *
- * Returns the set of bill IDs the current user has voted on, as a plain
- * array. Used by the bill feed to show a "Voted" indicator and power the
- * "Hide voted" filter. Returns { billIds: [] } for anonymous users so the
- * client can call it unconditionally without branching on auth state.
+ * Returns the current user's votes — bill id + direction — so the feed can
+ * show a tinted "Voted For/Against/Abstained" chip and fade voted titles.
+ * Empty for anonymous users so the client can call it unconditionally.
  */
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -18,18 +18,23 @@ export async function GET() {
 
   if (!user) {
     return NextResponse.json(
-      { billIds: [] },
+      { votes: [] },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   }
 
   const votes = await prisma.vote.findMany({
     where: { userId: user.id },
-    select: { billId: true },
+    select: { billId: true, voteType: true },
   });
 
   return NextResponse.json(
-    { billIds: votes.map((v) => v.billId) },
+    {
+      votes: votes.map((v) => ({
+        billId: v.billId,
+        voteType: v.voteType as VoteType,
+      })),
+    },
     { headers: { "Cache-Control": "private, no-store" } },
   );
 }
