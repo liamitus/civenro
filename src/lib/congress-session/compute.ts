@@ -199,7 +199,7 @@ function shape(args: ShapeArgs): ChamberStatus {
 
 function formatReturns(d: Date): string {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
+    timeZone: "UTC",
     month: "short",
     day: "numeric",
   }).format(d);
