@@ -204,7 +204,7 @@ export function BillListClient() {
             <path d="m21 21-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <input
-            placeholder="Search bills..."
+            placeholder="Search bills or sponsors..."
             value={queryFilters.search}
             onChange={(e) => setFilters({ search: e.target.value })}
             className="border-border/60 placeholder:text-muted-foreground focus:ring-navy/20 focus:border-navy/20 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-base focus:ring-2 focus:outline-none"
