@@ -368,3 +368,45 @@ model AdminUser {
 
   @@index([userId])
 }
+
+// ============================================================================
+// Congress session status — "is Congress working right now?" indicator
+// ============================================================================
+
+// Live per-chamber status, recomputed every ~10 minutes by the
+// compute-congress-status cron. One row per chamber, upserted.
+//
+// status values:
+//   voting              — chamber is on the floor and voted recently
+//   in_session          — chamber gaveled in with floor activity
+//   pro_forma           — brief procedural session with no legislative business
+//   recess              — scheduled non-session period
+//   adjourned_sine_die  — formal end of session (between Congresses)
+//   unknown             — no signal resolved; render a neutral pill
+//
+// source is whichever signal in the waterfall produced this status:
+//   clerk_xml | senate_pail | vote_recency | calendar | none
+model CongressChamberStatus {
+  chamber             String    @id // "house" | "senate"
+  status              String
+  detail              String? // short human label — e.g. "Roll call vote 18 min ago"
+  source              String
+  lastActionAt        DateTime? // timestamp from the source signal itself
+  nextTransitionAt    DateTime? // next scheduled transition start (recess begin / session resume)
+  nextTransitionLabel String? // "Memorial Day District Work Period", "Returns Apr 28", etc.
+  lastCheckedAt       DateTime  @default(now()) // when the cron last ran the waterfall
+  updatedAt           DateTime  @updatedAt
+}
+
+// Published non-session periods, seeded per-year from the official
+// House Majority Leader and Senate calendars. Used as the fallback
+// tier in the waterfall when no live signal is present today.
+model CongressRecess {
+  id        String   @id @default(cuid())
+  chamber   String // "house" | "senate"
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date // inclusive
+  label     String
+
+  @@index([chamber, startDate, endDate])
+}

@@ -14,6 +14,7 @@ import { Menu } from "lucide-react";
 import { useState } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useAddress } from "@/hooks/use-address";
+import { CongressStatus } from "@/components/congress-status/congress-status";
 
 export function NavBar() {
   const { user, loading, signOut } = useAuth();
@@ -37,6 +38,7 @@ export function NavBar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <CongressStatus />
           {!loading && !user && (
             <Button
               variant="ghost"
