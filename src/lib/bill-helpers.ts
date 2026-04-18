@@ -1,5 +1,25 @@
 // Human-readable helpers for bill types, statuses, and legislative journey
 
+/**
+ * Format a journey-step date in UTC, not the viewer's local timezone.
+ *
+ * Action dates are stored as UTC midnight (e.g. 2026-04-13T00:00:00Z). When
+ * rendered with `dayjs(iso).format(…)` they get shifted into local time, so
+ * a US viewer sees "Apr 12" for an Apr 13 action. We always want the
+ * calendar date that Congress.gov reports, so format in UTC.
+ */
+export function formatJourneyDate(
+  iso: string,
+  style: "short" | "long",
+): string {
+  const d = new Date(iso);
+  const options: Intl.DateTimeFormatOptions =
+    style === "long"
+      ? { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }
+      : { month: "short", day: "numeric", timeZone: "UTC" };
+  return new Intl.DateTimeFormat("en-US", options).format(d);
+}
+
 export interface JourneyStep {
   label: string;
   description: string;
@@ -515,6 +535,7 @@ function extractActionMilestones(actions: ActionRecord[]): Milestone[] {
   // Track which chambers have had a passage milestone recorded
   const passedChambers = new Set<string>();
   let hasIntro = false;
+  let hasSigned = false;
 
   for (const action of sorted) {
     const text = action.text;
@@ -568,11 +589,18 @@ function extractActionMilestones(actions: ActionRecord[]): Milestone[] {
       continue;
     }
 
-    // Became law
+    // Became law. Congress.gov emits two separate rows for enactment —
+    // "Became Public Law No: …" and "Signed by President." — both match
+    // the regex, so dedup on the first one. "BecameLaw" is the GovTrack
+    // action type; Congress.gov uses "President" plus the text we match
+    // below (and also uses "President" for vetoes, so we don't match on
+    // type alone).
     if (
-      type === "BecameLaw" ||
-      /became public law|signed by president/i.test(text)
+      !hasSigned &&
+      (type === "BecameLaw" ||
+        /became public law|signed by president/i.test(text))
     ) {
+      hasSigned = true;
       milestones.push({
         label: "Signed into Law",
         description: "Signed by the President",
@@ -797,6 +825,14 @@ export function getEffectiveStatus(
     textVersions,
   );
   const lastMilestone = enrichedMilestones[enrichedMilestones.length - 1];
+
+  // Self-heal when the DB's currentStatus lags behind ingested actions —
+  // if any action shows the bill was signed, treat it as enacted so the
+  // badge doesn't say "awaiting the President's signature" while the
+  // timeline already shows "Signed into Law".
+  if (enrichedMilestones.some((m) => m.milestoneType === "signed")) {
+    return "enacted_signed";
+  }
 
   if (lastMilestone?.label.includes("(with changes)")) {
     if (lastMilestone.chamber === "House") return "pass_back_house";
