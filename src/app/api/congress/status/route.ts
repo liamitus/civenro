@@ -19,7 +19,10 @@ import type {
  * `unknown` visual state in that case.
  */
 
-export const revalidate = 30;
+// Pre-rendering this route would run at build time, where Vercel builds
+// can't reach the database — the route must always be handled at request
+// time. Edge caching is handled via the Cache-Control header below.
+export const dynamic = "force-dynamic";
 
 export interface ChamberStatusPayload {
   chamber: Chamber;
