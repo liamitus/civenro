@@ -52,16 +52,27 @@ const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
     { className, children, width, showCloseButton = true, style, ...props },
     ref,
   ) {
+    // Width is passed as a CSS custom property so mobile breakpoints can
+    // override with `w-full` — inline-style width would otherwise win on
+    // specificity and the sheet would be narrower than the viewport on phones.
+    const widthVar = width
+      ? ({ "--sheet-width": `${width}px` } as React.CSSProperties)
+      : undefined;
+
     return (
       <DialogPrimitive.Portal data-slot="sheet-portal">
         <SheetOverlay />
         <DialogPrimitive.Popup
           ref={ref}
           data-slot="sheet-content"
-          style={{ width: width ? `${width}px` : undefined, ...style }}
+          style={{ ...widthVar, ...style }}
           className={cn(
-            "bg-background ring-foreground/10 fixed inset-y-0 right-0 z-50 flex h-full flex-col shadow-2xl ring-1 outline-none",
-            "max-w-[95vw] min-w-[360px]",
+            // Mobile: full-screen. Desktop: right-edge slide-over that
+            // respects the `width` prop. `100dvh` tracks the visual viewport
+            // so the input bar stays above the on-screen keyboard on iOS /
+            // Android, and `inset-0` gives us the full phone screen.
+            "bg-background ring-foreground/10 fixed inset-0 z-50 flex h-[100dvh] w-full flex-col shadow-2xl ring-1 outline-none",
+            "sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:w-[var(--sheet-width,640px)] sm:max-w-[95vw] sm:min-w-[360px]",
             "duration-200",
             "data-open:animate-in data-open:slide-in-from-right",
             "data-closed:animate-out data-closed:slide-out-to-right",

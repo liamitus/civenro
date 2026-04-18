@@ -166,12 +166,6 @@ export interface CommentData {
   bill?: { id: number; title: string };
 }
 
-export interface ConversationMessage {
-  sender: string;
-  text: string;
-  createdAt: string;
-}
-
 export type VoteType = "For" | "Against" | "Abstain";
 
 export interface RepVoteRecord {

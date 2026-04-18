@@ -10,7 +10,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
-import { Maximize2, MessageSquare, Send } from "lucide-react";
+import { ArrowDown, Maximize2, MessageSquare, Send } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import {
   DefaultChatTransport,
@@ -28,6 +28,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { useStickToBottom } from "@/hooks/use-stick-to-bottom";
 import { AiPausedPanel } from "@/components/ai-paused-panel";
 import {
   AiChatError,
@@ -109,8 +110,9 @@ export function AiChatbox({
     const n = parseInt(stored, 10);
     return Number.isNaN(n) ? DEFAULT_WIDTH : clampWidth(n);
   });
-  const scrollRef = useRef<HTMLDivElement>(null);
   const sheetInputRef = useRef<HTMLInputElement>(null);
+  const { containerRef, contentRef, isPinned, scrollToBottom } =
+    useStickToBottom();
 
   // The body callback is invoked by the transport at request time so it can
   // read the latest conversationId without forcing the transport (and the
@@ -212,12 +214,6 @@ export function AiChatbox({
     };
   }, [billId]);
 
-  // Auto-scroll to bottom as content changes
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages, status, errorState]);
-
   // Focus input when sheet opens
   useEffect(() => {
     if (open) {
@@ -235,9 +231,12 @@ export function AiChatbox({
       setInput("");
       setErrorState(null);
       clearError();
+      // User just submitted — force-pin so they see their message + the
+      // streaming response, even if they were scrolled up reading history.
+      scrollToBottom();
       void sendMessage({ text });
     },
-    [input, user, isBusy, clearError, sendMessage],
+    [input, user, isBusy, clearError, sendMessage, scrollToBottom],
   );
 
   const retryLast = useCallback(() => {
@@ -364,7 +363,7 @@ export function AiChatbox({
             onPointerMove={onResizeMove}
             onPointerUp={onResizeEnd}
             onPointerCancel={onResizeEnd}
-            className="hover:bg-civic-gold/30 active:bg-civic-gold/60 absolute inset-y-0 left-0 z-20 w-1.5 cursor-col-resize transition-colors"
+            className="hover:bg-civic-gold/30 active:bg-civic-gold/60 absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize transition-colors sm:block"
           />
 
           <SheetHeader>
@@ -393,88 +392,110 @@ export function AiChatbox({
             </SheetDescription>
           </SheetHeader>
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5">
-            {aiPaused ? (
-              <div className="flex h-full items-center justify-center px-6">
-                <AiPausedPanel
-                  incomeCents={aiPaused.incomeCents}
-                  spendCents={aiPaused.spendCents}
-                />
-              </div>
-            ) : messages.length === 0 && !isBusy && !errorState ? (
-              <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                <p className="text-foreground mb-1 text-base font-medium">
-                  Ask anything about this bill
-                </p>
-                <p className="text-muted-foreground max-w-sm text-sm">
-                  Try{" "}
-                  <button
-                    type="button"
-                    onClick={() => submit("What does this bill actually do?")}
-                    className="hover:text-foreground underline"
-                  >
-                    What does this bill actually do?
-                  </button>{" "}
-                  or{" "}
-                  <button
-                    type="button"
-                    onClick={() => submit("Who is most affected?")}
-                    className="hover:text-foreground underline"
-                  >
-                    Who is most affected?
-                  </button>
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`text-base ${
-                      msg.role === "user"
-                        ? "flex justify-end"
-                        : "flex justify-start"
-                    }`}
-                  >
+          <div className="relative flex-1 overflow-hidden">
+            <div
+              ref={containerRef}
+              className="h-full overflow-y-auto overscroll-contain px-5 py-5 [overflow-anchor:none]"
+            >
+              {aiPaused ? (
+                <div className="flex h-full items-center justify-center px-6">
+                  <AiPausedPanel
+                    incomeCents={aiPaused.incomeCents}
+                    spendCents={aiPaused.spendCents}
+                  />
+                </div>
+              ) : messages.length === 0 && !isBusy && !errorState ? (
+                <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                  <p className="text-foreground mb-1 text-base font-medium">
+                    Ask anything about this bill
+                  </p>
+                  <p className="text-muted-foreground max-w-sm text-sm">
+                    Try{" "}
+                    <button
+                      type="button"
+                      onClick={() => submit("What does this bill actually do?")}
+                      className="hover:text-foreground underline"
+                    >
+                      What does this bill actually do?
+                    </button>{" "}
+                    or{" "}
+                    <button
+                      type="button"
+                      onClick={() => submit("Who is most affected?")}
+                      className="hover:text-foreground underline"
+                    >
+                      Who is most affected?
+                    </button>
+                  </p>
+                </div>
+              ) : (
+                <div ref={contentRef} className="space-y-4">
+                  {messages.map((msg) => (
                     <div
-                      className={`max-w-[88%] rounded-2xl px-4 py-2.5 leading-relaxed ${
+                      key={msg.id}
+                      className={`text-base ${
                         msg.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-foreground"
+                          ? "flex justify-end"
+                          : "flex justify-start"
                       }`}
                     >
-                      {msg.role === "assistant" ? (
-                        <AiMessageContent text={messageText(msg)} />
-                      ) : (
-                        messageText(msg)
-                      )}
+                      <div
+                        className={`max-w-[88%] rounded-2xl px-4 py-2.5 leading-relaxed ${
+                          msg.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground"
+                        }`}
+                      >
+                        {msg.role === "assistant" ? (
+                          <AiMessageContent text={messageText(msg)} />
+                        ) : (
+                          messageText(msg)
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {isThinking && (
-                  <div
-                    role="status"
-                    aria-live="polite"
-                    className="flex justify-start"
-                  >
-                    <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-2.5 text-base">
-                      <span className="sr-only">Assistant is thinking. </span>
-                      <span aria-hidden="true">Thinking…</span>
+                  ))}
+                  {isThinking && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="flex justify-start"
+                    >
+                      <div className="bg-muted text-muted-foreground rounded-2xl px-4 py-2.5 text-base">
+                        <span className="sr-only">Assistant is thinking. </span>
+                        <span aria-hidden="true">Thinking…</span>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {errorState && !isBusy && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[88%]">
-                      <AiChatError state={errorState} onRetry={retryLast} />
+                  )}
+                  {errorState && !isBusy && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[88%]">
+                        <AiChatError state={errorState} onRetry={retryLast} />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Jump-to-latest pill — only shows when the user has scrolled
+                up away from the bottom, so they can opt back into the
+                auto-follow stream without hunting for the edge. */}
+            {!isPinned && messages.length > 0 && !aiPaused && (
+              <button
+                type="button"
+                onClick={scrollToBottom}
+                aria-label={
+                  isBusy ? "Jump to latest response" : "Jump to latest message"
+                }
+                className="bg-background hover:bg-muted text-foreground absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium shadow-md transition-colors"
+              >
+                <ArrowDown className="h-3.5 w-3.5" />
+                {isBusy ? "Jump to latest" : "New messages"}
+              </button>
             )}
           </div>
 
-          <div className="bg-background border-t px-5 py-4">
+          <div className="bg-background border-t px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="flex gap-2">
               <Input
                 ref={sheetInputRef}
