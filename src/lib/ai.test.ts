@@ -54,7 +54,69 @@ describe("buildBillChatSystemPrompt", () => {
 
   it("falls back to a title-only prompt when summary and sections are both missing", () => {
     const prompt = buildBillChatSystemPrompt("Test Bill", null, null);
-    expect(prompt).toContain("Full bill text is not yet available");
+    expect(prompt).toContain("Full bill text");
+    expect(prompt).toContain("not yet available");
     expect(prompt).toContain("Test Bill");
+  });
+
+  it("packs extended metadata (type, chamber, dates, status, actions, cosponsors) into the title-only prompt", () => {
+    // Tier-3 bills rely entirely on metadata — this test pins the fact that
+    // the prompt builder actually surfaces every field we bother to collect.
+    const prompt = buildBillChatSystemPrompt("Test Bill", null, {
+      sponsor: "Sen. X (D-NY)",
+      cosponsorCount: 3,
+      cosponsorPartySplit: "2 D, 1 R",
+      policyArea: "Health",
+      latestActionDate: "2026-04-10",
+      latestActionText: "Referred.",
+      shortText: null,
+      billType: "HR",
+      chamber: "House",
+      introducedDate: "2026-03-01",
+      currentStatus: "Introduced",
+      actions: [
+        { date: "2026-03-01", text: "Introduced in House." },
+        { date: "2026-04-10", text: "Referred to committee." },
+      ],
+      cosponsors: [
+        "Rep. Alpha (D-CA-12)",
+        "Rep. Beta (R-TX-2)",
+        "Rep. Gamma (D-NY-15)",
+      ],
+    });
+
+    expect(prompt).toContain("HR");
+    expect(prompt).toContain("House bill");
+    expect(prompt).toContain("Introduced: 2026-03-01");
+    expect(prompt).toContain("Current status: Introduced");
+    expect(prompt).toContain("Action history");
+    expect(prompt).toContain("2026-03-01: Introduced in House.");
+    expect(prompt).toContain("2026-04-10: Referred to committee.");
+    expect(prompt).toContain("Rep. Alpha (D-CA-12)");
+    expect(prompt).toContain("authoritative");
+  });
+
+  it("truncates the cosponsor list in the prompt for very long rosters", () => {
+    const cosponsors = Array.from(
+      { length: 40 },
+      (_, i) => `Rep. Member${i + 1} (D-CA-${i + 1})`,
+    );
+    const prompt = buildBillChatSystemPrompt("Big Bill", null, {
+      sponsor: null,
+      cosponsorCount: 40,
+      cosponsorPartySplit: null,
+      policyArea: null,
+      latestActionDate: null,
+      latestActionText: null,
+      shortText: null,
+      cosponsors,
+    });
+    // First entries are included…
+    expect(prompt).toContain("Rep. Member1 (D-CA-1)");
+    // …but the tail beyond the in-prompt cap is omitted.
+    expect(prompt).not.toContain("Rep. Member40 (D-CA-40)");
+    // And the prompt says it's a partial list so the AI knows not to
+    // claim the sample is exhaustive.
+    expect(prompt).toMatch(/first \d+ of 40/);
   });
 });

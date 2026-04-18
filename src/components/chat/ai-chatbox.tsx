@@ -411,21 +411,41 @@ export function AiChatbox({
                   </p>
                   <p className="text-muted-foreground max-w-sm text-sm">
                     Try{" "}
-                    <button
-                      type="button"
-                      onClick={() => submit("What does this bill actually do?")}
-                      className="hover:text-foreground underline"
-                    >
-                      What does this bill actually do?
-                    </button>{" "}
-                    or{" "}
-                    <button
-                      type="button"
-                      onClick={() => submit("Who is most affected?")}
-                      className="hover:text-foreground underline"
-                    >
-                      Who is most affected?
-                    </button>
+                    {(() => {
+                      // Tier-3 bills have no text or CRS summary, so the
+                      // high-value answerable questions are about metadata —
+                      // who introduced it, where it is in the process — not
+                      // "what does it do" which would just get hedged.
+                      const suggestions =
+                        textTier === "title-only"
+                          ? [
+                              "Who introduced this bill?",
+                              "What's happened on this bill so far?",
+                            ]
+                          : [
+                              "What does this bill actually do?",
+                              "Who is most affected?",
+                            ];
+                      return (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => submit(suggestions[0])}
+                            className="hover:text-foreground underline"
+                          >
+                            {suggestions[0]}
+                          </button>{" "}
+                          or{" "}
+                          <button
+                            type="button"
+                            onClick={() => submit(suggestions[1])}
+                            className="hover:text-foreground underline"
+                          >
+                            {suggestions[1]}
+                          </button>
+                        </>
+                      );
+                    })()}
                   </p>
                 </div>
               ) : (

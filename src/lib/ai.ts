@@ -66,19 +66,45 @@ If the user asks about something not covered in the bill sections provided, say 
 //  Prompt builders
 // ─────────────────────────────────────────────────────────────────────────
 
+/** Cap on cosponsors listed in the prompt — the count + party split stays
+ *  authoritative for totals; this just gives the AI a sample to name. */
+const MAX_PROMPT_COSPONSORS = 15;
+
 function formatMetadataForPrompt(metadata: BillMetadata | null): string {
   if (!metadata) return "";
   const lines: string[] = [];
+  if (metadata.billType || metadata.chamber) {
+    const parts: string[] = [];
+    if (metadata.billType) parts.push(metadata.billType);
+    if (metadata.chamber) parts.push(`${metadata.chamber} bill`);
+    lines.push(`Type: ${parts.join(" — ")}`);
+  }
+  if (metadata.introducedDate)
+    lines.push(`Introduced: ${metadata.introducedDate}`);
+  if (metadata.currentStatus)
+    lines.push(`Current status: ${metadata.currentStatus}`);
   if (metadata.sponsor) lines.push(`Sponsor: ${metadata.sponsor}`);
   if (metadata.cosponsorCount != null)
     lines.push(`Cosponsors: ${metadata.cosponsorCount}`);
   if (metadata.cosponsorPartySplit)
     lines.push(`Party split: ${metadata.cosponsorPartySplit}`);
+  if (metadata.cosponsors && metadata.cosponsors.length > 0) {
+    const shown = metadata.cosponsors.slice(0, MAX_PROMPT_COSPONSORS);
+    const more = metadata.cosponsors.length - shown.length;
+    lines.push(
+      `Cosponsor names${more > 0 ? ` (first ${shown.length} of ${metadata.cosponsors.length})` : ""}: ${shown.join("; ")}`,
+    );
+  }
   if (metadata.policyArea) lines.push(`Policy area: ${metadata.policyArea}`);
   if (metadata.latestActionDate && metadata.latestActionText)
     lines.push(
       `Latest action (${metadata.latestActionDate}): ${metadata.latestActionText}`,
     );
+  if (metadata.actions && metadata.actions.length > 0) {
+    lines.push("");
+    lines.push("Action history (oldest first):");
+    for (const a of metadata.actions) lines.push(`- ${a.date}: ${a.text}`);
+  }
   if (metadata.shortText) {
     lines.push("");
     lines.push("CRS summary (nonpartisan, introduced version):");
@@ -131,9 +157,13 @@ Stay factual and neutral.`;
 
 The bill is titled "${billTitle}".${metadataBlock ? `\n\nBill information:\n${metadataBlock}` : ""}
 
-Full bill text is not yet available in our system. Explain this once at the start of your answer — briefly, one sentence — then answer what you can from the title and metadata above. Do not repeat this caveat in every section; one upfront mention is enough. Suggest the user check congress.gov for the full text if they need specifics.
+Full bill text and CRS summary are not yet available in our system — but the metadata above is accurate and sourced from Congress.gov. Treat it as authoritative.
 
-Stay factual and neutral.`;
+Factual questions about who introduced the bill, who cosponsored it, its chamber or bill type, when it was introduced, its policy area, or its legislative history (the action timeline above) are all reliably answerable from this metadata — answer them directly without hedging.
+
+For questions about specific substantive provisions of the bill (what it actually does section-by-section, dollar amounts, eligibility criteria, effective dates, enforcement mechanisms): note once at the start of your answer that the full text isn't yet in our system, then reason only from the title, policy area, and any action text — don't invent provisions. Point the user to congress.gov for specifics.
+
+Stay factual and neutral. Do not repeat the "text not available" caveat in every paragraph; one upfront mention is enough, and only when the question actually requires the bill text to answer.`;
   }
 
   const billTextBlock = formatSectionsForPrompt(billSections);
