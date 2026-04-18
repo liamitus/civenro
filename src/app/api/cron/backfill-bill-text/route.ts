@@ -35,13 +35,16 @@ async function runWithConcurrency<T, R>(
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let cursor = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (true) {
-      const idx = cursor++;
-      if (idx >= items.length) return;
-      results[idx] = await fn(items[idx]);
-    }
-  });
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (true) {
+        const idx = cursor++;
+        if (idx >= items.length) return;
+        results[idx] = await fn(items[idx]);
+      }
+    },
+  );
   await Promise.all(workers);
   return results;
 }
@@ -93,7 +96,8 @@ export async function GET(request: Request) {
 
   const results: Array<{ billId: string; ok: boolean; error?: string }> =
     await runWithConcurrency(batch, CONCURRENCY, async (b) => {
-      if (Date.now() >= deadline) return { billId: b.billId, ok: false, error: "timeout" };
+      if (Date.now() >= deadline)
+        return { billId: b.billId, ok: false, error: "timeout" };
       try {
         await fetchBillTextFunction(b.billId, 1);
         return { billId: b.billId, ok: true };
