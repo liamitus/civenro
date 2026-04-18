@@ -241,7 +241,9 @@ export default function AccountPage() {
       <Separator />
 
       <div className="space-y-3">
-        <h2 className="text-xl font-semibold">Your Comments ({totalComments})</h2>
+        <h2 className="text-xl font-semibold">
+          Your Comments ({totalComments})
+        </h2>
         {comments.map((comment) => (
           <Card key={comment.id} className="p-3">
             <div className="flex items-start justify-between">
