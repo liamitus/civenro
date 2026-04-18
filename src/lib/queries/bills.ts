@@ -63,7 +63,10 @@ export async function fetchBillsPage(
   }
 
   if (search) {
-    filters.title = { contains: search, mode: "insensitive" };
+    filters.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { sponsor: { contains: search, mode: "insensitive" } },
+    ];
   }
 
   if (topic) {
