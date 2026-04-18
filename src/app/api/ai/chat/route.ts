@@ -176,8 +176,27 @@ export async function POST(request: NextRequest) {
     });
 
     // ── Bill context ───────────────────────────────────────────────────
+    // When bill text is missing (tier-2/3), the AI leans heavily on
+    // metadata — so pull the action timeline and a cosponsor sample too.
+    // Caps below keep the prompt bounded on long-running bills.
+    const ACTION_HISTORY_LIMIT = 15;
+    const COSPONSOR_ROSTER_LIMIT = 20;
+
     const [bill, latestVersion] = await Promise.all([
-      prisma.bill.findUnique({ where: { id: numericBillId } }),
+      prisma.bill.findUnique({
+        where: { id: numericBillId },
+        include: {
+          actions: {
+            orderBy: { actionDate: "desc" },
+            take: ACTION_HISTORY_LIMIT,
+          },
+          cosponsors: {
+            orderBy: { sponsoredAt: "asc" },
+            take: COSPONSOR_ROSTER_LIMIT,
+            include: { representative: true },
+          },
+        },
+      }),
       prisma.billTextVersion.findFirst({
         where: { billId: numericBillId, fullText: { not: null } },
         orderBy: { versionDate: "desc" },
@@ -198,6 +217,32 @@ export async function POST(request: NextRequest) {
             : null,
           latestActionText: bill.latestActionText,
           shortText: bill.shortText,
+          billType: bill.billType ? bill.billType.toUpperCase() : null,
+          chamber: bill.currentChamber,
+          introducedDate: bill.introducedDate
+            ? bill.introducedDate.toISOString().slice(0, 10)
+            : null,
+          currentStatus: bill.currentStatus,
+          actions: bill.actions
+            // Prisma gave us newest-first for the take limit; flip to
+            // chronological so the AI reads it as a timeline.
+            .slice()
+            .reverse()
+            .map((a) => ({
+              date: a.actionDate.toISOString().slice(0, 10),
+              text: a.text,
+            })),
+          cosponsors: bill.cosponsors.map((c) => {
+            const r = c.representative;
+            const titleBase = r.chamber === "Senate" ? "Sen." : "Rep.";
+            const district =
+              r.chamber === "Senate"
+                ? r.state
+                : r.district
+                  ? `${r.state}-${r.district}`
+                  : r.state;
+            return `${titleBase} ${r.firstName} ${r.lastName} (${r.party}-${district})`;
+          }),
         }
       : null;
 
