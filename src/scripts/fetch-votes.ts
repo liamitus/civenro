@@ -21,6 +21,16 @@ interface GovTrackBillData {
   title_without_number: string;
 }
 
+type VoteRecord = {
+  bioguideId: string;
+  govtrackBillId: number;
+  rollCallNumber: number;
+  chamber: string | null;
+  votedAt: Date | null;
+  category: string | null;
+  voteValue: string;
+};
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetchVotesFunction(since?: Date) {
   try {
@@ -33,7 +43,7 @@ export async function fetchVotesFunction(since?: Date) {
 
     const endDate = dayjs();
     let currentDate = startDate;
-    const billCache: Record<number, GovTrackBillData> = {};
+    const billCache = new Map<number, GovTrackBillData>();
 
     while (currentDate.isBefore(endDate)) {
       const nextDate = currentDate.add(1, "day");
@@ -48,89 +58,8 @@ export async function fetchVotesFunction(since?: Date) {
         `Fetched ${voteVoters.length} votes from ${currentDate.format("YYYY-MM-DD")}`,
       );
 
-      for (const voteVoter of voteVoters) {
-        try {
-          const person = voteVoter.person;
-          const vote = voteVoter.vote;
-          const bioguideId = person.bioguideid;
-
-          if (!bioguideId) continue;
-
-          const representative = await prisma.representative.findUnique({
-            where: { bioguideId },
-          });
-          if (!representative) continue;
-
-          const relatedBillId = vote.related_bill;
-          if (!relatedBillId) continue;
-
-          let billData = billCache[relatedBillId];
-          if (!billData) {
-            billData = (await fetchGovTrackBill(
-              relatedBillId,
-            )) as GovTrackBillData;
-            billCache[relatedBillId] = billData;
-          }
-
-          const billId = `${billData.bill_type}-${billData.number}-${billData.congress}`;
-
-          const bill = await prisma.bill.upsert({
-            where: { billId },
-            update: {
-              title: billData.title_without_number,
-              date: new Date(billData.introduced_date),
-              billType: billData.bill_type,
-              currentChamber: billData.current_chamber,
-              currentStatus: billData.current_status,
-              currentStatusDate: new Date(billData.current_status_date),
-              introducedDate: new Date(billData.introduced_date),
-              link: billData.link,
-            },
-            create: {
-              billId,
-              title: billData.title_without_number,
-              date: new Date(billData.introduced_date),
-              billType: billData.bill_type,
-              currentChamber: billData.current_chamber,
-              currentStatus: billData.current_status,
-              currentStatusDate: new Date(billData.current_status_date),
-              introducedDate: new Date(billData.introduced_date),
-              link: billData.link,
-            },
-          });
-
-          const rollCallNumber = vote.number ?? 0;
-          const chamber = vote.chamber || null;
-          const votedAt = vote.created ? new Date(vote.created) : null;
-          const category = vote.category || null;
-
-          await prisma.representativeVote.upsert({
-            where: {
-              representativeId_billId_rollCallNumber: {
-                representativeId: representative.id,
-                billId: bill.id,
-                rollCallNumber,
-              },
-            },
-            update: {
-              vote: voteVoter.option.value,
-              chamber,
-              votedAt,
-              category,
-            },
-            create: {
-              representativeId: representative.id,
-              billId: bill.id,
-              vote: voteVoter.option.value,
-              rollCallNumber,
-              chamber,
-              votedAt,
-              category,
-            },
-          });
-        } catch (error: any) {
-          console.error("Error processing vote:", error.message);
-        }
+      if (voteVoters.length > 0) {
+        await processVoteBatch(voteVoters, billCache);
       }
 
       await delay(500);
@@ -143,6 +72,175 @@ export async function fetchVotesFunction(since?: Date) {
   } finally {
     await prisma.$disconnect();
   }
+}
+
+/**
+ * Turn a day's worth of GovTrack voteVoters into database writes using
+ * bulk operations: one findMany for representatives, one createMany for
+ * any new bills, one findMany to resolve bill row ids, one createMany
+ * for votes. Previously this was N+1 per voter (findUnique → upsert →
+ * upsert), which blew the 60s Hobby-plan budget on busy roll-call days.
+ *
+ * Two deliberate semantic choices here:
+ *
+ * 1. Bill rows use createMany({ skipDuplicates: true }) — existing bills
+ *    keep their metadata. fetch-bills / refresh-bill-metadata own bill
+ *    updates; fetch-votes only ensures the row exists so a vote can
+ *    reference it. The old code re-wrote title/status on every vote
+ *    sighting, which duplicated fetch-bills' job and occasionally
+ *    clobbered fresher data.
+ *
+ * 2. RepresentativeVote rows likewise use createMany({ skipDuplicates }).
+ *    A (representativeId, billId, rollCallNumber) tuple is immutable
+ *    once the roll call is recorded — there's no legitimate update path
+ *    from GovTrack after the fact. skipDuplicates gives us idempotent
+ *    re-runs without an UPSERT per row.
+ */
+async function processVoteBatch(
+  voters: any[],
+  billCache: Map<number, GovTrackBillData>,
+) {
+  const records: VoteRecord[] = [];
+  for (const v of voters) {
+    const bioguideId = v?.person?.bioguideid;
+    const relatedBill = v?.vote?.related_bill;
+    const voteValue = v?.option?.value;
+    if (!bioguideId || !relatedBill || !voteValue) continue;
+    records.push({
+      bioguideId,
+      govtrackBillId: relatedBill,
+      rollCallNumber: v.vote?.number ?? 0,
+      chamber: v.vote?.chamber ?? null,
+      votedAt: v.vote?.created ? new Date(v.vote.created) : null,
+      category: v.vote?.category ?? null,
+      voteValue,
+    });
+  }
+  if (records.length === 0) return;
+
+  const bioguideIds = [...new Set(records.map((r) => r.bioguideId))];
+  const reps = await prisma.representative.findMany({
+    where: { bioguideId: { in: bioguideIds } },
+    select: { id: true, bioguideId: true },
+  });
+  const repIdByBioguide = new Map(reps.map((r) => [r.bioguideId, r.id]));
+
+  const knownRecords = records.filter((r) => repIdByBioguide.has(r.bioguideId));
+  if (knownRecords.length === 0) return;
+
+  const uniqueGovtrackIds = [
+    ...new Set(knownRecords.map((r) => r.govtrackBillId)),
+  ];
+  const toFetch = uniqueGovtrackIds.filter((id) => !billCache.has(id));
+  if (toFetch.length > 0) {
+    const fetched = await Promise.all(
+      toFetch.map((id) =>
+        fetchGovTrackBill(id).catch((err: any) => {
+          console.error(
+            `Failed to fetch bill ${id}:`,
+            err?.message ?? String(err),
+          );
+          return null;
+        }),
+      ),
+    );
+    fetched.forEach((data, i) => {
+      if (isUsableBill(data)) billCache.set(toFetch[i], data);
+    });
+  }
+
+  const billPayloadByCanonicalId = new Map<
+    string,
+    {
+      billId: string;
+      title: string;
+      date: Date;
+      billType: string;
+      currentChamber: string | null;
+      currentStatus: string;
+      currentStatusDate: Date;
+      introducedDate: Date;
+      link: string;
+    }
+  >();
+  for (const govtrackId of uniqueGovtrackIds) {
+    const b = billCache.get(govtrackId);
+    if (!b) continue;
+    const canonicalId = `${b.bill_type}-${b.number}-${b.congress}`;
+    if (billPayloadByCanonicalId.has(canonicalId)) continue;
+    billPayloadByCanonicalId.set(canonicalId, {
+      billId: canonicalId,
+      title: b.title_without_number,
+      date: new Date(b.introduced_date),
+      billType: b.bill_type,
+      currentChamber: b.current_chamber,
+      currentStatus: b.current_status,
+      currentStatusDate: new Date(b.current_status_date),
+      introducedDate: new Date(b.introduced_date),
+      link: b.link,
+    });
+  }
+  if (billPayloadByCanonicalId.size === 0) return;
+  const billPayloads = [...billPayloadByCanonicalId.values()];
+
+  await prisma.bill.createMany({
+    data: billPayloads,
+    skipDuplicates: true,
+  });
+
+  const billRows = await prisma.bill.findMany({
+    where: { billId: { in: billPayloads.map((b) => b.billId) } },
+    select: { id: true, billId: true },
+  });
+  const billRowIdByCanonical = new Map(billRows.map((b) => [b.billId, b.id]));
+
+  const votePayloads: {
+    representativeId: number;
+    billId: number;
+    vote: string;
+    rollCallNumber: number;
+    chamber: string | null;
+    votedAt: Date | null;
+    category: string | null;
+  }[] = [];
+  for (const r of knownRecords) {
+    const billData = billCache.get(r.govtrackBillId);
+    if (!billData) continue;
+    const canonicalId = `${billData.bill_type}-${billData.number}-${billData.congress}`;
+    const billRowId = billRowIdByCanonical.get(canonicalId);
+    const repId = repIdByBioguide.get(r.bioguideId);
+    if (!billRowId || !repId) continue;
+    votePayloads.push({
+      representativeId: repId,
+      billId: billRowId,
+      vote: r.voteValue,
+      rollCallNumber: r.rollCallNumber,
+      chamber: r.chamber,
+      votedAt: r.votedAt,
+      category: r.category,
+    });
+  }
+  if (votePayloads.length === 0) return;
+
+  await prisma.representativeVote.createMany({
+    data: votePayloads,
+    skipDuplicates: true,
+  });
+}
+
+function isUsableBill(data: unknown): data is GovTrackBillData {
+  if (!data || typeof data !== "object") return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.bill_type === "string" &&
+    typeof d.number === "number" &&
+    typeof d.congress === "number" &&
+    typeof d.introduced_date === "string" &&
+    typeof d.current_status === "string" &&
+    typeof d.current_status_date === "string" &&
+    typeof d.link === "string" &&
+    typeof d.title_without_number === "string"
+  );
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
