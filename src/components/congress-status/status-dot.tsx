@@ -6,12 +6,17 @@ import type { StatusCode } from "@/lib/congress-session/types";
  * carry the state — never relying on color alone (so deuteranopic users
  * and grayscale screenshots still read correctly).
  *
+ * Colors are either semantic (emerald = active, amber = pro forma) or
+ * `currentColor`-based (recess outline, unknown dash) so the neutral glyphs
+ * adapt to their surrounding text color — readable on both the dark nav
+ * pill and the light popover rows without a per-context override.
+ *
  * - voting: filled emerald with motion-safe pulse
  * - in_session: filled emerald, static
  * - pro_forma: half-filled amber (distinct shape)
- * - recess: hollow slate (outlined ring)
- * - adjourned_sine_die: hollow slate with inner dash
- * - unknown: thin slate dash (no dot at all)
+ * - recess: hollow ring in the ambient text color
+ * - adjourned_sine_die: same hollow ring
+ * - unknown: thin dash in the ambient text color (no dot at all)
  */
 export function StatusDot({
   status,
@@ -24,7 +29,10 @@ export function StatusDot({
     return (
       <span
         aria-hidden
-        className={cn("inline-block h-0.5 w-2 rounded bg-white/40", className)}
+        className={cn(
+          "inline-block h-0.5 w-2 rounded bg-current/40",
+          className,
+        )}
       />
     );
   }
@@ -34,7 +42,7 @@ export function StatusDot({
       <span
         aria-hidden
         className={cn(
-          "relative inline-block size-2 rounded-full border border-white/60",
+          "relative inline-block size-2 rounded-full border border-current/60",
           className,
         )}
       />

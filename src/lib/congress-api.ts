@@ -279,7 +279,16 @@ export async function fetchOfficialBillTitle(
 
 /**
  * Bill metadata for AI chat context — sponsor, cosponsors, status, latest action.
- * Fetched on-demand from Congress.gov.
+ *
+ * The "core" fields (sponsor, cosponsorCount, …, shortText) are also populated
+ * by `fetchBillMetadata` below for the refresh cron's write path.
+ *
+ * The optional "extended" fields (billType, chamber, introducedDate,
+ * currentStatus, actions, cosponsors) are populated only at read time in the
+ * chat route from our own DB, where they always exist. They give the AI more
+ * factual anchors on tier-2/tier-3 bills where no text is available, so
+ * questions like "when was it introduced?" or "who co-sponsored it?" get a
+ * direct answer instead of a disclaimer.
  */
 export interface BillMetadata {
   sponsor: string | null; // "Sen. Rick Scott (R-FL)"
@@ -290,6 +299,22 @@ export interface BillMetadata {
   latestActionText: string | null;
   /** Plain-text CRS summary, most recent version. Null if none published. */
   shortText: string | null;
+  /** Short bill-type code, e.g. "HR", "S", "HJRES". */
+  billType?: string | null;
+  /** Originating chamber, e.g. "House" or "Senate". */
+  chamber?: string | null;
+  /** ISO date (YYYY-MM-DD) the bill was introduced. */
+  introducedDate?: string | null;
+  /** Current status string, e.g. "Introduced", "Passed House". */
+  currentStatus?: string | null;
+  /** Compact chronological action timeline, oldest-first. */
+  actions?: { date: string; text: string }[];
+  /**
+   * Representative cosponsor sample — "Rep. Jane Doe (D-CA)" strings. Capped
+   * so an omnibus bill with hundreds of cosponsors doesn't blow the prompt;
+   * the count + party-split stays authoritative for totals.
+   */
+  cosponsors?: string[];
 }
 
 /**

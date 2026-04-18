@@ -119,26 +119,31 @@ export async function computeChamberStatus(
     });
   }
 
-  // ── 5. Live scraper said "recess" (e.g. no XML published today) ───────
-  if (liveSignal && liveSignal.status === "recess") {
-    return shape({
-      chamber,
-      status: "recess",
-      detail: liveSignal.detail,
-      source: liveSignal.source,
-      lastActionAt: null,
-      nextRecess,
-      now,
-    });
-  }
-
-  // ── 6. Weekend fallback ───────────────────────────────────────────────
+  // ── 5. Weekend ────────────────────────────────────────────────────────
+  // Prefer the plain-English weekend message over the scraper's 404 branch
+  // ("No floor proceedings published today") when we can tell it's a Sat/Sun
+  // from the wall clock. Citizens recognise "Weekend" without having to know
+  // what a floor proceeding is. Named weekend-spanning recesses have already
+  // been caught by step 4, so this only fires on between-week weekends.
   if (isWeekendInEt(now)) {
     return shape({
       chamber,
       status: "recess",
       detail: "Weekend — chamber not in session",
       source: "calendar",
+      lastActionAt: null,
+      nextRecess,
+      now,
+    });
+  }
+
+  // ── 6. Live scraper said "recess" on a weekday ────────────────────────
+  if (liveSignal && liveSignal.status === "recess") {
+    return shape({
+      chamber,
+      status: "recess",
+      detail: liveSignal.detail,
+      source: liveSignal.source,
       lastActionAt: null,
       nextRecess,
       now,
