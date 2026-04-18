@@ -51,8 +51,8 @@ export default function UpdatePasswordPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <Card className="space-y-4 p-6">
-        <h1 className="text-xl font-semibold">Set New Password</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-2xl font-semibold">Set New Password</h1>
+        <p className="text-muted-foreground text-base">
           Enter your new password below.
         </p>
 

@@ -93,11 +93,11 @@ export function BillGroupCard({
       >
         <div className="pl-3">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-navy line-clamp-2 flex-1 text-sm leading-snug font-medium">
+            <h3 className="text-navy line-clamp-2 flex-1 text-base leading-snug font-semibold">
               {lead.title}
             </h3>
             {allVoted && (
-              <span className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase">
+              <span className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase">
                 <svg
                   className="h-2.5 w-2.5"
                   viewBox="0 0 24 24"
@@ -196,7 +196,7 @@ export function BillGroupCard({
           const showPerRowSummary = !allSame;
           return (
             <div className="border-border/40 bg-muted/20 animate-fade-slide-up rounded-b-lg border-t pt-2 pr-3 pb-1.5 pl-6">
-              <p className="text-muted-foreground/80 px-2 pb-1.5 text-[11px] leading-relaxed">
+              <p className="text-muted-foreground/80 px-2 pb-1.5 text-xs leading-relaxed">
                 Related bills filed together — tap any to see details.
               </p>
               <ul className="divide-border/30 divide-y">
@@ -219,7 +219,7 @@ export function BillGroupCard({
                         )}
                         {!showPerRowSummary && <span className="flex-1" />}
                         {voted && (
-                          <span className="text-navy/70 shrink-0 text-[10px] font-semibold tracking-wider uppercase">
+                          <span className="text-navy/70 shrink-0 text-xs font-semibold tracking-wider uppercase">
                             Voted
                           </span>
                         )}

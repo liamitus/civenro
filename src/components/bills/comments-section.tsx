@@ -40,25 +40,25 @@ function Comment({
 
   return (
     <div className="border-border border-l-2 py-2 pl-3">
-      <div className="text-muted-foreground flex items-center gap-2 text-xs">
+      <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <span className="text-foreground font-medium">{comment.username}</span>
         <span>{new Date(comment.date).toLocaleDateString()}</span>
       </div>
 
-      <p className="mt-1 text-sm">{comment.content}</p>
+      <p className="mt-1 text-base">{comment.content}</p>
 
       <div className="mt-1 flex items-center gap-2">
         <button
           onClick={() => handleVote(1)}
-          className="text-muted-foreground hover:text-foreground text-xs"
+          className="text-muted-foreground hover:text-foreground text-sm"
           disabled={!userId}
         >
           +
         </button>
-        <span className="text-xs font-medium">{comment.voteCount}</span>
+        <span className="text-sm font-medium">{comment.voteCount}</span>
         <button
           onClick={() => handleVote(-1)}
-          className="text-muted-foreground hover:text-foreground text-xs"
+          className="text-muted-foreground hover:text-foreground text-sm"
           disabled={!userId}
         >
           -
@@ -66,7 +66,7 @@ function Comment({
         {userId && (
           <button
             onClick={() => setShowReply(!showReply)}
-            className="text-muted-foreground hover:text-foreground ml-2 text-xs"
+            className="text-muted-foreground hover:text-foreground ml-2 text-sm"
           >
             Reply
           </button>
@@ -79,7 +79,7 @@ function Comment({
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             placeholder="Write a reply..."
-            className="min-h-[60px] text-sm"
+            className="min-h-[60px] text-base"
           />
           <Button size="sm" onClick={handleReply} disabled={submitting}>
             {submitting ? "..." : "Reply"}
@@ -167,7 +167,7 @@ export function CommentsSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">
+        <h3 className="text-xl font-semibold">
           Comments{total > 0 ? ` (${total})` : ""}
         </h3>
         <div className="flex gap-1">
@@ -205,7 +205,7 @@ export function CommentsSection({
 
       {comments.length === 0 ? (
         <div className="space-y-1 py-8 text-center">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-base">
             {user ? (
               "Start the conversation — share your perspective above."
             ) : (

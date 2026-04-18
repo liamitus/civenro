@@ -141,16 +141,16 @@ function RepCard({
           </div>
           <div className="min-w-0 flex-1">
             <p
-              className={`truncate font-semibold ${muted ? "text-xs" : "text-sm"}`}
+              className={`truncate font-semibold ${muted ? "text-sm" : "text-base"}`}
             >
               {rep.firstName} {rep.lastName}
             </p>
-            <p className="text-muted-foreground text-[11px]">
+            <p className="text-muted-foreground text-xs">
               {rep.party.replace("Democratic", "Democrat")} · {rep.state}
               {rep.district ? `-${rep.district}` : ""}
             </p>
             {cosponsorText && (
-              <p className="text-civic-gold mt-0.5 truncate text-[11px]">
+              <p className="text-civic-gold mt-0.5 truncate text-xs">
                 {cosponsorText}
               </p>
             )}
@@ -164,7 +164,7 @@ function RepCard({
               {normalizeVote(displayVote)}
             </span>
             {voteContext && (
-              <span className="text-muted-foreground text-right text-[10px] leading-tight italic">
+              <span className="text-muted-foreground text-right text-xs leading-tight italic">
                 {voteContext}
               </span>
             )}
@@ -239,7 +239,7 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
     // "no information at all."
     if (passage.proceduralRollCallCount > 0) {
       return (
-        <div className="bg-accent/20 rounded-lg border px-3 py-2.5 text-xs leading-relaxed">
+        <div className="bg-accent/20 rounded-lg border px-3 py-2.5 text-sm leading-relaxed">
           <p className="text-foreground">
             <span className="font-semibold">
               {`The ${chamberName} hasn\u2019t held a final vote on this bill yet.`}
@@ -262,7 +262,7 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
       );
     }
     return (
-      <div className="bg-muted/30 text-muted-foreground rounded-lg border border-dashed px-3 py-2 text-xs">
+      <div className="bg-muted/30 text-muted-foreground rounded-lg border border-dashed px-3 py-2 text-sm">
         {`The ${chamberName} hasn\u2019t voted on this bill yet.`}
       </div>
     );
@@ -271,7 +271,7 @@ function ChamberNotice({ passage }: { passage: ChamberPassageInfo }) {
   if (passage.status === "passed_without_rollcall") {
     const hasProcedural = passage.proceduralRollCallCount > 0;
     return (
-      <div className="bg-accent/20 rounded-lg border px-3 py-2.5 text-xs leading-relaxed">
+      <div className="bg-accent/20 rounded-lg border px-3 py-2.5 text-sm leading-relaxed">
         <p className="text-foreground">
           <span className="font-semibold">
             The {chamberName} passed this bill without a recorded roll call.
@@ -325,7 +325,7 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
   if (!address) {
     return (
       <div className="space-y-3">
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Enter your address to see how your representatives voted on this bill.
         </p>
         <div className="bg-background focus-within:ring-ring flex items-center rounded-lg border focus-within:ring-2 focus-within:ring-offset-1">
@@ -344,7 +344,7 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
             Look up
           </Button>
         </div>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           Your address is only used to find your district and is never saved.{" "}
           <a
             href="https://github.com/liamitus/govroll/blob/main/src/lib/civic-api.ts"
@@ -476,7 +476,7 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
       </div>
 
       {loading ? (
-        <div className="text-muted-foreground flex items-center gap-2 py-4 text-sm">
+        <div className="text-muted-foreground flex items-center gap-2 py-4 text-base">
           <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
@@ -495,7 +495,7 @@ export function RepresentativesVotes({ billId }: { billId: number }) {
           Finding your representatives...
         </div>
       ) : reps.length === 0 ? (
-        <p className="text-muted-foreground py-2 text-sm">
+        <p className="text-muted-foreground py-2 text-base">
           No representatives found for this bill.
         </p>
       ) : (

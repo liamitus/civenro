@@ -14,20 +14,20 @@ export default function AboutPage() {
         <p className="text-civic-gold star-accent text-sm tracking-widest uppercase">
           About
         </p>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-4xl font-bold tracking-tight">
           Making legislation accessible to everyday people.
         </h1>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Our mission</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Our mission</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll is an independent civic transparency platform. We believe
           everyone should be able to see what Congress is doing — what bills are
           moving, how their representatives vote, and what proposed legislation
           actually means — without needing a law degree or hours of free time.
         </p>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <p className="text-muted-foreground text-base leading-relaxed">
           We use AI to summarize complex legislation in plain language and
           surface the information that matters most: the bills your
           representatives are voting on, the ones gaining momentum, and the ones
@@ -36,8 +36,8 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">How it works</h2>
-        <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">How it works</h2>
+        <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-base leading-relaxed">
           <li>
             <strong className="text-foreground">Legislative data</strong> is
             sourced from{" "}
@@ -68,8 +68,8 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Nonpartisan commitment</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Nonpartisan commitment</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll does not endorse candidates, political parties, or positions
           on legislation. We present legislative data and voting records as they
           are. Our goal is to inform, not to persuade.
@@ -77,8 +77,8 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">How it&apos;s funded</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">How it&apos;s funded</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll is supported entirely by{" "}
           <Link
             href="/support"
@@ -93,8 +93,8 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Who built this</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Who built this</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll is built and maintained by{" "}
           <a
             href="https://liamhowell.com"
@@ -110,8 +110,8 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Open source</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Open source</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll is open source on{" "}
           <a
             href="https://github.com/liamitus/govroll"
@@ -141,8 +141,8 @@ export default function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Get in touch</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Get in touch</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Have feedback, found a bug, or have a question?{" "}
           <Link
             href="/contact"

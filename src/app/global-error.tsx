@@ -33,19 +33,19 @@ export default function GlobalError({
             Something Went Wrong
           </p>
           <h1
-            className="text-3xl font-bold tracking-tight"
+            className="text-4xl font-bold tracking-tight"
             style={{ color: "#0A1F44" }}
           >
             Unexpected Error
           </h1>
-          <p className="text-gray-500">
+          <p className="text-base text-gray-500">
             We hit an unexpected problem. Please try again, or head back to the
             homepage.
           </p>
           <div className="flex justify-center gap-4 pt-4">
             <button
               onClick={reset}
-              className="inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors"
+              className="inline-flex items-center rounded-md px-4 py-2 text-base font-medium text-white transition-colors"
               style={{ backgroundColor: "#0A1F44" }}
             >
               Try again
@@ -55,7 +55,7 @@ export default function GlobalError({
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/"
-              className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+              className="inline-flex items-center rounded-md border px-4 py-2 text-base font-medium transition-colors"
               style={{ borderColor: "rgba(10,31,68,0.2)" }}
             >
               Go home

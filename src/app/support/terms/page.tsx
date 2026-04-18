@@ -8,15 +8,15 @@ export default function TermsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-4 py-10">
       <header className="space-y-2">
-        <Link href="/support" className="text-primary text-xs hover:underline">
+        <Link href="/support" className="text-primary text-sm hover:underline">
           Back to Support
         </Link>
-        <h1 className="text-2xl font-bold">Contribution Terms</h1>
+        <h1 className="text-4xl font-bold">Contribution Terms</h1>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">About your contribution</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">About your contribution</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll is an independent civic transparency project supported
           entirely by reader contributions. Your contribution helps cover the
           infrastructure, data, and AI costs that keep the platform running and
@@ -25,8 +25,8 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Tax status</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Tax status</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll is not currently a registered 501(c)(3) organization.
           Contributions are{" "}
           <strong className="text-foreground">not tax-deductible</strong> for
@@ -36,26 +36,26 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-xl font-semibold">
           Who receives your contribution
         </h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <p className="text-muted-foreground text-base leading-relaxed">
           Contributions are processed by Stripe and received by Govroll, the
           operator of this platform.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">One-time contributions</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">One-time contributions</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Your card will be charged once for the amount you select. You will
           receive an email receipt within a few minutes.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Recurring contributions</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Recurring contributions</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           If you choose to support Govroll monthly, your card will be charged
           the same amount on the same day each month until you cancel. You can
           cancel at any time by replying to any receipt email or emailing{" "}
@@ -68,8 +68,8 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Display of your contribution</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Display of your contribution</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           By default, contributions are shown anonymously on Govroll&apos;s{" "}
           <Link
             href="/made-possible-by"
@@ -86,12 +86,12 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Refund policy</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Refund policy</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           All contributions to Govroll are considered final and non-refundable,
           with two exceptions:
         </p>
-        <ol className="text-muted-foreground list-decimal space-y-2 pl-5 text-sm leading-relaxed">
+        <ol className="text-muted-foreground list-decimal space-y-2 pl-5 text-base leading-relaxed">
           <li>
             <strong className="text-foreground">Input errors.</strong> If you
             accidentally contributed the wrong amount, made a duplicate
@@ -109,7 +109,7 @@ export default function TermsPage() {
             to prevent recurrence.
           </li>
         </ol>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <p className="text-muted-foreground text-base leading-relaxed">
           Refunds are processed through Stripe and typically appear on your
           statement within 5&ndash;10 business days. Recurring contributions can
           be canceled at any time and will stop future charges immediately. Past
@@ -118,14 +118,14 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Name display and moderation</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Name display and moderation</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           Govroll&apos;s Made possible by page celebrates the people who fund
           this platform. To keep that space focused on individual supporters
           rather than organizations or political messaging, the following rules
           apply:
         </p>
-        <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm leading-relaxed">
+        <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-base leading-relaxed">
           <li>
             <strong className="text-foreground">Personal names only.</strong> We
             do not display names of companies, organizations, political parties,
@@ -148,7 +148,7 @@ export default function TermsPage() {
             No slurs, harassment, impersonation, URLs, or promotional content.
           </li>
         </ul>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <p className="text-muted-foreground text-base leading-relaxed">
           Submitted names are reviewed by a combination of automated moderation
           and human review. If a name cannot be used, your contribution will
           still be processed — it will simply be displayed anonymously, and we
@@ -157,15 +157,15 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Your data</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <h2 className="text-xl font-semibold">Your data</h2>
+        <p className="text-muted-foreground text-base leading-relaxed">
           We store: your contribution amount, the date, the payment method
           identifier provided by Stripe, and (optionally) the email address and
           display name you provide. We do not store your full card number. We do
           not share your contribution data with third parties except as required
           to process the payment (Stripe) or respond to lawful legal requests.
         </p>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <p className="text-muted-foreground text-base leading-relaxed">
           You can request removal of your name from public display, or deletion
           of your contribution record entirely (subject to legal record-keeping
           requirements), at any time by contacting{" "}

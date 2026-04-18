@@ -42,11 +42,11 @@ export default async function SupportPage() {
         <p className="text-civic-gold star-accent text-sm tracking-widest uppercase">
           Citizen-Supported
         </p>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-4xl font-bold tracking-tight">
           Govroll is supported by citizens,{" "}
           <span className="text-navy-light">not lobbyists.</span>
         </h1>
-        <p className="text-muted-foreground mx-auto max-w-lg">
+        <p className="text-muted-foreground mx-auto max-w-lg text-base">
           This site costs real money to run — hosting, database, AI&nbsp;APIs.
           No ads. No corporate sponsors. No paywalls. Just citizens chipping in
           to keep it free for everyone.
@@ -64,12 +64,12 @@ export default async function SupportPage() {
 
       {/* Context-sensitive message */}
       {funded ? (
-        <p className="text-muted-foreground mx-auto max-w-md text-center text-sm">
+        <p className="text-muted-foreground mx-auto max-w-md text-center text-base">
           Govroll is funded this month — thank you! Extra contributions help me
           work on this full-time, but please don&apos;t feel obligated.
         </p>
       ) : (
-        <p className="text-muted-foreground mx-auto max-w-md text-center text-sm">
+        <p className="text-muted-foreground mx-auto max-w-md text-center text-base">
           Donating is totally optional. When enough citizens chip in, AI
           features come back online for everyone — including you, for&nbsp;free.
         </p>
@@ -93,7 +93,7 @@ export default async function SupportPage() {
       )}
 
       {/* Other ways to help */}
-      <p className="text-muted-foreground text-center text-sm">
+      <p className="text-muted-foreground text-center text-base">
         Prefer contributing time instead of money? Govroll is open source —
         browse open{" "}
         <a
@@ -108,7 +108,7 @@ export default async function SupportPage() {
       </p>
 
       {/* Legal disclosure */}
-      <footer className="text-muted-foreground space-y-2 border-t pt-6 text-xs leading-relaxed">
+      <footer className="text-muted-foreground space-y-2 border-t pt-6 text-sm leading-relaxed">
         <p>
           Contributions are processed by Stripe and received by Govroll.
           Contributions are <strong>not tax-deductible</strong> for U.S. federal

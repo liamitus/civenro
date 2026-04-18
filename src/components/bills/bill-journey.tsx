@@ -104,12 +104,12 @@ export function BillJourney({ steps }: { steps: JourneyStep[] }) {
                 <StepIcon status={step.status} index={i} size="lg" />
               </div>
               <span
-                className={`mt-2 max-w-[6rem] text-center text-xs leading-tight font-medium ${labelClass(step.status)}`}
+                className={`mt-2 max-w-[6rem] text-center text-sm leading-tight font-medium ${labelClass(step.status)}`}
               >
                 {step.label}
               </span>
               {step.date && (
-                <span className="text-muted-foreground mt-0.5 text-[10px]">
+                <span className="text-muted-foreground mt-0.5 text-xs">
                   {dayjs(step.date).format("MMM D")}
                 </span>
               )}
@@ -166,18 +166,18 @@ export function BillJourney({ steps }: { steps: JourneyStep[] }) {
                   {step.label}
                 </span>
                 {step.date && (
-                  <span className="text-muted-foreground shrink-0 text-[10px]">
+                  <span className="text-muted-foreground shrink-0 text-xs">
                     {dayjs(step.date).format("MMM D, YYYY")}
                   </span>
                 )}
               </div>
               {(step.status === "current" || step.status === "failed") && (
-                <p className="text-muted-foreground mt-0.5 text-xs">
+                <p className="text-muted-foreground mt-0.5 text-sm">
                   {step.description}
                 </p>
               )}
               {step.detail && (
-                <p className="text-muted-foreground border-civic-gold/30 mt-1 border-l-2 pl-3 text-xs leading-relaxed">
+                <p className="text-muted-foreground border-civic-gold/30 mt-1 border-l-2 pl-3 text-sm leading-relaxed">
                   {step.detail}
                 </p>
               )}

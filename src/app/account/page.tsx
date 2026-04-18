@@ -153,17 +153,17 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
-      <h1 className="text-2xl font-bold">Account</h1>
+      <h1 className="text-3xl font-bold">Account</h1>
 
       <Card className="space-y-4 p-4">
-        <h2 className="font-semibold">Profile</h2>
-        <p className="text-muted-foreground text-sm">
+        <h2 className="text-xl font-semibold">Profile</h2>
+        <p className="text-muted-foreground text-base">
           Username: <span className="text-foreground">{username}</span>
         </p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Email: <span className="text-foreground">{user.email}</span>
         </p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Member since:{" "}
           <span className="text-foreground">
             {new Date(user.created_at).toLocaleDateString()}
@@ -172,8 +172,8 @@ export default function AccountPage() {
       </Card>
 
       <Card className="space-y-4 p-4">
-        <h2 className="font-semibold">Display Name</h2>
-        <p className="text-muted-foreground text-xs">
+        <h2 className="text-xl font-semibold">Display Name</h2>
+        <p className="text-muted-foreground text-sm">
           This is how you appear in comments and discussions. You were assigned{" "}
           <span className="text-foreground font-medium">{username}</span> —
           change it to your name or a pseudonym you prefer.
@@ -191,8 +191,8 @@ export default function AccountPage() {
       </Card>
 
       <Card className="space-y-4 p-4">
-        <h2 className="font-semibold">Update Email</h2>
-        <p className="text-muted-foreground text-xs">
+        <h2 className="text-xl font-semibold">Update Email</h2>
+        <p className="text-muted-foreground text-sm">
           A confirmation link will be sent to both your current and new email.
         </p>
         <div className="flex gap-2">
@@ -209,7 +209,7 @@ export default function AccountPage() {
       </Card>
 
       <Card className="space-y-4 p-4">
-        <h2 className="font-semibold">Change Password</h2>
+        <h2 className="text-xl font-semibold">Change Password</h2>
         <div className="space-y-2">
           <Label>New Password</Label>
           <Input
@@ -241,22 +241,22 @@ export default function AccountPage() {
       <Separator />
 
       <div className="space-y-3">
-        <h2 className="font-semibold">Your Comments ({totalComments})</h2>
+        <h2 className="text-xl font-semibold">Your Comments ({totalComments})</h2>
         {comments.map((comment) => (
           <Card key={comment.id} className="p-3">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm">{comment.content}</p>
+                <p className="text-base">{comment.content}</p>
                 {comment.bill && (
                   <Link
                     href={`/bills/${comment.bill.id}`}
-                    className="text-primary mt-1 block text-xs hover:underline"
+                    className="text-primary mt-1 block text-sm hover:underline"
                   >
                     {comment.bill.title}
                   </Link>
                 )}
               </div>
-              <span className="text-muted-foreground ml-2 text-xs whitespace-nowrap">
+              <span className="text-muted-foreground ml-2 text-sm whitespace-nowrap">
                 {new Date(comment.date).toLocaleDateString()}
               </span>
             </div>
@@ -278,8 +278,8 @@ export default function AccountPage() {
       <Separator />
 
       <Card className="space-y-4 border-red-200 p-4">
-        <h2 className="font-semibold text-red-600">Danger Zone</h2>
-        <p className="text-muted-foreground text-sm">
+        <h2 className="text-xl font-semibold text-red-600">Danger Zone</h2>
+        <p className="text-muted-foreground text-base">
           Permanently delete your account and all associated data. This action
           cannot be undone.
         </p>

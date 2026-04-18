@@ -29,10 +29,10 @@ export function RepHero({ rep }: RepHeroProps) {
       {/* Info */}
       <div className="space-y-3">
         <div>
-          <h1 className="font-gelasio text-navy text-2xl leading-tight font-bold sm:text-3xl">
+          <h1 className="font-gelasio text-navy text-3xl leading-tight font-bold sm:text-4xl">
             {rep.firstName} {rep.lastName}
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground mt-1 text-base">
             {chamberLabel(rep.chamber)}
             {rep.district ? `, ${rep.state}-${rep.district}` : `, ${rep.state}`}
           </p>
@@ -42,7 +42,7 @@ export function RepHero({ rep }: RepHeroProps) {
           <Badge className={colors.badge}>
             {rep.party.replace("Democratic", "Democrat")}
           </Badge>
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-sm">
             Next election {electionCountdown}
           </span>
         </div>
@@ -50,7 +50,7 @@ export function RepHero({ rep }: RepHeroProps) {
         {rep.phone && (
           <a
             href={`tel:${rep.phone}`}
-            className="text-muted-foreground hover:text-navy inline-flex items-center gap-2 text-sm transition-colors"
+            className="text-muted-foreground hover:text-navy inline-flex items-center gap-2 text-base transition-colors"
           >
             <svg
               className="h-4 w-4"

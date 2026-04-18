@@ -122,7 +122,7 @@ export function AiChatError({
     <div
       role="alert"
       aria-live="assertive"
-      className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm"
+      className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-base"
     >
       <AlertCircle
         aria-hidden="true"
@@ -131,7 +131,7 @@ export function AiChatError({
       <div className="min-w-0 flex-1 space-y-1">
         <p className="font-medium text-red-800">{state.title}</p>
         {state.detail && (
-          <p className="text-xs leading-relaxed text-red-700/80">
+          <p className="text-sm leading-relaxed text-red-700/80">
             {state.detail}
           </p>
         )}

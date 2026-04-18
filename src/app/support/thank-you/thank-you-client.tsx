@@ -87,7 +87,7 @@ export function ThankYouClient() {
 
       {citizenCount != null && citizenCount > 0 && (
         <div className="border-civic-gold/30 bg-civic-cream/40 animate-fade-slide-up rounded-lg border px-6 py-5">
-          <p className="text-civic-gold/80 mb-1 text-[11px] font-semibold tracking-widest uppercase">
+          <p className="text-civic-gold/80 mb-1 text-xs font-semibold tracking-widest uppercase">
             Made Possible By
           </p>
           <p className="font-gelasio text-navy text-3xl font-bold tabular-nums">
@@ -96,7 +96,7 @@ export function ThankYouClient() {
               {citizenCount === 1 ? "citizen" : "citizens"}
             </span>
           </p>
-          <p className="text-muted-foreground mt-1 text-xs">
+          <p className="text-muted-foreground mt-1 text-sm">
             {citizenCount === 1
               ? "You’re the first — thank you for starting this."
               : "and counting"}
@@ -104,13 +104,13 @@ export function ThankYouClient() {
         </div>
       )}
 
-      <p className="text-muted-foreground text-sm leading-relaxed">
+      <p className="text-muted-foreground text-base leading-relaxed">
         Your contribution goes directly to powering Govroll&apos;s AI tools and
         data infrastructure. A receipt has been sent to your email.
       </p>
 
       <div className="space-y-3 pt-2">
-        <p className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
+        <p className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
           Spread the word
         </p>
         <div className="flex flex-wrap justify-center gap-2">

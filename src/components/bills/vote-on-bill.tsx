@@ -76,11 +76,11 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-foreground text-sm font-semibold">
+        <h4 className="text-foreground text-base font-semibold">
           {inferChamber(rollCall)} Vote
         </h4>
         {dateStr && (
-          <span className="text-muted-foreground text-xs">{dateStr}</span>
+          <span className="text-muted-foreground text-sm">{dateStr}</span>
         )}
       </div>
 
@@ -130,7 +130,7 @@ function RollCallCard({ rollCall }: { rollCall: RollCallVote }) {
       </div>
 
       {total > 0 && (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           {result} {yea}-{nay}
         </p>
       )}
@@ -255,7 +255,7 @@ export function VoteOnBill({
       >
         {/* Public vote */}
         <div className="space-y-4">
-          <h3 className="text-muted-foreground text-xs font-semibold">
+          <h3 className="text-muted-foreground text-sm font-semibold tracking-wider uppercase">
             Public Opinion
           </h3>
 
@@ -297,7 +297,7 @@ export function VoteOnBill({
               </div>
             </>
           ) : (
-            <p className="text-muted-foreground py-1 text-sm">
+            <p className="text-muted-foreground py-1 text-base">
               No votes yet — be the first to weigh in.
             </p>
           )}
@@ -323,7 +323,7 @@ export function VoteOnBill({
                   variant="outline"
                   disabled={submitting || !user}
                   onClick={() => submitVote(type)}
-                  className={`h-10 flex-1 text-sm font-semibold transition-all ${styles[type]}`}
+                  className={`h-10 flex-1 text-base font-semibold transition-all ${styles[type]}`}
                 >
                   {type}
                 </Button>
@@ -333,7 +333,7 @@ export function VoteOnBill({
 
           {!user && (
             <div className="bg-muted/50 rounded-lg border border-dashed px-4 py-3 text-center">
-              <p className="text-foreground text-sm font-medium">
+              <p className="text-foreground text-base font-medium">
                 <button
                   type="button"
                   onClick={onSignUp}
@@ -343,7 +343,7 @@ export function VoteOnBill({
                 </button>{" "}
                 to cast your vote
               </p>
-              <p className="text-muted-foreground mt-0.5 text-xs">
+              <p className="text-muted-foreground mt-0.5 text-sm">
                 Your voice matters — let representatives know where you stand.
               </p>
             </div>
@@ -358,7 +358,7 @@ export function VoteOnBill({
         {/* Congressional votes — grouped by roll call */}
         {hasRollCalls && (
           <div className="space-y-6">
-            <h3 className="text-muted-foreground text-xs font-semibold">
+            <h3 className="text-muted-foreground text-sm font-semibold tracking-wider uppercase">
               Official Votes
             </h3>
             {latestRollCalls.map((rc, i) => (
@@ -379,7 +379,7 @@ export function VoteOnBill({
               } as RollCallVote;
               return (
                 <>
-                  <h3 className="text-muted-foreground text-xs font-semibold">
+                  <h3 className="text-muted-foreground text-sm font-semibold tracking-wider uppercase">
                     {inferChamber(legacyRollCall)} Vote
                   </h3>
                   <RollCallCard rollCall={legacyRollCall} />

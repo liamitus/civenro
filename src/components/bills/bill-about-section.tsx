@@ -165,21 +165,21 @@ export function BillAboutSection({
         >
           {statusHeadline}
         </Badge>
-        <Badge variant="outline" className={`${chamberStyle} text-[11px]`}>
+        <Badge variant="outline" className={`${chamberStyle} text-xs`}>
           {typeLabel}
         </Badge>
         {momentumTier === "DEAD" && (
-          <Badge className="bg-foreground/80 text-background border-0 text-[11px]">
+          <Badge className="bg-foreground/80 text-background border-0 text-xs">
             Dead
           </Badge>
         )}
         {momentumTier === "DORMANT" && (
-          <Badge className="bg-muted-foreground/80 text-background border-0 text-[11px]">
+          <Badge className="bg-muted-foreground/80 text-background border-0 text-xs">
             Dormant
           </Badge>
         )}
         {momentumTier === "STALLED" && (
-          <Badge className="border-0 bg-amber-500/80 text-[11px] text-white">
+          <Badge className="border-0 bg-amber-500/80 text-xs text-white">
             Stalled
           </Badge>
         )}
@@ -187,7 +187,7 @@ export function BillAboutSection({
 
       {/* Title */}
       <h1
-        className={`text-lg leading-tight font-bold ${isInactive ? "text-foreground/75" : ""}`}
+        className={`text-2xl leading-tight font-bold ${isInactive ? "text-foreground/75" : ""}`}
       >
         {title}
       </h1>
@@ -202,10 +202,10 @@ export function BillAboutSection({
           <div
             className={`rounded-lg border px-4 py-3 ${BANNER_STYLES[banner.tone]}`}
           >
-            <p className="text-sm leading-tight font-semibold">
+            <p className="text-base leading-tight font-semibold">
               {banner.title}
             </p>
-            <p className="mt-1 text-xs leading-relaxed opacity-90">
+            <p className="mt-1 text-sm leading-relaxed opacity-90">
               {banner.body}
             </p>
           </div>
@@ -215,7 +215,7 @@ export function BillAboutSection({
           amendment warning so users can judge how current the summary is. */}
       {shortText && (
         <div className="space-y-1.5">
-          <p className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
+          <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
             Summary · Congressional Research Service (nonpartisan)
           </p>
           {longSummary ? (
@@ -245,7 +245,7 @@ export function BillAboutSection({
               </div>
             )
           ) : (
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-muted-foreground text-base leading-relaxed">
               {shortText}
             </p>
           )}
@@ -290,7 +290,7 @@ export function BillAboutSection({
       )}
 
       {/* Meta row — always visible */}
-      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span>Introduced {introducedDate}</span>
         {lastActionDate && <span>Last action {lastActionDate}</span>}
         {link && (
@@ -322,7 +322,7 @@ export function BillAboutSection({
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="text-primary inline-flex cursor-pointer items-center gap-1 text-xs font-medium hover:underline"
+          className="text-primary inline-flex cursor-pointer items-center gap-1 text-sm font-medium hover:underline"
         >
           Learn more about this bill
           <svg
@@ -346,7 +346,7 @@ export function BillAboutSection({
         <div className="bg-card animate-fade-slide-up space-y-5 rounded-xl border p-5">
           {/* Journey stepper */}
           <div>
-            <p className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
+            <p className="text-muted-foreground mb-3 text-sm font-medium tracking-wide uppercase">
               Legislative Journey
             </p>
             <BillJourney steps={journeySteps} />
@@ -354,14 +354,14 @@ export function BillAboutSection({
 
           {/* Status explainer */}
           <div className="border-l-civic-gold bg-civic-cream/50 dark:bg-accent/30 space-y-1.5 rounded-lg border-l-4 px-4 py-3">
-            <p className="text-sm font-medium">{statusHeadline}</p>
-            <p className="text-muted-foreground text-xs leading-relaxed">
+            <p className="text-base font-medium">{statusHeadline}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {statusDetail}
             </p>
           </div>
 
           {/* Bill type */}
-          <div className="text-muted-foreground text-xs leading-relaxed">
+          <div className="text-muted-foreground text-sm leading-relaxed">
             <span className="text-foreground font-medium">
               What is a {typeLabel.toLowerCase()}?
             </span>{" "}
@@ -371,7 +371,7 @@ export function BillAboutSection({
           {/* Hide details — at the bottom of expanded content */}
           <button
             onClick={() => setOpen(false)}
-            className="text-primary inline-flex cursor-pointer items-center gap-1 text-xs font-medium hover:underline"
+            className="text-primary inline-flex cursor-pointer items-center gap-1 text-sm font-medium hover:underline"
           >
             Hide details
             <svg

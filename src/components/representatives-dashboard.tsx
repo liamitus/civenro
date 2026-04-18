@@ -66,13 +66,13 @@ export function RepresentativesDashboard() {
             <div className="bg-civic-gold/30 h-px w-10" />
           </div>
 
-          <p className="text-navy/70 mb-3 text-[11px] font-semibold tracking-[0.3em] uppercase">
+          <p className="text-navy/70 mb-3 text-xs font-semibold tracking-[0.3em] uppercase">
             Your Representatives
           </p>
           <h2 className="text-navy mx-auto max-w-md text-2xl leading-[1.15] font-bold tracking-tight sm:text-3xl">
             See who speaks for you in Congress
           </h2>
-          <p className="text-muted-foreground mx-auto mt-3 max-w-sm text-sm leading-relaxed">
+          <p className="text-muted-foreground mx-auto mt-3 max-w-sm text-base leading-relaxed">
             Enter your address to see your senators and representative.
           </p>
 
@@ -92,13 +92,13 @@ export function RepresentativesDashboard() {
                   setUserAddress(addr);
                 }}
                 placeholder="Your US street address"
-                className="border-navy/10 placeholder:text-muted-foreground focus:border-navy/30 focus:ring-navy/5 h-12 w-full rounded-md border-2 bg-white px-4 pr-24 text-sm transition-all focus:ring-4 focus:outline-none"
+                className="border-navy/10 placeholder:text-muted-foreground focus:border-navy/30 focus:ring-navy/5 h-12 w-full rounded-md border-2 bg-white px-4 pr-24 text-base transition-all focus:ring-4 focus:outline-none"
               />
-              <button className="bg-navy hover:bg-navy-light absolute top-1/2 right-1.5 z-10 h-9 -translate-y-1/2 rounded px-4 text-xs font-medium tracking-wide text-white transition-colors">
+              <button className="bg-navy hover:bg-navy-light absolute top-1/2 right-1.5 z-10 h-9 -translate-y-1/2 rounded px-4 text-sm font-medium tracking-wide text-white transition-colors">
                 Look up
               </button>
             </div>
-            <p className="text-muted-foreground mt-3 text-[11px] tracking-wide">
+            <p className="text-muted-foreground mt-3 text-xs tracking-wide">
               We don&apos;t store your address. It stays on your device.{" "}
               <Link
                 href="/privacy"
@@ -118,7 +118,7 @@ export function RepresentativesDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-navy/70 text-sm font-semibold tracking-[0.2em] uppercase">
+          <h2 className="text-navy/70 text-base font-semibold tracking-[0.2em] uppercase">
             Your Representatives
           </h2>
         </div>
@@ -143,16 +143,16 @@ export function RepresentativesDashboard() {
                   setEditAddress(false);
                 }}
                 placeholder={address}
-                className="border-input focus:ring-navy/30 h-7 w-52 rounded border px-2 text-xs focus:ring-2 focus:outline-none"
+                className="border-input focus:ring-navy/30 h-7 w-52 rounded border px-2 text-sm focus:ring-2 focus:outline-none"
                 autoFocus
               />
-              <button className="bg-navy hover:bg-navy-light h-7 rounded px-2 text-xs text-white">
+              <button className="bg-navy hover:bg-navy-light h-7 rounded px-2 text-sm text-white">
                 Update
               </button>
               <button
                 type="button"
                 onClick={() => setEditAddress(false)}
-                className="text-muted-foreground hover:text-foreground h-7 px-2 text-xs"
+                className="text-muted-foreground hover:text-foreground h-7 px-2 text-sm"
               >
                 Cancel
               </button>
@@ -163,7 +163,7 @@ export function RepresentativesDashboard() {
                 setInputAddr("");
                 setEditAddress(true);
               }}
-              className="text-muted-foreground hover:text-navy text-xs transition-colors"
+              className="text-muted-foreground hover:text-navy text-sm transition-colors"
             >
               <span className="inline-block align-bottom" title={address}>
                 {shortAddress(address)}
@@ -185,8 +185,8 @@ export function RepresentativesDashboard() {
 
       {error && (
         <div className="border-border/60 bg-muted/30 space-y-3 rounded-lg border p-6 text-center">
-          <p className="text-muted-foreground text-sm">{error}</p>
-          <p className="text-muted-foreground/80 mx-auto max-w-sm text-xs">
+          <p className="text-muted-foreground text-base">{error}</p>
+          <p className="text-muted-foreground/80 mx-auto max-w-sm text-sm">
             We look up districts through the U.S. Census Bureau&apos;s geocoder.
             It occasionally rejects addresses it doesn&apos;t recognize — try
             adding the ZIP code or removing an apartment number.
@@ -239,23 +239,23 @@ export function RepresentativesDashboard() {
 
                     {/* Info — name is primary, everything else is muted */}
                     <div className="min-w-0 flex-1">
-                      <p className="text-navy text-sm leading-snug font-semibold">
+                      <p className="text-navy text-base leading-snug font-semibold">
                         {rep.firstName} {rep.lastName}
                       </p>
-                      <p className="text-muted-foreground mt-0.5 text-[11px]">
+                      <p className="text-muted-foreground mt-0.5 text-xs">
                         {chamberLabel(rep.chamber)} · {rep.state}
                         {rep.district ? `-${rep.district}` : ""}
                       </p>
 
                       <div className="mt-2 flex items-center gap-2">
                         <span
-                          className={`inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold ${colors.badge}`}
+                          className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-semibold ${colors.badge}`}
                         >
                           {rep.party.replace("Democratic", "Democrat")}
                         </span>
                       </div>
 
-                      <p className="text-muted-foreground mt-1.5 text-[11px]">
+                      <p className="text-muted-foreground mt-1.5 text-xs">
                         Next election {nextElection(rep.chamber)}
                       </p>
                     </div>
@@ -270,7 +270,7 @@ export function RepresentativesDashboard() {
                       e.stopPropagation();
                       window.location.href = `tel:${rep.phone}`;
                     }}
-                    className="text-navy/80 hover:text-navy hover:bg-navy/5 mx-2.5 mb-2.5 flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-sm font-medium transition-colors"
+                    className="text-navy/80 hover:text-navy hover:bg-navy/5 mx-2.5 mb-2.5 flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-base font-medium transition-colors"
                   >
                     <svg
                       className="h-4 w-4 flex-shrink-0"

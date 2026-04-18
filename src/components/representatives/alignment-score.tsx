@@ -83,17 +83,17 @@ export function AlignmentScore({
               <p className="text-navy/50 mb-2 text-sm font-semibold tracking-[0.15em] uppercase">
                 Alignment Score
               </p>
-              <p className="text-navy mb-1 text-lg font-bold">
+              <p className="text-navy mb-1 text-xl font-bold">
                 How well does {repName} represent you?
               </p>
-              <p className="text-muted-foreground mb-4 max-w-sm text-sm">
+              <p className="text-muted-foreground mb-4 max-w-sm text-base">
                 Sign in and vote on bills to see a personalized alignment score
                 comparing your positions with this representative&apos;s voting
                 record.
               </p>
               <button
                 onClick={() => setAuthOpen(true)}
-                className="bg-navy hover:bg-navy-light inline-flex h-10 items-center rounded-md px-5 text-sm font-medium text-white transition-colors"
+                className="bg-navy hover:bg-navy-light inline-flex h-10 items-center rounded-md px-5 text-base font-medium text-white transition-colors"
               >
                 Sign in to see your score
               </button>
@@ -117,17 +117,17 @@ export function AlignmentScore({
             <p className="text-navy/50 mb-2 text-sm font-semibold tracking-[0.15em] uppercase">
               Alignment Score
             </p>
-            <p className="text-navy mb-1 text-lg font-bold">
+            <p className="text-navy mb-1 text-xl font-bold">
               No alignment data yet
             </p>
-            <p className="text-muted-foreground mb-4 max-w-sm text-sm">
+            <p className="text-muted-foreground mb-4 max-w-sm text-base">
               Vote on bills to see how your positions compare with {repName}
               &apos;s voting record. The more bills you vote on, the more
               accurate your score.
             </p>
             <Link
               href="/bills"
-              className="bg-navy hover:bg-navy-light inline-flex h-10 items-center rounded-md px-5 text-sm font-medium text-white transition-colors"
+              className="bg-navy hover:bg-navy-light inline-flex h-10 items-center rounded-md px-5 text-base font-medium text-white transition-colors"
             >
               Browse bills to vote on
             </Link>
@@ -170,8 +170,8 @@ export function AlignmentScore({
           <p className="text-navy/50 mb-2 text-sm font-semibold tracking-[0.15em] uppercase">
             Alignment Score
           </p>
-          <p className="text-navy mb-1 text-xl font-bold">{pct}% Aligned</p>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-navy mb-1 text-2xl font-bold">{pct}% Aligned</p>
+          <p className="text-muted-foreground text-base">
             Out of {comparable} bill{comparable !== 1 ? "s" : ""} you&apos;ve
             both voted on, you agreed on {aligned}.
           </p>

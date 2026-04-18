@@ -150,14 +150,14 @@ function CosponsorRow({ cosponsor }: { cosponsor: Cosponsor }) {
           lastName={cosponsor.lastName}
           alt={`${cosponsor.firstName} ${cosponsor.lastName}`}
           imgClassName="object-[center_20%]"
-          fallbackClassName="text-[10px] font-semibold"
+          fallbackClassName="text-xs font-semibold"
         />
       </div>
-      <p className="text-navy min-w-0 flex-1 truncate text-sm">
+      <p className="text-navy min-w-0 flex-1 truncate text-base">
         {cosponsor.firstName} {cosponsor.lastName}
       </p>
       <span
-        className={`inline-flex flex-shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ${colors.badge}`}
+        className={`inline-flex flex-shrink-0 items-center rounded px-1.5 py-0.5 text-xs font-semibold ${colors.badge}`}
       >
         {code}-{cosponsor.state}
       </span>
@@ -242,11 +242,11 @@ export function SponsorCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-navy text-sm leading-snug font-semibold">
+          <p className="text-navy text-base leading-snug font-semibold">
             {displayName}
           </p>
           <span
-            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ${colors.badge}`}
+            className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-semibold ${colors.badge}`}
           >
             {parsed.party === "D"
               ? "Democrat"
@@ -257,13 +257,13 @@ export function SponsorCard({
                   : parsed.party}
           </span>
         </div>
-        <p className="text-muted-foreground mt-0.5 text-[11px]">
+        <p className="text-muted-foreground mt-0.5 text-sm">
           {chamberLabel} · {locationLabel}
         </p>
       </div>
 
       {rep && (
-        <span className="text-muted-foreground group-hover:text-navy hidden items-center text-xs transition-colors sm:inline-flex">
+        <span className="text-muted-foreground group-hover:text-navy hidden items-center text-sm transition-colors sm:inline-flex">
           View profile
           <svg
             className="ml-1 h-3 w-3"
@@ -304,7 +304,7 @@ export function SponsorCard({
           expandable when we actually have cosponsor rows to reveal. */}
       {!canExpand ? (
         <div className="border-border/60 border-t px-4 py-2.5">
-          <p className="text-muted-foreground/80 text-[11px]">{coalition}</p>
+          <p className="text-muted-foreground/80 text-sm">{coalition}</p>
           {count > 0 && (
             <div className="mt-1.5">
               <PartyBar
@@ -325,7 +325,7 @@ export function SponsorCard({
             className="border-border/60 hover:bg-muted/40 flex w-full items-center gap-3 border-t px-4 py-2.5 text-left transition-colors"
           >
             <div className="min-w-0 flex-1 space-y-1.5">
-              <p className="text-muted-foreground/80 text-[11px]">
+              <p className="text-muted-foreground/80 text-sm">
                 {coalition}
               </p>
               <PartyBar
@@ -394,7 +394,7 @@ function CosponsorGroup({
 }) {
   return (
     <div className={isFirst ? "" : "mt-3"}>
-      <p className="text-muted-foreground px-2 pb-1 text-[10px] font-semibold tracking-[0.12em] uppercase">
+      <p className="text-muted-foreground px-2 pb-1 text-xs font-semibold tracking-[0.12em] uppercase">
         {label} ({cosponsors.length})
       </p>
       <ul className="space-y-0.5">

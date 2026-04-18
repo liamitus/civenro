@@ -207,7 +207,7 @@ export function BillListClient() {
             placeholder="Search bills..."
             value={queryFilters.search}
             onChange={(e) => setFilters({ search: e.target.value })}
-            className="border-border/60 placeholder:text-muted-foreground focus:ring-navy/20 focus:border-navy/20 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-sm focus:ring-2 focus:outline-none"
+            className="border-border/60 placeholder:text-muted-foreground focus:ring-navy/20 focus:border-navy/20 h-10 w-full rounded-lg border bg-white pr-3 pl-9 text-base focus:ring-2 focus:outline-none"
           />
         </div>
         <div className="flex shrink-0 items-center gap-0.5">
@@ -278,7 +278,7 @@ export function BillListClient() {
           </svg>
           Filters
           {activeFilterCount > 0 && (
-            <span className="bg-navy flex h-4 w-4 items-center justify-center rounded-full text-[10px] leading-none text-white">
+            <span className="bg-navy flex h-4 w-4 items-center justify-center rounded-full text-xs leading-none text-white">
               {activeFilterCount}
             </span>
           )}
@@ -371,7 +371,7 @@ export function BillListClient() {
 
       {/* Count + hidden bills link */}
       <div className="flex min-h-[24px] items-center justify-between">
-        <p className="text-muted-foreground flex items-center gap-2 text-xs">
+        <p className="text-muted-foreground flex items-center gap-2 text-sm">
           {isRefiltering && (
             <span className="text-navy/70 inline-flex items-center gap-1.5">
               <span className="border-navy/15 border-t-navy/70 h-3 w-3 animate-spin rounded-full border-2" />
@@ -472,7 +472,7 @@ export function BillListClient() {
 
       {isFetchingNextPage && (
         <div className="flex justify-center py-6">
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <div className="text-muted-foreground flex items-center gap-2 text-sm">
             <div className="border-navy/15 border-t-navy/60 h-4 w-4 animate-spin rounded-full border-2" />
             Loading more…
           </div>
@@ -481,7 +481,7 @@ export function BillListClient() {
 
       {error && (
         <div className="border-border/60 bg-muted/30 space-y-3 rounded-lg border p-6 text-center">
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-base">{error}</p>
           <button
             onClick={() => refetch()}
             className="text-navy border-border/60 hover:bg-navy/5 inline-flex items-center gap-1.5 rounded-md border bg-white px-3 py-1.5 text-xs font-medium transition-colors"
@@ -493,7 +493,7 @@ export function BillListClient() {
 
       {!isLoading && !error && bills.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-base">
             No bills found matching your filters.
           </p>
         </div>
