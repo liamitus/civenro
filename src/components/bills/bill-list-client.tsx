@@ -23,6 +23,7 @@ import {
   type BillsFilterState,
 } from "@/lib/queries/bills-client";
 import type { BillsQueryResult } from "@/lib/queries/bills";
+import type { VoteType } from "@/types";
 
 const SORT_OPTIONS = [
   { value: "relevant", label: "Trending" },
@@ -106,9 +107,12 @@ export function BillListClient() {
     isFetching && !isFetchingNextPage && bills.length === 0;
   const isRefiltering = isFetching && !isFetchingNextPage && bills.length > 0;
 
-  // Voted bills — only relevant for signed-in users. Moved off useEffect
-  // onto useQuery: enabled-gated, cached per user.
-  const { data: votedBillIdsArray } = useQuery<{ billIds: number[] }>({
+  // Voted bills — only relevant for signed-in users. Enabled-gated, cached
+  // per user. We keep direction so the feed can tint the chip and fade the
+  // title Reddit-visited-link style.
+  const { data: votedData } = useQuery<{
+    votes: Array<{ billId: number; voteType: VoteType }>;
+  }>({
     queryKey: ["voted-bills", user?.id ?? null],
     queryFn: async ({ signal }) => {
       const res = await fetch("/api/user/voted-bills", {
@@ -121,9 +125,12 @@ export function BillListClient() {
     enabled: !!user,
     staleTime: 60_000,
   });
-  const votedBillIds = useMemo(
-    () => new Set<number>(votedBillIdsArray?.billIds ?? []),
-    [votedBillIdsArray],
+  const userVotes = useMemo(
+    () =>
+      new Map<number, VoteType>(
+        (votedData?.votes ?? []).map((v) => [v.billId, v.voteType]),
+      ),
+    [votedData],
   );
 
   // If the user signs out, clear the hideVoted toggle — otherwise a signed-
@@ -133,8 +140,8 @@ export function BillListClient() {
   }, [user, hideVoted, setFilters]);
 
   const visibleBills = useMemo(
-    () => (hideVoted ? bills.filter((b) => !votedBillIds.has(b.id)) : bills),
-    [bills, hideVoted, votedBillIds],
+    () => (hideVoted ? bills.filter((b) => !userVotes.has(b.id)) : bills),
+    [bills, hideVoted, userVotes],
   );
   const hiddenByVoteCount = hideVoted ? bills.length - visibleBills.length : 0;
   const feedItems = useMemo(() => groupBills(visibleBills), [visibleBills]);
@@ -333,7 +340,7 @@ export function BillListClient() {
             {filterPill("Failed", "failed", queryFilters.status, "status", "")}
           </div>
 
-          {user && votedBillIds.size > 0 && (
+          {user && userVotes.size > 0 && (
             <button
               onClick={() => setFilters({ hideVoted: !hideVoted })}
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
@@ -430,10 +437,10 @@ export function BillListClient() {
               {item.kind === "single" ? (
                 <BillCard
                   bill={item.bill}
-                  voted={votedBillIds.has(item.bill.id)}
+                  userVote={userVotes.get(item.bill.id) ?? null}
                 />
               ) : (
-                <BillGroupCard bills={item.bills} votedBillIds={votedBillIds} />
+                <BillGroupCard bills={item.bills} userVotes={userVotes} />
               )}
             </div>
           );

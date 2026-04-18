@@ -3,9 +3,10 @@
 import Link, { useLinkStatus } from "next/link";
 import { useState } from "react";
 import dayjs from "dayjs";
-import type { BillSummary } from "@/types";
+import type { BillSummary, VoteType } from "@/types";
 import { getTopicForPolicyArea } from "@/lib/topic-mapping";
 import { formatBillNumber } from "@/lib/bill-grouping";
+import { voteChipStyle } from "./bill-card";
 
 // Swaps the chevron for a spinner while this specific sub-row's Link is
 // resolving the next route. Only renders when *this* Link is pending —
@@ -63,10 +64,10 @@ function statusStyle(status: string): { label: string; className: string } {
 
 export function BillGroupCard({
   bills,
-  votedBillIds,
+  userVotes,
 }: {
   bills: BillSummary[];
-  votedBillIds: Set<number>;
+  userVotes: Map<number, VoteType>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const lead = bills[0];
@@ -74,8 +75,21 @@ export function BillGroupCard({
   const chamberIsHouse = lead.billType.startsWith("house");
   const status = statusStyle(lead.currentStatus);
   const displayDate = lead.latestActionDate || lead.introducedDate;
-  const votedCount = bills.filter((b) => votedBillIds.has(b.id)).length;
+  const votedCount = bills.filter((b) => userVotes.has(b.id)).length;
   const allVoted = votedCount === bills.length;
+  // If every bill in the group was voted the same way, we can use the
+  // direction-tinted chip. Mixed directions fall back to a neutral "Voted"
+  // chip so we don't lie about which way the user voted.
+  const unanimousDirection: VoteType | null = allVoted
+    ? (() => {
+        const first = userVotes.get(bills[0].id);
+        if (!first) return null;
+        return bills.every((b) => userVotes.get(b.id) === first) ? first : null;
+      })()
+    : null;
+  const leadChip = unanimousDirection
+    ? voteChipStyle(unanimousDirection)
+    : null;
 
   return (
     <div className="border-border/50 hover:border-navy/25 relative rounded-lg border bg-white transition-all hover:shadow-[0_2px_12px_rgba(10,31,68,0.1)]">
@@ -93,11 +107,19 @@ export function BillGroupCard({
       >
         <div className="pl-3">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-navy line-clamp-2 flex-1 text-base leading-snug font-semibold">
+            <h3
+              className={`line-clamp-2 flex-1 text-base leading-snug font-semibold ${
+                allVoted ? "text-navy/55" : "text-navy"
+              }`}
+            >
               {lead.title}
             </h3>
             {allVoted && (
-              <span className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase">
+              <span
+                className={`inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase ${
+                  leadChip?.className ?? "bg-navy/8 text-navy/80 border-navy/10"
+                }`}
+              >
                 <svg
                   className="h-2.5 w-2.5"
                   viewBox="0 0 24 24"
@@ -109,7 +131,7 @@ export function BillGroupCard({
                 >
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
-                Voted
+                {leadChip?.label ?? "Voted"}
               </span>
             )}
             <svg
@@ -201,7 +223,8 @@ export function BillGroupCard({
               </p>
               <ul className="divide-border/30 divide-y">
                 {bills.map((b) => {
-                  const voted = votedBillIds.has(b.id);
+                  const subVote = userVotes.get(b.id) ?? null;
+                  const subChip = subVote ? voteChipStyle(subVote) : null;
                   const detail = b.shortText || b.latestActionText;
                   return (
                     <li key={b.id}>
@@ -209,7 +232,11 @@ export function BillGroupCard({
                         href={`/bills/${b.id}`}
                         className="group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-white"
                       >
-                        <span className="text-navy w-24 shrink-0 font-mono text-xs font-semibold">
+                        <span
+                          className={`w-24 shrink-0 font-mono text-xs font-semibold ${
+                            subVote ? "text-navy/55" : "text-navy"
+                          }`}
+                        >
                           {formatBillNumber(b.billType, b.billId)}
                         </span>
                         {showPerRowSummary && (
@@ -218,9 +245,11 @@ export function BillGroupCard({
                           </span>
                         )}
                         {!showPerRowSummary && <span className="flex-1" />}
-                        {voted && (
-                          <span className="text-navy/70 shrink-0 text-xs font-semibold tracking-wider uppercase">
-                            Voted
+                        {subChip && (
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase ${subChip.className}`}
+                          >
+                            {subChip.label}
                           </span>
                         )}
                         <SubRowNavIndicator />

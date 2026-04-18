@@ -2,8 +2,31 @@
 
 import Link, { useLinkStatus } from "next/link";
 import dayjs from "dayjs";
-import type { BillSummary, MomentumTier, DeathReason } from "@/types";
+import type { BillSummary, MomentumTier, DeathReason, VoteType } from "@/types";
 import { getTopicForPolicyArea } from "@/lib/topic-mapping";
+
+// Reddit's visited-link cue, translated to our palette: a muted title + a
+// vote-tinted chip that tells you *how* you voted at a glance.
+export function voteChipStyle(voteType: VoteType): {
+  label: string;
+  className: string;
+} {
+  if (voteType === "For")
+    return {
+      label: "Voted For",
+      className: "bg-vote-for-soft text-vote-for border-vote-for/25",
+    };
+  if (voteType === "Against")
+    return {
+      label: "Voted Against",
+      className:
+        "bg-vote-against-soft text-vote-against border-vote-against/25",
+    };
+  return {
+    label: "Abstained",
+    className: "bg-vote-abstain-soft text-vote-abstain border-vote-abstain/30",
+  };
+}
 
 // Navigation indicator: only renders when this specific Link has been clicked
 // and the app is resolving the next route. Next.js 15.3+.
@@ -141,10 +164,10 @@ function tierTreatment(
 
 export function BillCard({
   bill,
-  voted = false,
+  userVote = null,
 }: {
   bill: BillSummary;
-  voted?: boolean;
+  userVote?: VoteType | null;
 }) {
   const status = statusStyle(bill.currentStatus);
   const chamber = chamberTag(bill.billType);
@@ -155,6 +178,7 @@ export function BillCard({
     bill.daysSinceLastAction,
     bill.deathReason,
   );
+  const voteChip = userVote ? voteChipStyle(userVote) : null;
 
   return (
     <Link
@@ -178,13 +202,19 @@ export function BillCard({
 
         <div className="pl-3">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-navy group-hover:text-navy-light line-clamp-2 flex-1 text-base leading-snug font-semibold transition-colors">
+            <h3
+              className={`line-clamp-2 flex-1 text-base leading-snug font-semibold transition-colors ${
+                voteChip
+                  ? "text-navy/55 group-hover:text-navy/75"
+                  : "text-navy group-hover:text-navy-light"
+              }`}
+            >
               {bill.title}
             </h3>
-            {voted && (
+            {voteChip && (
               <span
-                className="bg-navy/8 text-navy/80 border-navy/10 inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase"
-                title="You've voted on this bill"
+                className={`inline-flex shrink-0 items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-semibold tracking-wider uppercase ${voteChip.className}`}
+                title={`You voted ${userVote?.toLowerCase()} on this bill`}
               >
                 <svg
                   className="h-2.5 w-2.5"
@@ -197,7 +227,7 @@ export function BillCard({
                 >
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
-                Voted
+                {voteChip.label}
               </span>
             )}
           </div>
