@@ -1,5 +1,4 @@
-import dayjs from "dayjs";
-import type { JourneyStep } from "@/lib/bill-helpers";
+import { formatJourneyDate, type JourneyStep } from "@/lib/bill-helpers";
 
 function circleClass(status: JourneyStep["status"]): string {
   switch (status) {
@@ -110,7 +109,7 @@ export function BillJourney({ steps }: { steps: JourneyStep[] }) {
               </span>
               {step.date && (
                 <span className="text-muted-foreground mt-0.5 text-xs">
-                  {dayjs(step.date).format("MMM D")}
+                  {formatJourneyDate(step.date, "short")}
                 </span>
               )}
               {/* Tooltip for detail on desktop */}
@@ -167,7 +166,7 @@ export function BillJourney({ steps }: { steps: JourneyStep[] }) {
                 </span>
                 {step.date && (
                   <span className="text-muted-foreground shrink-0 text-xs">
-                    {dayjs(step.date).format("MMM D, YYYY")}
+                    {formatJourneyDate(step.date, "long")}
                   </span>
                 )}
               </div>
