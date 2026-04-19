@@ -352,10 +352,7 @@ describe("Pipeline edge cases — synthetic XML", () => {
     const slugs = sectionSlugsForBill(parsed);
 
     expect(parsed.length).toBe(2);
-    expect(slugs).toEqual([
-      "sec-1-findings",
-      "sec-2-sense-of-congress",
-    ]);
+    expect(slugs).toEqual(["sec-1-findings", "sec-2-sense-of-congress"]);
   });
 
   it("tolerates whitespace-heavy malformed XML (extra newlines, indentation)", async () => {

@@ -161,7 +161,9 @@ export default async function BillReaderPage({
   }
 
   const slugs = sectionSlugsForBill(parsedSections);
-  const captions: SectionCaption[] = Array.isArray(latestVersion?.sectionCaptions)
+  const captions: SectionCaption[] = Array.isArray(
+    latestVersion?.sectionCaptions,
+  )
     ? (latestVersion.sectionCaptions as unknown as SectionCaption[])
     : [];
   const captionMap = new Map(captions.map((c) => [c.sectionId, c.caption]));

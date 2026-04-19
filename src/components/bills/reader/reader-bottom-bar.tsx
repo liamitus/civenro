@@ -21,7 +21,7 @@ export function ReaderBottomBar({
 }) {
   return (
     <div
-      className="border-civic-gold/30 bg-civic-cream/90 dark:bg-card/90 fixed inset-x-0 bottom-0 z-30 grid grid-cols-2 border-t backdrop-blur supports-[backdrop-filter]:bg-civic-cream/70 lg:hidden"
+      className="border-civic-gold/30 bg-civic-cream/90 dark:bg-card/90 supports-[backdrop-filter]:bg-civic-cream/70 fixed inset-x-0 bottom-0 z-30 grid grid-cols-2 border-t backdrop-blur lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       role="toolbar"
       aria-label="Reader actions"

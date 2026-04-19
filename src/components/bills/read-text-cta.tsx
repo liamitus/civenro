@@ -42,7 +42,7 @@ export function ReadTextCTA({
           </svg>
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <h2 className="text-foreground text-base font-semibold">
             Read the full text
           </h2>

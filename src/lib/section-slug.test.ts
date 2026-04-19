@@ -84,11 +84,7 @@ describe("pathFromHeading", () => {
   it("splits a joined heading on ` > `", () => {
     expect(
       pathFromHeading("Section 2. Definitions > (a) In general > (1) Eligible"),
-    ).toEqual([
-      "Section 2. Definitions",
-      "(a) In general",
-      "(1) Eligible",
-    ]);
+    ).toEqual(["Section 2. Definitions", "(a) In general", "(1) Eligible"]);
   });
 
   it("returns a one-element array for flat headings", () => {
@@ -232,13 +228,13 @@ describe("sectionSlug — stress / edge cases", () => {
 
   it("never produces leading or trailing dashes per segment", () => {
     const slug = sectionSlug(["—Section 1—"]);
-    expect(slug.split("--").every((s) => !s.startsWith("-") && !s.endsWith("-"))).toBe(true);
+    expect(
+      slug.split("--").every((s) => !s.startsWith("-") && !s.endsWith("-")),
+    ).toBe(true);
   });
 
   it("collapses runs of punctuation to single space then dash", () => {
-    expect(sectionSlug(["Section 1: !!! Findings ???"])).toBe(
-      "sec-1-findings",
-    );
+    expect(sectionSlug(["Section 1: !!! Findings ???"])).toBe("sec-1-findings");
   });
 
   it("Preamble and Full Text headings get sane single-segment slugs", () => {
@@ -347,7 +343,9 @@ describe("matchSectionBySlug — stress / round-trip property", () => {
   it("returns null on injection-style slugs (path traversal, special chars)", () => {
     const sections: BillSection[] = [section("Section 1. Foo")];
     expect(matchSectionBySlug(sections, "../../etc/passwd")).toBeNull();
-    expect(matchSectionBySlug(sections, "<script>alert(1)</script>")).toBeNull();
+    expect(
+      matchSectionBySlug(sections, "<script>alert(1)</script>"),
+    ).toBeNull();
     // The "sec" prefix happens to fuzzy-match "sec-1-foo" since both
     // first segments start with "sec". Acceptable — the user gets a
     // soft landing, not a 404 — and the budget gate prevents abuse.
@@ -373,10 +371,7 @@ describe("matchSectionBySlug", () => {
   });
 
   it("matches a deeper exact slug", () => {
-    const m = matchSectionBySlug(
-      sections,
-      "sec-2-definitions--a-in-general",
-    );
+    const m = matchSectionBySlug(sections, "sec-2-definitions--a-in-general");
     expect(m).not.toBeNull();
     expect(m?.index).toBe(2);
   });

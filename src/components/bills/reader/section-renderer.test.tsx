@@ -105,7 +105,9 @@ describe("<SectionRenderer> — content paragraphs", () => {
       />,
     );
     const sectionEl = container.querySelector("section");
-    const paragraphs = sectionEl?.querySelectorAll("p:not(.bill-prose-caption)");
+    const paragraphs = sectionEl?.querySelectorAll(
+      "p:not(.bill-prose-caption)",
+    );
     expect(paragraphs?.length).toBe(1);
   });
 
@@ -125,9 +127,7 @@ describe("<SectionRenderer> — content paragraphs", () => {
 
   it("renders a placeholder when content is empty (heading-only section)", () => {
     render(<SectionRenderer section={makeSection({ content: "" })} />);
-    expect(
-      screen.getByText(/no body text/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/no body text/i)).toBeInTheDocument();
   });
 
   it("escapes HTML in content (XSS safety — React default but verified)", () => {
@@ -158,7 +158,9 @@ describe("<SectionRenderer> — data attributes (event-delegation contract)", ()
     const sectionEl = container.querySelector("section") as HTMLElement;
     expect(sectionEl).toBeTruthy();
     expect(sectionEl.id).toBe("sec-5-funding--a-authorization");
-    expect(sectionEl.dataset.sectionSlug).toBe("sec-5-funding--a-authorization");
+    expect(sectionEl.dataset.sectionSlug).toBe(
+      "sec-5-funding--a-authorization",
+    );
     expect(sectionEl.dataset.sectionDepth).toBe("2");
     expect(sectionEl.dataset.sectionHeading).toBe(
       "Section 5. Funding > (a) Authorization",
@@ -167,9 +169,7 @@ describe("<SectionRenderer> — data attributes (event-delegation contract)", ()
 
   it("includes a delegation-target Ask AI button with correct data-section-slug", () => {
     const { container } = render(
-      <SectionRenderer
-        section={makeSection({ slug: "sec-1-short-title" })}
-      />,
+      <SectionRenderer section={makeSection({ slug: "sec-1-short-title" })} />,
     );
     const button = container.querySelector(
       "button[data-section-ask-ai]",
@@ -180,9 +180,7 @@ describe("<SectionRenderer> — data attributes (event-delegation contract)", ()
   });
 
   it("Ask AI button is type=button (no accidental form submission)", () => {
-    const { container } = render(
-      <SectionRenderer section={makeSection()} />,
-    );
+    const { container } = render(<SectionRenderer section={makeSection()} />);
     const button = container.querySelector(
       "button[data-section-ask-ai]",
     ) as HTMLButtonElement;

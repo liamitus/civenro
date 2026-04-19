@@ -143,7 +143,12 @@ describe("<ExplainPopoverContent> — POST contract", () => {
   });
 
   it("does not double-fire when clicked rapidly while loading", async () => {
-    let resolveResponse: ((value: Response) => void) | null = null;
+    // Definite-assignment assertion: the Promise constructor callback
+    // runs synchronously during `new Promise`, so `resolveResponse` is
+    // guaranteed assigned before any `fireEvent.click` is dispatched.
+    // TS's control-flow analysis can't see through the closure, so the
+    // `!` tells the compiler to trust us.
+    let resolveResponse!: (value: Response) => void;
     fetchMock.mockReturnValue(
       new Promise<Response>((r) => {
         resolveResponse = r;
@@ -165,7 +170,7 @@ describe("<ExplainPopoverContent> — POST contract", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     // Clean up the pending promise so vitest doesn't hang.
-    resolveResponse?.(
+    resolveResponse(
       jsonResponse({ explanation: "done", model: "haiku", cached: false }),
     );
   });
@@ -237,9 +242,7 @@ describe("<ExplainPopoverContent> — error path", () => {
     fireEvent.click(screen.getByRole("button", { name: /Try again/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Second call succeeded\./),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Second call succeeded\./)).toBeInTheDocument();
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });

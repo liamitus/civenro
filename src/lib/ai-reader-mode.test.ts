@@ -96,9 +96,9 @@ describe("buildBillChatSystemPrompt — reader mode toggle", () => {
 
   it("includes the bill title in both modes", () => {
     const titleQuoted = `"Test Act"`;
-    expect(
-      buildBillChatSystemPrompt("Test Act", sections, null),
-    ).toContain(titleQuoted);
+    expect(buildBillChatSystemPrompt("Test Act", sections, null)).toContain(
+      titleQuoted,
+    );
     expect(
       buildBillChatSystemPrompt("Test Act", sections, null, {
         readerMode: true,
@@ -108,10 +108,7 @@ describe("buildBillChatSystemPrompt — reader mode toggle", () => {
 
   it("emits stable, URL-safe slug strings in the prompt (no special chars)", () => {
     const tricky = [
-      section(
-        "Section 7. Amendments to Title I & Title II/III",
-        "Body text.",
-      ),
+      section("Section 7. Amendments to Title I & Title II/III", "Body text."),
       section('Section 8. "Definitions" — Eligibility', "Body text."),
     ];
     const prompt = buildBillChatSystemPrompt("Tricky Bill", tricky, null, {

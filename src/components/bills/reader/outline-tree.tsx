@@ -47,7 +47,10 @@ export function OutlineTree({
   // matches the user's `prefers-reduced-motion` settings (no smooth
   // scroll surprise).
   useEffect(() => {
-    activeRowRef.current?.scrollIntoView({ block: "nearest", behavior: "auto" });
+    activeRowRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: "auto",
+    });
   }, [activeSlug]);
 
   return (

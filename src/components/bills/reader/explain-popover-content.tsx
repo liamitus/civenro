@@ -33,7 +33,11 @@ const INITIAL_STATE: State = {
   cached: false,
 };
 
-export function ExplainPopoverContent({ request }: { request: ExplainRequest }) {
+export function ExplainPopoverContent({
+  request,
+}: {
+  request: ExplainRequest;
+}) {
   const [state, setState] = useState<State>(INITIAL_STATE);
 
   async function handleExplain() {

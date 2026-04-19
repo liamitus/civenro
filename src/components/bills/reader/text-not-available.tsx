@@ -22,9 +22,9 @@ export function TextNotAvailable({
           {bill.title}
         </h1>
         <p className="text-muted-foreground mx-auto mt-6 max-w-lg text-sm leading-relaxed">
-          We&apos;re fetching the official bill text from Congress.gov in
-          the background. Try again in a few minutes — or read the bill
-          on Congress.gov directly while we catch up.
+          We&apos;re fetching the official bill text from Congress.gov in the
+          background. Try again in a few minutes — or read the bill on
+          Congress.gov directly while we catch up.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link

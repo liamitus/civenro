@@ -337,7 +337,10 @@ export async function POST(request: NextRequest) {
       sectionContext && uiMessages.length > 0
         ? uiMessages.map((m, i) =>
             i === uiMessages.length - 1
-              ? { ...m, parts: [{ type: "text" as const, text: aiUserMessage }] }
+              ? {
+                  ...m,
+                  parts: [{ type: "text" as const, text: aiUserMessage }],
+                }
               : m,
           )
         : uiMessages;

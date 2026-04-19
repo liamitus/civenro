@@ -140,7 +140,8 @@ export function SelectionPopover({
 
   const { rect, passage, sectionPath } = selection;
   const viewportPadding = 8;
-  const preferredTop = rect.top - ESTIMATED_POPOVER_HEIGHT_PX - POPOVER_OFFSET_PX;
+  const preferredTop =
+    rect.top - ESTIMATED_POPOVER_HEIGHT_PX - POPOVER_OFFSET_PX;
   // If we'd render above the viewport, flip below the selection.
   const top =
     preferredTop < viewportPadding

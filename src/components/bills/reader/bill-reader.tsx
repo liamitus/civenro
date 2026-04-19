@@ -66,7 +66,7 @@ export function BillReader({
 
             <main
               id="bill-reader-main"
-              className="min-w-0 max-w-[72ch] flex-1 pt-6 pb-32 sm:pt-8 lg:pb-24"
+              className="max-w-[72ch] min-w-0 flex-1 pt-6 pb-32 sm:pt-8 lg:pb-24"
             >
               <header className="mb-10">
                 <h1 className="bill-prose-title">{bill.title}</h1>

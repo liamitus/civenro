@@ -36,7 +36,7 @@ export function StickyBreadcrumb({
   }, [activeSlug, sections]);
 
   return (
-    <div className="border-civic-gold/30 bg-civic-cream/85 dark:bg-card/85 sticky top-0 z-30 border-b backdrop-blur supports-[backdrop-filter]:bg-civic-cream/65">
+    <div className="border-civic-gold/30 bg-civic-cream/85 dark:bg-card/85 supports-[backdrop-filter]:bg-civic-cream/65 sticky top-0 z-30 border-b backdrop-blur">
       <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-4 py-2.5 sm:px-6">
         <Link
           href={`/bills/${billId}`}

@@ -18,10 +18,7 @@
 import { generateText } from "ai";
 
 import { prisma } from "./prisma";
-import {
-  parseSectionsFromFullText,
-  type BillSection,
-} from "./bill-sections";
+import { parseSectionsFromFullText, type BillSection } from "./bill-sections";
 import { sectionSlugsForBill } from "./section-slug";
 import { recordSpend } from "./budget";
 import { assertAiEnabled } from "./ai-gate";
@@ -323,9 +320,7 @@ function parseAndValidateCaptions(
     const candidate = item as Record<string, unknown>;
     const id = typeof candidate.id === "string" ? candidate.id : null;
     const caption =
-      typeof candidate.caption === "string"
-        ? candidate.caption.trim()
-        : null;
+      typeof candidate.caption === "string" ? candidate.caption.trim() : null;
 
     if (!id || !caption) continue;
     if (!validIds.has(id)) continue;

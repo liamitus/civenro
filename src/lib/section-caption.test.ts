@@ -9,10 +9,7 @@ vi.mock("ai", () => ({
 }));
 
 import { generateText } from "ai";
-import {
-  generateCaptionsBatch,
-  isValidCaption,
-} from "./section-caption";
+import { generateCaptionsBatch, isValidCaption } from "./section-caption";
 import type { BillSection } from "./bill-sections";
 
 const mockGenerateText = vi.mocked(generateText);
@@ -40,9 +37,9 @@ beforeEach(() => {
 
 describe("isValidCaption", () => {
   it("accepts a normal one-sentence caption", () => {
-    expect(
-      isValidCaption("Names the bill the Fair Housing Act of 2025."),
-    ).toBe(true);
+    expect(isValidCaption("Names the bill the Fair Housing Act of 2025.")).toBe(
+      true,
+    );
   });
 
   it("rejects empty / whitespace", () => {
@@ -96,7 +93,10 @@ describe("isValidCaption", () => {
 describe("generateCaptionsBatch — happy path", () => {
   it("parses a clean JSON array into SectionCaption[]", async () => {
     const sections = [
-      section("Section 1. Short title", "This Act may be cited as the Test Act."),
+      section(
+        "Section 1. Short title",
+        "This Act may be cited as the Test Act.",
+      ),
       section(
         "Section 2. Definitions",
         "In this Act, the term 'eligible person' means an individual who…",
@@ -122,7 +122,10 @@ describe("generateCaptionsBatch — happy path", () => {
     const result = await generateCaptionsBatch("Test Act", sections, ids);
 
     expect(result.captions).toEqual([
-      { sectionId: "sec-1-short-title", caption: "Names the bill the Test Act." },
+      {
+        sectionId: "sec-1-short-title",
+        caption: "Names the bill the Test Act.",
+      },
       {
         sectionId: "sec-2-definitions",
         caption: "Defines who counts as an eligible person.",
@@ -154,7 +157,10 @@ describe("generateCaptionsBatch — happy path", () => {
     mockGenerateText.mockResolvedValue(aiResult("[]"));
 
     const sections = Array.from({ length: 5 }, (_, i) =>
-      section(`Section ${i + 1}. Topic ${i + 1}`, `Content of section ${i + 1}.`),
+      section(
+        `Section ${i + 1}. Topic ${i + 1}`,
+        `Content of section ${i + 1}.`,
+      ),
     );
     const ids = sections.map((_, i) => `sec-${i + 1}`);
 
@@ -162,9 +168,7 @@ describe("generateCaptionsBatch — happy path", () => {
 
     // Assert against the call args (the user message that was sent).
     const callArgs = mockGenerateText.mock.calls[0][0];
-    const userMessage = (
-      callArgs.messages?.[0] as { content: string }
-    ).content;
+    const userMessage = (callArgs.messages?.[0] as { content: string }).content;
 
     for (let i = 1; i <= 5; i++) {
       expect(userMessage).toContain(`Section ${i}. Topic ${i}`);
@@ -345,7 +349,10 @@ describe("generateCaptionsBatch — adversarial AI output", () => {
     mockGenerateText.mockResolvedValue(
       aiResult(
         JSON.stringify([
-          { id: "sec-1", caption: 'Defines "eligible person" as someone who...' },
+          {
+            id: "sec-1",
+            caption: 'Defines "eligible person" as someone who...',
+          },
           { id: "sec-2", caption: "Limits the agency's discretion." },
         ]),
       ),
@@ -363,7 +370,10 @@ describe("generateCaptionsBatch — adversarial AI output", () => {
       aiResult(
         JSON.stringify([
           // All-uppercase shout — blocked.
-          { id: "sec-1", caption: "FUNDING APPROPRIATIONS FOR FY2026 ALL CAPS" },
+          {
+            id: "sec-1",
+            caption: "FUNDING APPROPRIATIONS FOR FY2026 ALL CAPS",
+          },
           // Below the 3-word minimum.
           { id: "sec-2", caption: "Definitions only." },
           // Above the 30-word maximum.
@@ -372,7 +382,10 @@ describe("generateCaptionsBatch — adversarial AI output", () => {
             caption: Array.from({ length: 50 }, (_, i) => `word${i}`).join(" "),
           },
           // Valid.
-          { id: "sec-4", caption: "Authorizes new spending under the EPA program." },
+          {
+            id: "sec-4",
+            caption: "Authorizes new spending under the EPA program.",
+          },
         ]),
       ),
     );
@@ -479,7 +492,9 @@ describe("generateCaptionsBatch — adversarial AI output", () => {
       id,
       caption: `One-sentence summary of section ${i + 1}.`,
     }));
-    mockGenerateText.mockResolvedValue(aiResult(JSON.stringify(captionResponse)));
+    mockGenerateText.mockResolvedValue(
+      aiResult(JSON.stringify(captionResponse)),
+    );
 
     const result = await generateCaptionsBatch("Big Bill", sections, ids);
     expect(result.captions).toHaveLength(100);
